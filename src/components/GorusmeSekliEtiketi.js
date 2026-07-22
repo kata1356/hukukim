@@ -11,7 +11,7 @@ export default function GorusmeSekliEtiketi({ deger }) {
   const Icon = IKONLAR[deger] ?? IconMesaj;
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Icon className="h-4 w-4 text-lacivert/50" />
+      <Icon className="h-4 w-4 text-white/40" />
       {gorusmeSekliEtiket(deger)}
     </span>
   );

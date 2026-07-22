@@ -8,6 +8,7 @@ import PanelHeader from "@/components/PanelHeader";
 import Avatar from "@/components/Avatar";
 import Spinner from "@/components/Spinner";
 import DurumRozeti from "@/components/DurumRozeti";
+import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
@@ -22,6 +23,8 @@ import {
   IconEv,
   IconListe,
   IconYayin,
+  IconYildirim,
+  IconKamera,
 } from "@/components/icons";
 
 export default function AvukatPanel() {
@@ -35,6 +38,47 @@ export default function AvukatPanel() {
   const [ustlenYukleniyor, setUstlenYukleniyor] = useState(null);
   const [hata, setHata] = useState(null);
   const [acikHata, setAcikHata] = useState(null);
+  const [fotografYukleniyor, setFotografYukleniyor] = useState(false);
+  const [fotografHata, setFotografHata] = useState(null);
+
+  async function fotografYukle(e) {
+    const dosya = e.target.files?.[0];
+    if (!dosya || !profil) return;
+    setFotografHata(null);
+    setFotografYukleniyor(true);
+
+    const uzanti = dosya.name.split(".").pop();
+    const yol = `${profil.id}/profil.${uzanti}`;
+
+    const { error: yuklemeHatasi } = await supabase.storage
+      .from("avukat-fotograflari")
+      .upload(yol, dosya, { upsert: true });
+
+    if (yuklemeHatasi) {
+      setFotografHata("Fotoğraf yüklenirken bir hata oluştu, lütfen tekrar dene.");
+      setFotografYukleniyor(false);
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("avukat-fotograflari")
+      .getPublicUrl(yol);
+    const yeniUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: guncelleHatasi } = await supabase
+      .from("avukatlar")
+      .update({ profil_fotografi_url: yeniUrl })
+      .eq("id", profil.id);
+
+    if (guncelleHatasi) {
+      setFotografHata("Fotoğraf kaydedilirken bir hata oluştu, lütfen tekrar dene.");
+      setFotografYukleniyor(false);
+      return;
+    }
+
+    setProfil((onceki) => ({ ...onceki, profil_fotografi_url: yeniUrl }));
+    setFotografYukleniyor(false);
+  }
 
   async function acikTalepleriGetir(avukatProfili) {
     const { data } = await supabase
@@ -45,11 +89,13 @@ export default function AvukatPanel() {
       .order("created_at", { ascending: false });
 
     const uygunAlanlar = avukatProfili.uzmanlik_alanlari ?? [];
-    const uygunlar = (data ?? []).filter(
-      (t) =>
-        t.hedef_sehir === avukatProfili.sehir ||
-        uygunAlanlar.includes(t.hedef_uzmanlik_alani)
-    );
+    const uygunlar = (data ?? [])
+      .filter(
+        (t) =>
+          t.hedef_sehir === avukatProfili.sehir ||
+          uygunAlanlar.includes(t.hedef_uzmanlik_alani)
+      )
+      .sort((a, b) => (b.acil === a.acil ? 0 : b.acil ? 1 : -1));
     setAcikTalepler(uygunlar);
   }
 
@@ -153,8 +199,8 @@ export default function AvukatPanel() {
 
   if (sayfaYukleniyor) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center">
-        <Spinner className="h-8 w-8 text-lacivert" />
+      <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
+        <Spinner className="h-8 w-8 text-white" />
       </div>
     );
   }
@@ -163,50 +209,87 @@ export default function AvukatPanel() {
   const kabulSayisi = talepler.filter((t) => t.durum === "kabul").length;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
+    <div className="flex min-h-full flex-1 flex-col bg-gece">
       <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" />
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <section id="profil-bilgileri" className="scroll-mt-20 rounded-2xl border border-lacivert/10 bg-white p-6 shadow-sm shadow-lacivert/5">
+        <section id="profil-bilgileri" className="scroll-mt-20 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm">
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <Avatar adSoyad={profil.ad_soyad} boyut="lg" />
+            <label className="group relative cursor-pointer">
+              <Avatar
+                adSoyad={profil.ad_soyad}
+                fotografUrl={profil.profil_fotografi_url}
+                dogrulanmis={profil.dogrulanmis}
+                boyut="lg"
+              />
+              <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-turkuaz text-gece shadow-sm ring-2 ring-gece-yuzey transition group-hover:scale-110">
+                {fotografYukleniyor ? (
+                  <Spinner className="h-3.5 w-3.5" />
+                ) : (
+                  <IconKamera className="h-3.5 w-3.5" />
+                )}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={fotografYukle}
+                disabled={fotografYukleniyor}
+                className="hidden"
+              />
+            </label>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-lacivert">
+              <h1 className="text-xl font-bold text-white">
                 {profil.ad_soyad}
               </h1>
-              <p className="text-sm text-lacivert/60">{profil.email}</p>
+              <p className="text-sm text-white/60">{profil.email}</p>
+              <div className="mt-2">
+                <DogrulamaRozeti dogrulanmis={profil.dogrulanmis} />
+              </div>
             </div>
           </div>
 
+          {fotografHata && (
+            <p className="mt-3 rounded-lg bg-red-500/10 px-4 py-2.5 text-xs text-red-400 ring-1 ring-red-500/20">
+              {fotografHata}
+            </p>
+          )}
+
+          {!profil.dogrulanmis && (
+            <p className="mt-4 rounded-lg bg-white/5 px-4 py-2.5 text-xs text-white/50">
+              Baro sicil numaran ekibimiz tarafından kontrol edildikten sonra
+              profilin &quot;Doğrulanmış&quot; olarak işaretlenecek.
+            </p>
+          )}
+
           <div className="mt-6 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div className="flex items-center gap-2">
-              <IconTelefon className="h-4 w-4 shrink-0 text-altin-koyu" />
-              <span className="text-lacivert/70">{profil.telefon}</span>
+              <IconTelefon className="h-4 w-4 shrink-0 text-turkuaz" />
+              <span className="text-white/70">{profil.telefon}</span>
             </div>
             <div className="flex items-center gap-2">
-              <IconKonum className="h-4 w-4 shrink-0 text-altin-koyu" />
-              <span className="text-lacivert/70">{profil.sehir}</span>
+              <IconKonum className="h-4 w-4 shrink-0 text-turkuaz" />
+              <span className="text-white/70">{profil.sehir}</span>
             </div>
             <div className="flex items-center gap-2">
-              <IconBaro className="h-4 w-4 shrink-0 text-altin-koyu" />
-              <span className="text-lacivert/70">
+              <IconBaro className="h-4 w-4 shrink-0 text-turkuaz" />
+              <span className="text-white/70">
                 Baro Sicil No: {profil.baro_sicil_no}
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <IconUzmanlik className="mt-0.5 h-4 w-4 shrink-0 text-altin-koyu" />
-              <span className="text-lacivert/70">
+              <IconUzmanlik className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
+              <span className="text-white/70">
                 {(profil.uzmanlik_alanlari ?? []).join(", ")}
               </span>
             </div>
           </div>
 
           {profil.biyografi && (
-            <div className="mt-4 border-t border-lacivert/10 pt-4">
-              <span className="text-sm font-semibold text-lacivert">
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <span className="text-sm font-semibold text-white">
                 Biyografi
               </span>
-              <p className="mt-1 text-sm text-lacivert/70">
+              <p className="mt-1 text-sm text-white/70">
                 {profil.biyografi}
               </p>
             </div>
@@ -222,25 +305,25 @@ export default function AvukatPanel() {
 
         <section id="acik-talepler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-lacivert">
-              <IconYayin className="h-5 w-5 text-altin-koyu" />
+            <h2 className="flex items-center gap-2 text-lg font-bold text-white">
+              <IconYayin className="h-5 w-5 text-turkuaz" />
               Açık Talepler
             </h2>
             {acikTalepler.length > 0 && (
-              <span className="rounded-full bg-altin/15 px-2.5 py-0.5 text-xs font-semibold text-altin-koyu">
+              <span className="rounded-full bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
                 {acikTalepler.length} uygun talep
               </span>
             )}
           </div>
 
           {acikHata && (
-            <p className="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            <p className="mb-4 rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
               {acikHata}
             </p>
           )}
 
           {acikTalepler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-lacivert/20 bg-white p-8 text-center text-sm text-lacivert/60">
+            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Şehrine veya uzmanlık alanlarına uygun açık bir talep yok.
             </p>
           ) : (
@@ -248,12 +331,22 @@ export default function AvukatPanel() {
               {acikTalepler.map((talep) => (
                 <div
                   key={talep.id}
-                  className="rounded-2xl border border-altin/30 bg-altin/[0.04] p-5 shadow-sm shadow-lacivert/5"
+                  className={
+                    talep.acil
+                      ? "rounded-2xl border-2 border-red-500/30 bg-red-500/[0.06] p-5 shadow-sm"
+                      : "rounded-2xl border border-turkuaz/30 bg-turkuaz/[0.05] p-5 shadow-sm"
+                  }
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="font-semibold text-lacivert">{talep.konu}</p>
-                      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-lacivert/60">
+                      {talep.acil && (
+                        <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold text-white">
+                          <IconYildirim className="h-3.5 w-3.5" />
+                          ACİL
+                        </span>
+                      )}
+                      <p className="font-semibold text-white">{talep.konu}</p>
+                      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/60">
                         <span className="flex items-center gap-1">
                           <IconKonum className="h-3.5 w-3.5" />
                           {talep.hedef_sehir}
@@ -267,23 +360,27 @@ export default function AvukatPanel() {
                     <button
                       onClick={() => talebiUstlen(talep.id)}
                       disabled={ustlenYukleniyor === talep.id}
-                      className="flex shrink-0 items-center gap-2 rounded-full bg-altin px-4 py-2 text-sm font-bold text-lacivert shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                      className={
+                        talep.acil
+                          ? "flex shrink-0 items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                          : "flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-4 py-2 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                      }
                     >
                       {ustlenYukleniyor === talep.id && <Spinner className="h-4 w-4" />}
                       Bu Talebi Üstlen
                     </button>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-lacivert/60">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/60">
                     <GorusmeSekliEtiketi deger={talep.gorusme_sekli} />
                     <span className="flex items-center gap-1.5">
-                      <IconTakvim className="h-4 w-4 text-lacivert/50" />
+                      <IconTakvim className="h-4 w-4 text-white/40" />
                       {tarihFormatla(talep.tarih)}
                     </span>
                   </div>
 
                   {talep.aciklama && (
-                    <p className="mt-3 rounded-lg bg-white p-3 text-sm text-lacivert/70">
+                    <p className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-white/70">
                       {talep.aciklama}
                     </p>
                   )}
@@ -295,24 +392,24 @@ export default function AvukatPanel() {
 
         <section id="talepler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
-            <h2 className="text-lg font-bold text-lacivert">
+            <h2 className="text-lg font-bold text-white">
               Gelen Randevu Talepleri
             </h2>
             {bekleyenSayisi > 0 && (
-              <span className="rounded-full bg-altin/15 px-2.5 py-0.5 text-xs font-semibold text-altin-koyu">
+              <span className="rounded-full bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
                 {bekleyenSayisi} bekliyor
               </span>
             )}
           </div>
 
           {hata && (
-            <p className="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            <p className="mb-4 rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
               {hata}
             </p>
           )}
 
           {talepler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-lacivert/20 bg-white p-8 text-center text-sm text-lacivert/60">
+            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz bir randevu talebin yok.
             </p>
           ) : (
@@ -320,16 +417,16 @@ export default function AvukatPanel() {
               {talepler.map((talep) => (
                 <div
                   key={talep.id}
-                  className="rounded-2xl border border-lacivert/10 bg-white p-5 shadow-sm shadow-lacivert/5 transition hover:shadow-md"
+                  className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm transition hover:border-white/20"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
                       <Avatar adSoyad={talep.muvekkil_ad_soyad} />
                       <div>
-                        <p className="font-semibold text-lacivert">
+                        <p className="font-semibold text-white">
                           {talep.muvekkil_ad_soyad}
                         </p>
-                        <p className="flex items-center gap-1.5 text-sm text-lacivert/60">
+                        <p className="flex items-center gap-1.5 text-sm text-white/60">
                           <IconTelefon className="h-3.5 w-3.5" />
                           {talep.muvekkil_telefon}
                         </p>
@@ -340,22 +437,22 @@ export default function AvukatPanel() {
 
                   <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                     <p>
-                      <span className="font-semibold text-lacivert">
+                      <span className="font-semibold text-white">
                         Konu:{" "}
                       </span>
-                      <span className="text-lacivert/70">{talep.konu}</span>
+                      <span className="text-white/70">{talep.konu}</span>
                     </p>
-                    <p className="flex items-center gap-1.5 text-lacivert/70">
+                    <p className="flex items-center gap-1.5 text-white/70">
                       <GorusmeSekliEtiketi deger={talep.gorusme_sekli} />
                     </p>
-                    <p className="flex items-center gap-1.5 text-lacivert/70">
-                      <IconTakvim className="h-4 w-4 text-lacivert/50" />
+                    <p className="flex items-center gap-1.5 text-white/70">
+                      <IconTakvim className="h-4 w-4 text-white/40" />
                       {tarihFormatla(talep.tarih)}
                     </p>
                   </div>
 
                   {talep.aciklama && (
-                    <p className="mt-3 rounded-lg bg-lacivert/[0.03] p-3 text-sm text-lacivert/70">
+                    <p className="mt-3 rounded-lg bg-white/[0.03] p-3 text-sm text-white/70">
                       {talep.aciklama}
                     </p>
                   )}
@@ -365,7 +462,7 @@ export default function AvukatPanel() {
                       <button
                         onClick={() => talebiGuncelle(talep.id, "kabul")}
                         disabled={islemYukleniyor === talep.id}
-                        className="flex items-center gap-2 rounded-full bg-lacivert px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-lacivert-koyu hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                        className="flex items-center gap-2 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
                       >
                         {islemYukleniyor === talep.id ? (
                           <Spinner className="h-4 w-4" />
@@ -377,7 +474,7 @@ export default function AvukatPanel() {
                       <button
                         onClick={() => talebiGuncelle(talep.id, "red")}
                         disabled={islemYukleniyor === talep.id}
-                        className="flex items-center gap-2 rounded-full border-2 border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:-translate-y-0.5 hover:bg-red-50 disabled:opacity-60 disabled:hover:translate-y-0"
+                        className="flex items-center gap-2 rounded-full border-2 border-red-500/30 px-4 py-2 text-sm font-semibold text-red-400 transition hover:-translate-y-0.5 hover:bg-red-500/10 disabled:opacity-60 disabled:hover:translate-y-0"
                       >
                         {islemYukleniyor === talep.id ? (
                           <Spinner className="h-4 w-4" />

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji } from "@/lib/hataMesajlari";
@@ -16,7 +16,17 @@ const OZELLIKLER = [
 ];
 
 export default function Giris() {
+  return (
+    <Suspense fallback={null}>
+      <GirisIcerik />
+    </Suspense>
+  );
+}
+
+function GirisIcerik() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const donusAdresi = searchParams.get("donus");
 
   const [email, setEmail] = useState("");
   const [sifre, setSifre] = useState("");
@@ -58,7 +68,7 @@ export default function Giris() {
       .maybeSingle();
 
     if (muvekkilKaydi) {
-      router.push("/muvekkil/panel");
+      router.push(donusAdresi && donusAdresi.startsWith("/") ? donusAdresi : "/muvekkil/panel");
       return;
     }
 
@@ -68,7 +78,7 @@ export default function Giris() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col lg:flex-row">
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-lacivert to-lacivert-koyu px-12 py-14 text-white lg:flex lg:w-[45%] lg:flex-col lg:justify-between">
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-gece-yuzey to-gece px-12 py-14 text-white lg:flex lg:w-[45%] lg:flex-col lg:justify-between">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
@@ -80,15 +90,15 @@ export default function Giris() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-altin/10 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-turkuaz/10 blur-3xl"
         />
 
         <Link href="/" className="relative text-2xl font-bold">
-          Hukuk<span className="text-altin">im</span>
+          Hukuk<span className="text-turkuaz">im</span>
         </Link>
 
         <div className="relative">
-          <IconTerazi className="h-14 w-14 text-altin" />
+          <IconTerazi className="h-14 w-14 text-turkuaz" />
           <h2 className="mt-6 text-3xl font-bold leading-snug">
             Türkiye&apos;nin dijital
             <br />
@@ -104,7 +114,7 @@ export default function Giris() {
           {OZELLIKLER.map(({ Icon, metin }) => (
             <li key={metin} className="flex items-center gap-3 text-sm text-white/80">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
-                <Icon className="h-4 w-4 text-altin" />
+                <Icon className="h-4 w-4 text-turkuaz" />
               </span>
               {metin}
             </li>
@@ -112,19 +122,19 @@ export default function Giris() {
         </ul>
       </div>
 
-      <div className="flex flex-1 flex-col bg-gradient-to-b from-lacivert/[0.03] to-white">
-        <header className="border-b border-lacivert/10 bg-white/80 backdrop-blur lg:hidden">
+      <div className="flex flex-1 flex-col bg-gradient-to-b from-turkuaz/[0.06] to-gece">
+        <header className="border-b border-white/10 bg-gece/80 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-5xl items-center px-6 py-5">
-            <Link href="/" className="text-2xl font-bold text-lacivert">
-              Hukuk<span className="text-altin">im</span>
+            <Link href="/" className="text-2xl font-bold text-white">
+              Hukuk<span className="text-turkuaz">im</span>
             </Link>
           </div>
         </header>
 
         <main className="flex flex-1 items-center justify-center px-4 py-10 sm:py-14">
-          <div className="w-full max-w-md rounded-2xl border border-lacivert/10 bg-white p-6 shadow-lg shadow-lacivert/5 sm:p-8">
-            <h1 className="text-2xl font-bold text-lacivert">Giriş Yap</h1>
-            <p className="mt-1 text-sm text-lacivert/60">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-lg sm:p-8">
+            <h1 className="text-2xl font-bold text-white">Giriş Yap</h1>
+            <p className="mt-1 text-sm text-white/60">
               Hukukim hesabınla devam et.
             </p>
 
@@ -138,18 +148,26 @@ export default function Giris() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ornek@eposta.com"
               />
-              <TextField
-                label="Şifre"
-                id="sifre"
-                type="password"
-                required
-                value={sifre}
-                onChange={(e) => setSifre(e.target.value)}
-                placeholder="Şifren"
-              />
+              <div className="flex flex-col gap-1.5">
+                <TextField
+                  label="Şifre"
+                  id="sifre"
+                  type="password"
+                  required
+                  value={sifre}
+                  onChange={(e) => setSifre(e.target.value)}
+                  placeholder="Şifren"
+                />
+                <Link
+                  href="/sifremi-unuttum"
+                  className="self-end text-xs font-semibold text-white/40 hover:text-turkuaz"
+                >
+                  Şifremi unuttum
+                </Link>
+              </div>
 
               {hata && (
-                <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+                <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
                   {hata}
                 </p>
               )}
@@ -158,13 +176,13 @@ export default function Giris() {
                 Giriş Yap
               </Button>
 
-              <p className="text-center text-sm text-lacivert/60">
+              <p className="text-center text-sm text-white/60">
                 Hesabın yok mu?{" "}
-                <Link href="/avukat/kayit" className="font-semibold text-altin-koyu">
+                <Link href="/avukat/kayit" className="font-semibold text-turkuaz">
                   Avukat olarak kaydol
                 </Link>{" "}
                 ·{" "}
-                <Link href="/muvekkil/kayit" className="font-semibold text-altin-koyu">
+                <Link href="/muvekkil/kayit" className="font-semibold text-turkuaz">
                   Müvekkil olarak kaydol
                 </Link>
               </p>

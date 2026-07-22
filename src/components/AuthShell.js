@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export default function AuthShell({ baslik, altBaslik, genis = false, children }) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gradient-to-b from-lacivert/[0.03] to-white">
-      <header className="border-b border-lacivert/10 bg-white/80 backdrop-blur">
+    <div className="flex min-h-full flex-1 flex-col bg-gradient-to-b from-turkuaz/[0.06] to-gece">
+      <header className="border-b border-white/10 bg-gece/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center px-6 py-5">
-          <Link href="/" className="text-2xl font-bold text-lacivert">
-            Hukuk<span className="text-altin">im</span>
+          <Link href="/" className="text-2xl font-bold text-white">
+            Hukuk<span className="text-turkuaz">im</span>
           </Link>
         </div>
       </header>
@@ -15,11 +15,11 @@ export default function AuthShell({ baslik, altBaslik, genis = false, children }
         <div
           className={`w-full ${
             genis ? "max-w-2xl" : "max-w-md"
-          } rounded-2xl border border-lacivert/10 bg-white p-6 shadow-lg shadow-lacivert/5 sm:p-8`}
+          } rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-lg sm:p-8`}
         >
-          <h1 className="text-2xl font-bold text-lacivert">{baslik}</h1>
+          <h1 className="text-2xl font-bold text-white">{baslik}</h1>
           {altBaslik && (
-            <p className="mt-1 text-sm text-lacivert/60">{altBaslik}</p>
+            <p className="mt-1 text-sm text-white/60">{altBaslik}</p>
           )}
           <div className="mt-6">{children}</div>
         </div>

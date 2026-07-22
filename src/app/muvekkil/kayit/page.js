@@ -10,9 +10,12 @@ import AuthShell from "@/components/AuthShell";
 import TextField from "@/components/TextField";
 import KvkkOnay from "@/components/KvkkOnay";
 import Button from "@/components/Button";
+import Honeypot from "@/components/Honeypot";
+import { IconOnay } from "@/components/icons";
 
 export default function MuvekkilKayit() {
   const router = useRouter();
+  const [gonderildi, setGonderildi] = useState(false);
 
   const [form, setForm] = useState({
     adSoyad: "",
@@ -22,12 +25,69 @@ export default function MuvekkilKayit() {
     sehir: "",
   });
   const [kvkkOnay, setKvkkOnay] = useState(false);
+  const [webSitesi, setWebSitesi] = useState("");
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [zatenKayitli, setZatenKayitli] = useState(false);
 
+  const [kod, setKod] = useState("");
+  const [dogrulaniyor, setDogrulaniyor] = useState(false);
+  const [dogrulamaHatasi, setDogrulamaHatasi] = useState(null);
+  const [yenidenGonderiliyor, setYenidenGonderiliyor] = useState(false);
+  const [yenidenGonderildi, setYenidenGonderildi] = useState(false);
+
   function alanGuncelle(alan, deger) {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
+  }
+
+  async function oturumuTamamla(session) {
+    const tamamlaYaniti = await fetch("/api/kayit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+    const tamamlaSonucu = await tamamlaYaniti.json();
+
+    if (!tamamlaYaniti.ok) {
+      return { basarili: false, hata: turkceHataMesaji(tamamlaSonucu.hata) };
+    }
+
+    router.push("/muvekkil/panel");
+    return { basarili: true };
+  }
+
+  async function handleKodDogrula(e) {
+    e.preventDefault();
+    setDogrulamaHatasi(null);
+    setDogrulaniyor(true);
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: form.email,
+      token: kod,
+      type: "signup",
+    });
+
+    if (error || !data.session) {
+      setDogrulamaHatasi("Kod geçersiz ya da süresi dolmuş. Tekrar dene ya da yeni kod iste.");
+      setDogrulaniyor(false);
+      return;
+    }
+
+    const sonuc = await oturumuTamamla(data.session);
+    if (!sonuc.basarili) {
+      setDogrulamaHatasi(sonuc.hata);
+      setDogrulaniyor(false);
+    }
+  }
+
+  async function handleKoduTekrarGonder() {
+    setYenidenGonderiliyor(true);
+    setDogrulamaHatasi(null);
+    await supabase.auth.resend({ type: "signup", email: form.email });
+    setYenidenGonderiliyor(false);
+    setYenidenGonderildi(true);
   }
 
   async function handleSubmit(e) {
@@ -36,44 +96,95 @@ export default function MuvekkilKayit() {
     setZatenKayitli(false);
     setYukleniyor(true);
 
-    const kayitYaniti = await fetch("/api/kayit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        rol: "muvekkil",
-        email: form.email,
-        sifre: form.sifre,
-        profil: {
-          ad_soyad: form.adSoyad,
-          telefon: form.telefon,
-          sehir: form.sehir,
-          kvkk_onay: kvkkOnay,
-        },
-      }),
-    });
-    const kayitSonucu = await kayitYaniti.json();
-
-    if (!kayitYaniti.ok) {
-      console.error("Müvekkil kayıt hatası:", kayitSonucu.hata);
-      setHata(turkceHataMesaji(kayitSonucu.hata));
-      setZatenKayitli(emailZatenKayitliMi(kayitSonucu.hata));
-      setYukleniyor(false);
-      return;
-    }
-
-    const { error: girisHatasi } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.sifre,
+      options: {
+        emailRedirectTo: `${window.location.origin}/kayit-dogrulama`,
+        data: {
+          rol: "muvekkil",
+          profil: {
+            ad_soyad: form.adSoyad,
+            telefon: form.telefon,
+            sehir: form.sehir,
+            kvkk_onay: kvkkOnay,
+          },
+          web_sitesi: webSitesi,
+        },
+      },
     });
 
-    if (girisHatasi) {
-      console.error("Kayıt sonrası giriş hatası:", girisHatasi);
-      setHata(turkceHataMesaji(girisHatasi));
+    if (error) {
+      console.error("Müvekkil kayıt hatası:", error);
+      setHata(turkceHataMesaji(error));
+      setZatenKayitli(emailZatenKayitliMi(error));
       setYukleniyor(false);
       return;
     }
 
-    router.push("/muvekkil/panel");
+    if (data.session) {
+      const sonuc = await oturumuTamamla(data.session);
+      if (!sonuc.basarili) {
+        setHata(sonuc.hata);
+        setYukleniyor(false);
+      }
+      return;
+    }
+
+    setYukleniyor(false);
+    setGonderildi(true);
+  }
+
+  if (gonderildi) {
+    return (
+      <AuthShell baslik="E-postanı Kontrol Et" altBaslik="Kaydını tamamlamak için sana bir kod gönderdik.">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10 text-green-400 ring-1 ring-green-500/20">
+            <IconOnay className="h-7 w-7" />
+          </span>
+          <p className="text-sm text-white/60">
+            <span className="font-semibold text-white">{form.email}</span>{" "}
+            adresine bir doğrulama kodu (ve bağlantı) gönderdik. Kodu aşağıya
+            girerek buradan devam edebilirsin.
+          </p>
+        </div>
+
+        <form onSubmit={handleKodDogrula} className="mt-6 flex flex-col gap-4">
+          <TextField
+            label="Doğrulama Kodu"
+            id="kod"
+            type="text"
+            required
+            value={kod}
+            onChange={(e) => setKod(e.target.value)}
+            placeholder="6 haneli kod"
+          />
+
+          {dogrulamaHatasi && (
+            <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+              {dogrulamaHatasi}
+            </p>
+          )}
+
+          <Button type="submit" yukleniyor={dogrulaniyor}>
+            Kodu Doğrula
+          </Button>
+
+          <button
+            type="button"
+            onClick={handleKoduTekrarGonder}
+            disabled={yenidenGonderiliyor}
+            className="text-center text-sm font-semibold text-turkuaz disabled:opacity-60"
+          >
+            {yenidenGonderiliyor
+              ? "Gönderiliyor..."
+              : yenidenGonderildi
+              ? "Kod tekrar gönderildi"
+              : "Kodu tekrar gönder"}
+          </button>
+        </form>
+      </AuthShell>
+    );
   }
 
   return (
@@ -82,6 +193,7 @@ export default function MuvekkilKayit() {
       altBaslik="Uzman avukatları bul, kolayca randevu talebi gönder."
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <Honeypot value={webSitesi} onChange={(e) => setWebSitesi(e.target.value)} />
         <TextField
           label="Ad Soyad"
           id="adSoyad"
@@ -140,7 +252,7 @@ export default function MuvekkilKayit() {
         <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
 
         {hata && (
-          <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
             {hata}
             {zatenKayitli && (
               <>
@@ -158,9 +270,9 @@ export default function MuvekkilKayit() {
           Kayıt Ol
         </Button>
 
-        <p className="text-center text-sm text-lacivert/60">
+        <p className="text-center text-sm text-white/60">
           Zaten hesabın var mı?{" "}
-          <Link href="/giris" className="font-semibold text-altin-koyu">
+          <Link href="/giris" className="font-semibold text-turkuaz">
             Giriş yap
           </Link>
         </p>

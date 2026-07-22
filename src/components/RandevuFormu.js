@@ -52,10 +52,15 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 rounded-xl bg-lacivert/[0.03] p-3">
-        <Avatar adSoyad={avukat.ad_soyad} boyut="sm" />
-        <p className="text-sm text-lacivert/60">
-          <span className="font-semibold text-lacivert">{avukat.ad_soyad}</span>{" "}
+      <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3">
+        <Avatar
+          adSoyad={avukat.ad_soyad}
+          fotografUrl={avukat.profil_fotografi_url}
+          dogrulanmis={avukat.dogrulanmis}
+          boyut="sm"
+        />
+        <p className="text-sm text-white/60">
+          <span className="font-semibold text-white">{avukat.ad_soyad}</span>{" "}
           için randevu talebi gönderiyorsun.
         </p>
       </div>
@@ -107,7 +112,7 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
       />
 
       {hata && (
-        <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+        <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
           {hata}
         </p>
       )}

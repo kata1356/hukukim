@@ -11,9 +11,12 @@ import AuthShell from "@/components/AuthShell";
 import TextField from "@/components/TextField";
 import KvkkOnay from "@/components/KvkkOnay";
 import Button from "@/components/Button";
+import Honeypot from "@/components/Honeypot";
+import { IconOnay } from "@/components/icons";
 
 export default function AvukatKayit() {
   const router = useRouter();
+  const [gonderildi, setGonderildi] = useState(false);
 
   const [form, setForm] = useState({
     adSoyad: "",
@@ -26,9 +29,16 @@ export default function AvukatKayit() {
   });
   const [uzmanlikSecimi, setUzmanlikSecimi] = useState([]);
   const [kvkkOnay, setKvkkOnay] = useState(false);
+  const [webSitesi, setWebSitesi] = useState("");
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [zatenKayitli, setZatenKayitli] = useState(false);
+
+  const [kod, setKod] = useState("");
+  const [dogrulaniyor, setDogrulaniyor] = useState(false);
+  const [dogrulamaHatasi, setDogrulamaHatasi] = useState(null);
+  const [yenidenGonderiliyor, setYenidenGonderiliyor] = useState(false);
+  const [yenidenGonderildi, setYenidenGonderildi] = useState(false);
 
   function alanGuncelle(alan, deger) {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
@@ -40,6 +50,56 @@ export default function AvukatKayit() {
         ? onceki.filter((a) => a !== alan)
         : [...onceki, alan]
     );
+  }
+
+  async function oturumuTamamla(session) {
+    const tamamlaYaniti = await fetch("/api/kayit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+    const tamamlaSonucu = await tamamlaYaniti.json();
+
+    if (!tamamlaYaniti.ok) {
+      return { basarili: false, hata: turkceHataMesaji(tamamlaSonucu.hata) };
+    }
+
+    router.push("/avukat/panel");
+    return { basarili: true };
+  }
+
+  async function handleKodDogrula(e) {
+    e.preventDefault();
+    setDogrulamaHatasi(null);
+    setDogrulaniyor(true);
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: form.email,
+      token: kod,
+      type: "signup",
+    });
+
+    if (error || !data.session) {
+      setDogrulamaHatasi("Kod geçersiz ya da süresi dolmuş. Tekrar dene ya da yeni kod iste.");
+      setDogrulaniyor(false);
+      return;
+    }
+
+    const sonuc = await oturumuTamamla(data.session);
+    if (!sonuc.basarili) {
+      setDogrulamaHatasi(sonuc.hata);
+      setDogrulaniyor(false);
+    }
+  }
+
+  async function handleKoduTekrarGonder() {
+    setYenidenGonderiliyor(true);
+    setDogrulamaHatasi(null);
+    await supabase.auth.resend({ type: "signup", email: form.email });
+    setYenidenGonderiliyor(false);
+    setYenidenGonderildi(true);
   }
 
   async function handleSubmit(e) {
@@ -54,47 +114,98 @@ export default function AvukatKayit() {
 
     setYukleniyor(true);
 
-    const kayitYaniti = await fetch("/api/kayit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        rol: "avukat",
-        email: form.email,
-        sifre: form.sifre,
-        profil: {
-          ad_soyad: form.adSoyad,
-          telefon: form.telefon,
-          baro_sicil_no: form.baroSicilNo,
-          sehir: form.sehir,
-          uzmanlik_alanlari: uzmanlikSecimi,
-          biyografi: form.biyografi,
-          kvkk_onay: kvkkOnay,
-        },
-      }),
-    });
-    const kayitSonucu = await kayitYaniti.json();
-
-    if (!kayitYaniti.ok) {
-      console.error("Avukat kayıt hatası:", kayitSonucu.hata);
-      setHata(turkceHataMesaji(kayitSonucu.hata));
-      setZatenKayitli(emailZatenKayitliMi(kayitSonucu.hata));
-      setYukleniyor(false);
-      return;
-    }
-
-    const { error: girisHatasi } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.sifre,
+      options: {
+        emailRedirectTo: `${window.location.origin}/kayit-dogrulama`,
+        data: {
+          rol: "avukat",
+          profil: {
+            ad_soyad: form.adSoyad,
+            telefon: form.telefon,
+            baro_sicil_no: form.baroSicilNo,
+            sehir: form.sehir,
+            uzmanlik_alanlari: uzmanlikSecimi,
+            biyografi: form.biyografi,
+            kvkk_onay: kvkkOnay,
+          },
+          web_sitesi: webSitesi,
+        },
+      },
     });
 
-    if (girisHatasi) {
-      console.error("Kayıt sonrası giriş hatası:", girisHatasi);
-      setHata(turkceHataMesaji(girisHatasi));
+    if (error) {
+      console.error("Avukat kayıt hatası:", error);
+      setHata(turkceHataMesaji(error));
+      setZatenKayitli(emailZatenKayitliMi(error));
       setYukleniyor(false);
       return;
     }
 
-    router.push("/avukat/panel");
+    if (data.session) {
+      const sonuc = await oturumuTamamla(data.session);
+      if (!sonuc.basarili) {
+        setHata(sonuc.hata);
+        setYukleniyor(false);
+      }
+      return;
+    }
+
+    setYukleniyor(false);
+    setGonderildi(true);
+  }
+
+  if (gonderildi) {
+    return (
+      <AuthShell baslik="E-postanı Kontrol Et" altBaslik="Kaydını tamamlamak için sana bir kod gönderdik.">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10 text-green-400 ring-1 ring-green-500/20">
+            <IconOnay className="h-7 w-7" />
+          </span>
+          <p className="text-sm text-white/60">
+            <span className="font-semibold text-white">{form.email}</span>{" "}
+            adresine bir doğrulama kodu (ve bağlantı) gönderdik. Kodu aşağıya
+            girerek buradan devam edebilirsin.
+          </p>
+        </div>
+
+        <form onSubmit={handleKodDogrula} className="mt-6 flex flex-col gap-4">
+          <TextField
+            label="Doğrulama Kodu"
+            id="kod"
+            type="text"
+            required
+            value={kod}
+            onChange={(e) => setKod(e.target.value)}
+            placeholder="6 haneli kod"
+          />
+
+          {dogrulamaHatasi && (
+            <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+              {dogrulamaHatasi}
+            </p>
+          )}
+
+          <Button type="submit" yukleniyor={dogrulaniyor}>
+            Kodu Doğrula
+          </Button>
+
+          <button
+            type="button"
+            onClick={handleKoduTekrarGonder}
+            disabled={yenidenGonderiliyor}
+            className="text-center text-sm font-semibold text-turkuaz disabled:opacity-60"
+          >
+            {yenidenGonderiliyor
+              ? "Gönderiliyor..."
+              : yenidenGonderildi
+              ? "Kod tekrar gönderildi"
+              : "Kodu tekrar gönder"}
+          </button>
+        </form>
+      </AuthShell>
+    );
   }
 
   return (
@@ -104,6 +215,7 @@ export default function AvukatKayit() {
       genis
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <Honeypot value={webSitesi} onChange={(e) => setWebSitesi(e.target.value)} />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <TextField
             label="Ad Soyad"
@@ -171,20 +283,20 @@ export default function AvukatKayit() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-lacivert">
+          <span className="text-sm font-semibold text-white">
             Uzmanlık Alanları
           </span>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-lacivert/20 p-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-white/15 p-4 sm:grid-cols-3">
             {UZMANLIK_ALANLARI.map((alan) => (
               <label
                 key={alan}
-                className="flex items-center gap-2 text-sm text-lacivert/80"
+                className="flex items-center gap-2 text-sm text-white/70"
               >
                 <input
                   type="checkbox"
                   checked={uzmanlikSecimi.includes(alan)}
                   onChange={() => uzmanlikDegistir(alan)}
-                  className="h-4 w-4 shrink-0 rounded border-lacivert/30 text-altin focus:ring-altin/50"
+                  className="h-4 w-4 shrink-0 rounded border-white/20 bg-white/5 text-turkuaz focus:ring-turkuaz/40"
                 />
                 {alan}
               </label>
@@ -192,21 +304,27 @@ export default function AvukatKayit() {
           </div>
         </div>
 
-        <TextField
-          label="Biyografi"
-          id="biyografi"
-          as="textarea"
-          rows={4}
-          required
-          value={form.biyografi}
-          onChange={(e) => alanGuncelle("biyografi", e.target.value)}
-          placeholder="Deneyimlerinden ve çalışma alanlarından kısaca bahset."
-        />
+        <div className="flex flex-col gap-1.5">
+          <TextField
+            label="Biyografi"
+            id="biyografi"
+            as="textarea"
+            rows={4}
+            required
+            minLength={100}
+            value={form.biyografi}
+            onChange={(e) => alanGuncelle("biyografi", e.target.value)}
+            placeholder="Deneyimlerinden ve çalışma alanlarından en az 100 karakter olacak şekilde bahset."
+          />
+          <p className={`text-xs ${form.biyografi.length < 100 ? "text-white/40" : "text-turkuaz"}`}>
+            En az 100 karakter gerekli · şu an {form.biyografi.length}
+          </p>
+        </div>
 
         <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
 
         {hata && (
-          <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
             {hata}
             {zatenKayitli && (
               <>
@@ -224,9 +342,9 @@ export default function AvukatKayit() {
           Kayıt Ol
         </Button>
 
-        <p className="text-center text-sm text-lacivert/60">
+        <p className="text-center text-sm text-white/60">
           Zaten hesabın var mı?{" "}
-          <Link href="/giris" className="font-semibold text-altin-koyu">
+          <Link href="/giris" className="font-semibold text-turkuaz">
             Giriş yap
           </Link>
         </p>

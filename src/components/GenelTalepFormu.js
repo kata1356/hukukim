@@ -58,7 +58,7 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <p className="text-sm text-lacivert/60">
+      <p className="text-sm text-white/60">
         Talebin, seçtiğin şehir ve uzmanlık alanına uygun tüm avukatlara
         gösterilir. İlk yanıt veren avukat talebini üstlenir.
       </p>
@@ -148,7 +148,7 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
       />
 
       {hata && (
-        <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-700">
+        <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
           {hata}
         </p>
       )}

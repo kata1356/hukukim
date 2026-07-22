@@ -1,44 +1,57 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+// Bu uç nokta, e-posta doğrulama bağlantısına tıklandıktan sonra çağrılır.
+// Kullanıcı zaten Supabase Auth üzerinde doğrulanmış bir oturuma sahiptir;
+// burada yalnızca kayıt sırasında toplanan bilgileri (user_metadata) okuyup
+// avukatlar/muvekkiller tablosuna profil satırını ekliyoruz.
 export async function POST(request) {
-  const govde = await request.json();
-  const { rol, email, sifre, profil } = govde;
+  const yetkiBasligi = request.headers.get("authorization") ?? "";
+  const token = yetkiBasligi.replace(/^Bearer\s+/i, "");
 
-  if (!rol || !email || !sifre || !profil) {
-    return NextResponse.json(
-      { hata: { message: "Eksik bilgi gönderildi." } },
-      { status: 400 }
-    );
+  if (!token) {
+    return NextResponse.json({ hata: { message: "Oturum bulunamadı." } }, { status: 401 });
   }
 
-  if (rol !== "avukat" && rol !== "muvekkil") {
-    return NextResponse.json(
-      { hata: { message: "Geçersiz rol." } },
-      { status: 400 }
-    );
+  const { data: kullaniciVerisi, error: kullaniciHatasi } = await supabaseAdmin.auth.getUser(token);
+
+  if (kullaniciHatasi || !kullaniciVerisi.user) {
+    return NextResponse.json({ hata: { message: "Oturum geçersiz." } }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password: sifre,
-    email_confirm: true,
-    user_metadata: { rol },
-  });
+  const kullanici = kullaniciVerisi.user;
+  const metadata = kullanici.user_metadata ?? {};
+  const { rol, profil, web_sitesi } = metadata;
 
-  if (error || !data.user) {
-    return NextResponse.json({ hata: error }, { status: 400 });
+  if (web_sitesi) {
+    // Honeypot alanı doldurulmuş: bot kaydı. Profil oluşturmadan sahte
+    // başarı yanıtı dön.
+    return NextResponse.json({ basarili: true });
+  }
+
+  if (!rol || !profil || (rol !== "avukat" && rol !== "muvekkil")) {
+    return NextResponse.json({ hata: { message: "Kayıt bilgileri eksik." } }, { status: 400 });
   }
 
   const tabloAdi = rol === "avukat" ? "avukatlar" : "muvekkiller";
+
+  const { data: mevcutProfil } = await supabaseAdmin
+    .from(tabloAdi)
+    .select("id")
+    .eq("id", kullanici.id)
+    .maybeSingle();
+
+  if (mevcutProfil) {
+    return NextResponse.json({ basarili: true, rol });
+  }
+
   const { error: eklemeHatasi } = await supabaseAdmin
     .from(tabloAdi)
-    .insert({ id: data.user.id, email, ...profil });
+    .insert({ id: kullanici.id, email: kullanici.email, ...profil });
 
   if (eklemeHatasi) {
-    await supabaseAdmin.auth.admin.deleteUser(data.user.id);
     return NextResponse.json({ hata: eklemeHatasi }, { status: 400 });
   }
 
-  return NextResponse.json({ basarili: true });
+  return NextResponse.json({ basarili: true, rol });
 }

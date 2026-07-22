@@ -1,9 +1,9 @@
 import { IconOnay, IconRed, IconSaat } from "./icons";
 
 const DURUM_AYARLARI = {
-  bekliyor: { metin: "Bekliyor", sinif: "bg-amber-50 text-amber-700", Icon: IconSaat },
-  kabul: { metin: "Kabul Edildi", sinif: "bg-green-50 text-green-700", Icon: IconOnay },
-  red: { metin: "Reddedildi", sinif: "bg-red-50 text-red-700", Icon: IconRed },
+  bekliyor: { metin: "Bekliyor", sinif: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20", Icon: IconSaat },
+  kabul: { metin: "Kabul Edildi", sinif: "bg-green-500/10 text-green-400 ring-1 ring-green-500/20", Icon: IconOnay },
+  red: { metin: "Reddedildi", sinif: "bg-red-500/10 text-red-400 ring-1 ring-red-500/20", Icon: IconRed },
 };
 
 export default function DurumRozeti({ durum }) {
