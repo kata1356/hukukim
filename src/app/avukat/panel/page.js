@@ -40,6 +40,50 @@ export default function AvukatPanel() {
   const [acikHata, setAcikHata] = useState(null);
   const [fotografYukleniyor, setFotografYukleniyor] = useState(false);
   const [fotografHata, setFotografHata] = useState(null);
+  const [dakikaGirisleri, setDakikaGirisleri] = useState({});
+  const [tamamlaYukleniyor, setTamamlaYukleniyor] = useState(null);
+
+  async function gorusmeyiTamamla(talepId) {
+    const dakika = dakikaGirisleri[talepId];
+    if (!dakika || Number(dakika) <= 0) return;
+
+    setHata(null);
+    setTamamlaYukleniyor(talepId);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const yanit = await fetch("/api/odeme/gorusme-tamamla", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ randevuTalepId: talepId, dakika }),
+    });
+    const sonuc = await yanit.json();
+
+    if (!yanit.ok) {
+      setHata(sonuc.hata ?? "İşlem tamamlanamadı.");
+      setTamamlaYukleniyor(null);
+      return;
+    }
+
+    setTalepler((oncekiler) =>
+      oncekiler.map((t) =>
+        t.id === talepId
+          ? {
+              ...t,
+              gorusme_suresi_dakika: Number(dakika),
+              odeme_tutari: sonuc.tutar,
+              durum: sonuc.odemeGerekli ? "kabul" : "tamamlandi",
+            }
+          : t
+      )
+    );
+    setTamamlaYukleniyor(null);
+  }
 
   async function fotografYukle(e) {
     const dosya = e.target.files?.[0];
@@ -434,7 +478,7 @@ export default function AvukatPanel() {
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <DurumRozeti durum={talep.durum} />
-                      {talep.durum === "kabul" && (
+                      {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                             talep.odeme_durumu === "gerekli"
@@ -501,6 +545,40 @@ export default function AvukatPanel() {
                         Reddet
                       </button>
                     </div>
+                  )}
+
+                  {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+                      <label className="text-sm font-semibold text-white/70" htmlFor={`dakika-${talep.id}`}>
+                        Görüşme kaç dakika sürdü?
+                      </label>
+                      <input
+                        id={`dakika-${talep.id}`}
+                        type="number"
+                        min="1"
+                        placeholder="Ör. 12"
+                        value={dakikaGirisleri[talep.id] ?? ""}
+                        onChange={(e) =>
+                          setDakikaGirisleri((oncekiler) => ({ ...oncekiler, [talep.id]: e.target.value }))
+                        }
+                        className="w-24 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-turkuaz"
+                      />
+                      <button
+                        onClick={() => gorusmeyiTamamla(talep.id)}
+                        disabled={tamamlaYukleniyor === talep.id}
+                        className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                      >
+                        {tamamlaYukleniyor === talep.id && <Spinner className="h-4 w-4" />}
+                        Görüşmeyi Tamamla
+                      </button>
+                    </div>
+                  )}
+
+                  {talep.gorusme_suresi_dakika && (
+                    <p className="mt-3 text-xs text-white/40">
+                      Görüşme süresi: {talep.gorusme_suresi_dakika} dk
+                      {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
+                    </p>
                   )}
                 </div>
               ))}

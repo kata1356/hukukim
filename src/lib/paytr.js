@@ -20,6 +20,7 @@ export async function paytrTokenAl({
   adres,
   basariliUrl,
   basarisizUrl,
+  kayitliKartToken,
 }) {
   const merchantId = ortamDegiskeni("PAYTR_MERCHANT_ID");
   const merchantKey = ortamDegiskeni("PAYTR_MERCHANT_KEY");
@@ -59,7 +60,12 @@ export async function paytrTokenAl({
     timeout_limit: "30",
     currency: paraBirimi,
     test_mode: testModu,
+    store_card: "1",
   });
+
+  if (kayitliKartToken) {
+    govde.set("utoken", kayitliKartToken);
+  }
 
   const yanit = await fetch(PAYTR_TOKEN_URL, {
     method: "POST",

@@ -8,6 +8,7 @@ export async function POST(request) {
   const totalAmount = formVerisi.get("total_amount");
   const hash = formVerisi.get("hash");
   const failedReasonMsg = formVerisi.get("failed_reason_msg");
+  const utoken = formVerisi.get("utoken");
 
   const gecerliMi = paytrBildirimHashDogrula({ merchantOid, status, totalAmount, hash });
 
@@ -27,10 +28,19 @@ export async function POST(request) {
     .maybeSingle();
 
   if (status === "success" && odeme?.randevu_talep_id) {
-    await supabaseAdmin
+    const { data: talep } = await supabaseAdmin
       .from("randevu_talepleri")
-      .update({ odeme_durumu: "odendi" })
-      .eq("id", odeme.randevu_talep_id);
+      .update({ odeme_durumu: "odendi", durum: "tamamlandi" })
+      .eq("id", odeme.randevu_talep_id)
+      .select("muvekkil_id")
+      .maybeSingle();
+
+    if (utoken && talep?.muvekkil_id) {
+      await supabaseAdmin
+        .from("muvekkiller")
+        .update({ kart_token: utoken })
+        .eq("id", talep.muvekkil_id);
+    }
   }
 
   return new Response("OK");

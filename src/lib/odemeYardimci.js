@@ -1,3 +1,5 @@
+export const DAKIKA_UCRETI = 40;
+
 export async function odemeDurumuBelirle(supabase, muvekkilId) {
   const { count } = await supabase
     .from("randevu_talepleri")

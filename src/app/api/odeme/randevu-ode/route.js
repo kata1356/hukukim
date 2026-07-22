@@ -51,9 +51,13 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu randevu için ödeme gerekmiyor." }, { status: 400 });
   }
 
+  if (!talep.gorusme_suresi_dakika) {
+    return NextResponse.json({ hata: "Avukat henüz görüşme süresini girmedi." }, { status: 400 });
+  }
+
   const { data: muvekkilProfili } = await supabaseAdmin
     .from("muvekkiller")
-    .select("ad_soyad, email, telefon")
+    .select("ad_soyad, email, telefon, kart_token")
     .eq("id", kullanici.id)
     .maybeSingle();
 
@@ -84,12 +88,13 @@ export async function POST(request) {
     userIp,
     email: muvekkilProfili.email,
     tutarKurus,
-    sepetAdi: `Hukukim Danışmanlık - ${talep.konu ?? "Randevu"}`,
+    sepetAdi: `Hukukim Danışmanlık - ${talep.gorusme_suresi_dakika} dk`,
     adSoyad: muvekkilProfili.ad_soyad,
     telefon: muvekkilProfili.telefon ?? "05000000000",
     adres: "Belirtilmedi",
     basariliUrl: `${SITE_URL}/muvekkil/panel?odeme=basarili`,
     basarisizUrl: `${SITE_URL}/muvekkil/panel?odeme=basarisiz`,
+    kayitliKartToken: muvekkilProfili.kart_token ?? undefined,
   });
 
   if (!basarili) {

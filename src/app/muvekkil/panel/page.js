@@ -350,9 +350,21 @@ export default function MuvekkilPanel() {
                       <span>{tarihFormatla(talep.tarih)}</span>
                     </div>
 
-                    {talep.durum === "kabul" && (
-                      <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-                        {talep.odeme_durumu === "gerekli" ? (
+                    {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
+                      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
+                        {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
+                          <span className="text-xs text-white/40">
+                            Görüşme sonrası avukat ücreti belirleyecek.
+                          </span>
+                        )}
+
+                        {talep.gorusme_suresi_dakika && (
+                          <span className="text-xs text-white/40">
+                            Görüşme süresi: {talep.gorusme_suresi_dakika} dk
+                          </span>
+                        )}
+
+                        {talep.gorusme_suresi_dakika && talep.odeme_durumu === "gerekli" && (
                           <button
                             onClick={() => odemeBaslat(talep.id)}
                             disabled={odemeYukleniyorId === talep.id}
@@ -365,7 +377,9 @@ export default function MuvekkilPanel() {
                             )}
                             Ödeme Yap ({talep.odeme_tutari} TL)
                           </button>
-                        ) : (
+                        )}
+
+                        {talep.odeme_durumu !== "gerekli" && (
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-semibold ${ODEME_ROZETLERI[talep.odeme_durumu]?.sinif ?? ""}`}
                           >
