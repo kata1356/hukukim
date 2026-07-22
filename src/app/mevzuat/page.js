@@ -1,20 +1,39 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { MEVZUAT_LISTESI } from "@/lib/mevzuat";
+import { supabase } from "@/lib/supabaseClient";
 import { IconArama, IconKitap, IconDisLink, IconTakvim } from "@/components/icons";
 
 export default function Mevzuat() {
   const [aramaMetni, setAramaMetni] = useState("");
+  const [mevzuatListesi, setMevzuatListesi] = useState([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function getir() {
+      const { data } = await supabase.from("mevzuat").select("*").order("sira", { ascending: true });
+      if (!iptalEdildi) {
+        setMevzuatListesi(data ?? []);
+        setYukleniyor(false);
+      }
+    }
+
+    getir();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, []);
 
   const filtrelenmisListe = useMemo(() => {
     const arama = aramaMetni.trim().toLocaleLowerCase("tr-TR");
-    if (!arama) return MEVZUAT_LISTESI;
-    return MEVZUAT_LISTESI.filter((m) =>
+    if (!arama) return mevzuatListesi;
+    return mevzuatListesi.filter((m) =>
       `${m.ad} ${m.no}`.toLocaleLowerCase("tr-TR").includes(arama)
     );
-  }, [aramaMetni]);
+  }, [aramaMetni, mevzuatListesi]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -58,7 +77,7 @@ export default function Mevzuat() {
           />
         </div>
 
-        {filtrelenmisListe.length === 0 ? (
+        {!yukleniyor && filtrelenmisListe.length === 0 ? (
           <p className="mx-auto mt-10 max-w-md rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-white/50">
             Aramanla eşleşen bir kanun bulunamadı.
           </p>
@@ -66,7 +85,7 @@ export default function Mevzuat() {
           <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {filtrelenmisListe.map((m) => (
               <a
-                key={m.no}
+                key={m.id}
                 href={m.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -86,7 +105,7 @@ export default function Mevzuat() {
 
                 <p className="flex items-center gap-1.5 text-xs text-white/40">
                   <IconTakvim className="h-3.5 w-3.5" />
-                  Kabul Tarihi: {m.kabulTarihi}
+                  Kabul Tarihi: {m.kabul_tarihi}
                 </p>
 
                 <span className="mt-1 text-xs font-semibold text-turkuaz">

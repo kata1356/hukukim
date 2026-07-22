@@ -28,9 +28,11 @@ import {
   IconGooglePlay,
 } from "@/components/icons";
 import { HUKUK_ALANLARI_KATEGORILERI } from "@/lib/hukukAlanlariKategorileri";
-import { SSS_LISTESI } from "@/lib/sss";
+import { supabase } from "@/lib/supabaseClient";
 import SssAkordeon from "@/components/SssAkordeon";
 import OneCikanAvukatlar from "@/components/OneCikanAvukatlar";
+
+export const revalidate = 60;
 
 const UCAN_KARTLAR = [
   { metin: "Avukat bulundu", Icon: IconOnay, konum: "left-[-2rem] top-6 sm:left-[-4.5rem]", gecikme: "0s" },
@@ -127,7 +129,12 @@ const AVUKAT_FAYDALARI = [
   "Gelen talepleri tek panelden yönet",
 ];
 
-export default function AnaSayfa() {
+export default async function AnaSayfa() {
+  const { data: sssListesi } = await supabase
+    .from("sss")
+    .select("*")
+    .order("sira", { ascending: true });
+
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-hidden bg-gece text-white">
       <div className="bg-gece-yuzey py-2 text-center text-xs font-semibold text-turkuaz sm:text-sm">
@@ -691,7 +698,7 @@ export default function AnaSayfa() {
             </p>
 
             <div className="mt-10">
-              <SssAkordeon liste={SSS_LISTESI} />
+              <SssAkordeon liste={sssListesi ?? []} />
             </div>
           </div>
         </section>

@@ -5,13 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Spinner from "./Spinner";
-import { IconPano, IconGrup, IconTerazi, IconYayin, IconCikis, IconKalkan, IconTarihce, IconEtiket } from "./icons";
+import { IconPano, IconGrup, IconTerazi, IconYayin, IconCikis, IconKalkan, IconTarihce, IconEtiket, IconKitap } from "./icons";
 
 const MENU = [
   { etiket: "Panel", href: "/admin", Icon: IconPano },
   { etiket: "Avukatlar", href: "/admin/avukatlar", Icon: IconTerazi },
   { etiket: "Kullanıcılar", href: "/admin/kullanicilar", Icon: IconGrup },
   { etiket: "Talepler", href: "/admin/talepler", Icon: IconYayin },
+  { etiket: "SSS", href: "/admin/icerik/sss", Icon: IconEtiket },
+  { etiket: "Mevzuat", href: "/admin/icerik/mevzuat", Icon: IconKitap },
   { etiket: "Yöneticiler", href: "/admin/yoneticiler", Icon: IconKalkan },
   { etiket: "Denetim Kaydı", href: "/admin/denetim", Icon: IconTarihce },
   { etiket: "Ödeme Testi", href: "/odeme/test", Icon: IconEtiket },
