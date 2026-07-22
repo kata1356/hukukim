@@ -9,7 +9,29 @@ function istekIpAdresi(request) {
   return request.headers.get("x-real-ip") ?? "85.34.78.112";
 }
 
+async function cagiranYoneticiyiDogrula(request) {
+  const yetkiBasligi = request.headers.get("authorization") ?? "";
+  const token = yetkiBasligi.replace(/^Bearer\s+/i, "");
+  if (!token) return false;
+
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !data.user) return false;
+
+  const { data: yoneticiKaydi } = await supabaseAdmin
+    .from("yoneticiler")
+    .select("id")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  return Boolean(yoneticiKaydi);
+}
+
 export async function POST(request) {
+  const yetkiliMi = await cagiranYoneticiyiDogrula(request);
+  if (!yetkiliMi) {
+    return NextResponse.json({ hata: "Bu işlem için yönetici yetkisi gerekir." }, { status: 401 });
+  }
+
   const govde = await request.json();
   const { adSoyad, email, telefon, adres, tutar } = govde;
 

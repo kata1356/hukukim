@@ -589,30 +589,31 @@ export default function AnaSayfa() {
             <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
               <div className="flex flex-col items-center gap-2 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-8 shadow-md">
                 <span className="rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
-                  İlk Üyelikte Hediye
+                  Yeni Üyelere Özel
                 </span>
                 <p className="mt-2 text-4xl font-extrabold text-white">
                   Ücretsiz
                 </p>
-                <p className="text-sm text-white/60">İlk 5 dakikalık görüşme</p>
+                <p className="text-sm text-white/60">İlk randevu talebin</p>
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-gece-yuzey p-8 shadow-sm">
                 <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                  Sonraki Görüşmeler
+                  Sonraki Randevular
                 </span>
                 <p className="mt-2 text-4xl font-extrabold text-white">
                   199 TL
-                  <span className="text-base font-semibold text-white/50"> / 5 dk</span>
+                  <span className="text-base font-semibold text-white/50"> / görüşme</span>
                 </p>
-                <p className="text-sm text-white/60">İhtiyacın kadar uzat</p>
+                <p className="text-sm text-white/60">Avukat kabul edince ödenir</p>
               </div>
             </div>
 
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-              Bu bölüm bilgilendirme amaçlıdır. Görüşme ve ödeme altyapımız
-              henüz aktif değildir; gerçek bir tahsilat yapılmamaktadır.
+              Ödeme, avukat randevu talebini kabul ettikten sonra güvenli
+              ödeme altyapımız (PayTR) üzerinden alınır. Talebin reddedilir ya
+              da avukat katılmazsa ücret tahsil edilmez.
             </p>
           </div>
         </section>

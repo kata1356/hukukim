@@ -23,7 +23,13 @@ import {
   IconEv,
   IconListe,
   IconYayin,
+  IconEtiket,
 } from "@/components/icons";
+
+const ODEME_ROZETLERI = {
+  odendi: { metin: "Ödendi", sinif: "bg-green-500/10 text-green-400 ring-1 ring-green-500/20" },
+  muaf: { metin: "Ücretsiz (İlk Görüşme)", sinif: "bg-turkuaz/15 text-turkuaz ring-1 ring-turkuaz/20" },
+};
 
 export default function MuvekkilPanel() {
   const router = useRouter();
@@ -34,8 +40,48 @@ export default function MuvekkilPanel() {
   const [aramaMetni, setAramaMetni] = useState("");
   const [seciliAvukat, setSeciliAvukat] = useState(null);
   const [genelTalepAcik, setGenelTalepAcik] = useState(false);
-  const [basariMesaji, setBasariMesaji] = useState(null);
+  const [basariMesaji, setBasariMesaji] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
+    return odemeSonucu === "basarili" ? "Ödemen alındı, randevun onaylandı." : null;
+  });
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
+
+  const [odemeToken, setOdemeToken] = useState(null);
+  const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
+  const [odemeHatasi, setOdemeHatasi] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
+    return odemeSonucu === "basarisiz" ? "Ödeme tamamlanamadı, tekrar deneyebilirsin." : null;
+  });
+
+  async function odemeBaslat(talepId) {
+    setOdemeHatasi(null);
+    setOdemeYukleniyorId(talepId);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const yanit = await fetch("/api/odeme/randevu-ode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ randevuTalepId: talepId }),
+    });
+    const sonuc = await yanit.json();
+
+    if (!yanit.ok) {
+      setOdemeHatasi(sonuc.hata ?? "Ödeme başlatılamadı.");
+      setOdemeYukleniyorId(null);
+      return;
+    }
+
+    setOdemeToken(sonuc.token);
+    setOdemeYukleniyorId(null);
+  }
 
   async function gonderilenTalepleriGetir(kullaniciId) {
     const { data } = await supabase
@@ -88,6 +134,12 @@ export default function MuvekkilPanel() {
       iptalEdildi = true;
     };
   }, [router]);
+
+  useEffect(() => {
+    if (window.location.search.includes("odeme=")) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   const filtrelenmisAvukatlar = useMemo(() => {
     const arama = aramaMetni.trim().toLocaleLowerCase("tr-TR");
@@ -183,6 +235,12 @@ export default function MuvekkilPanel() {
           <p className="flex items-start gap-2 rounded-lg bg-green-500/10 px-4 py-2.5 text-sm text-green-400 ring-1 ring-green-500/20">
             <IconOnay className="mt-0.5 h-4 w-4 shrink-0" />
             {basariMesaji}
+          </p>
+        )}
+
+        {odemeHatasi && (
+          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+            {odemeHatasi}
           </p>
         )}
 
@@ -291,6 +349,31 @@ export default function MuvekkilPanel() {
                       <GorusmeSekliEtiketi deger={talep.gorusme_sekli} />
                       <span>{tarihFormatla(talep.tarih)}</span>
                     </div>
+
+                    {talep.durum === "kabul" && (
+                      <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
+                        {talep.odeme_durumu === "gerekli" ? (
+                          <button
+                            onClick={() => odemeBaslat(talep.id)}
+                            disabled={odemeYukleniyorId === talep.id}
+                            className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                          >
+                            {odemeYukleniyorId === talep.id ? (
+                              <Spinner className="h-3.5 w-3.5" />
+                            ) : (
+                              <IconEtiket className="h-3.5 w-3.5" />
+                            )}
+                            Ödeme Yap ({talep.odeme_tutari} TL)
+                          </button>
+                        ) : (
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${ODEME_ROZETLERI[talep.odeme_durumu]?.sinif ?? ""}`}
+                          >
+                            {ODEME_ROZETLERI[talep.odeme_durumu]?.metin}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -317,6 +400,18 @@ export default function MuvekkilPanel() {
             onKapat={() => setGenelTalepAcik(false)}
             onBasarili={genelTalepBasarili}
           />
+        </Modal>
+      )}
+
+      {odemeToken && (
+        <Modal baslik="Randevu Ödemesi" onKapat={() => setOdemeToken(null)}>
+          <div className="overflow-hidden rounded-xl bg-white">
+            <iframe
+              src={`https://www.paytr.com/odeme/guvenli/${odemeToken}`}
+              title="PayTR Ödeme"
+              style={{ width: "100%", height: "600px", border: "none" }}
+            />
+          </div>
         </Modal>
       )}
 

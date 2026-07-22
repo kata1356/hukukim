@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Spinner from "./Spinner";
-import { IconPano, IconGrup, IconTerazi, IconYayin, IconCikis, IconKalkan, IconTarihce } from "./icons";
+import { IconPano, IconGrup, IconTerazi, IconYayin, IconCikis, IconKalkan, IconTarihce, IconEtiket } from "./icons";
 
 const MENU = [
   { etiket: "Panel", href: "/admin", Icon: IconPano },
@@ -14,6 +14,7 @@ const MENU = [
   { etiket: "Talepler", href: "/admin/talepler", Icon: IconYayin },
   { etiket: "Yöneticiler", href: "/admin/yoneticiler", Icon: IconKalkan },
   { etiket: "Denetim Kaydı", href: "/admin/denetim", Icon: IconTarihce },
+  { etiket: "Ödeme Testi", href: "/odeme/test", Icon: IconEtiket },
 ];
 
 export default function AdminShell({ baslik, aciklama, children }) {

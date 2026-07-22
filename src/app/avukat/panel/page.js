@@ -432,7 +432,24 @@ export default function AvukatPanel() {
                         </p>
                       </div>
                     </div>
-                    <DurumRozeti durum={talep.durum} />
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <DurumRozeti durum={talep.durum} />
+                      {talep.durum === "kabul" && (
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                            talep.odeme_durumu === "gerekli"
+                              ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20"
+                              : "bg-green-500/10 text-green-400 ring-1 ring-green-500/20"
+                          }`}
+                        >
+                          {talep.odeme_durumu === "gerekli"
+                            ? "Ödeme Bekleniyor"
+                            : talep.odeme_durumu === "muaf"
+                            ? "Ücretsiz Görüşme"
+                            : "Ödendi"}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">

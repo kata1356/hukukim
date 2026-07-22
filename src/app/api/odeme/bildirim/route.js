@@ -15,14 +15,23 @@ export async function POST(request) {
     return new Response("PAYTR notification failed: bad hash", { status: 400 });
   }
 
-  await supabaseAdmin
+  const { data: odeme } = await supabaseAdmin
     .from("odemeler")
     .update({
       durum: status === "success" ? "basarili" : "basarisiz",
       basarisiz_nedeni: status === "success" ? null : failedReasonMsg,
       guncellendi_at: new Date().toISOString(),
     })
-    .eq("merchant_oid", merchantOid);
+    .eq("merchant_oid", merchantOid)
+    .select("randevu_talep_id")
+    .maybeSingle();
+
+  if (status === "success" && odeme?.randevu_talep_id) {
+    await supabaseAdmin
+      .from("randevu_talepleri")
+      .update({ odeme_durumu: "odendi" })
+      .eq("id", odeme.randevu_talep_id);
+  }
 
   return new Response("OK");
 }
