@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
@@ -55,6 +55,8 @@ export default function MuvekkilPanel() {
 
   const [odemeToken, setOdemeToken] = useState(null);
   const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
+  const otomatikTetiklenenlerRef = useRef(new Set());
+  const otomatikOdemeDevamEdiyorRef = useRef(false);
   const [odemeHatasi, setOdemeHatasi] = useState(() => {
     if (typeof window === "undefined") return null;
     const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
@@ -102,6 +104,20 @@ export default function MuvekkilPanel() {
       .select("randevu_talep_id")
       .eq("muvekkil_id", kullaniciId);
     setDegerlendirilenIdler((degerlendirmeler ?? []).map((d) => d.randevu_talep_id));
+
+    const odemeBekleyen = (data ?? []).find(
+      (t) =>
+        t.odeme_durumu === "gerekli" &&
+        t.gorusme_suresi_dakika &&
+        !otomatikTetiklenenlerRef.current.has(t.id)
+    );
+
+    if (odemeBekleyen && !otomatikOdemeDevamEdiyorRef.current) {
+      otomatikTetiklenenlerRef.current.add(odemeBekleyen.id);
+      otomatikOdemeDevamEdiyorRef.current = true;
+      await odemeBaslat(odemeBekleyen.id);
+      otomatikOdemeDevamEdiyorRef.current = false;
+    }
   }
 
   function degerlendirmeBasarili() {
@@ -385,7 +401,7 @@ export default function MuvekkilPanel() {
 
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
-                        {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
+                        {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
                           <VideoGorusmeButonu randevuTalepId={talep.id} />
                         )}
 

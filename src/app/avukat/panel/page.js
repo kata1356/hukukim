@@ -93,8 +93,8 @@ export default function AvukatPanel() {
     setAcmaYukleniyorId(null);
   }
 
-  async function gorusmeyiTamamla(talepId) {
-    const dakika = dakikaGirisleri[talepId];
+  async function gorusmeyiTamamla(talepId, elleGirilenDakika) {
+    const dakika = elleGirilenDakika ?? dakikaGirisleri[talepId];
     if (!dakika || Number(dakika) <= 0) return;
 
     setHata(null);
@@ -645,13 +645,22 @@ export default function AvukatPanel() {
                     </div>
                   )}
 
-                  {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
+                  {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
                     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <VideoGorusmeButonu randevuTalepId={talep.id} />
+                      <VideoGorusmeButonu
+                        randevuTalepId={talep.id}
+                        onGorusmeBitti={(dakika) => gorusmeyiTamamla(talep.id, dakika)}
+                      />
+                      {tamamlaYukleniyor === talep.id && (
+                        <span className="flex items-center gap-1.5 text-xs text-white/50">
+                          <Spinner className="h-3.5 w-3.5" />
+                          Süre hesaplanıyor...
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
+                  {talep.durum === "kabul" && talep.gorusme_sekli !== "goruntulu" && !talep.gorusme_suresi_dakika && (
                     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
                       <label className="text-sm font-semibold text-white/70" htmlFor={`dakika-${talep.id}`}>
                         Görüşme kaç dakika sürdü?

@@ -1,15 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
 import { IconVideo } from "./icons";
 
-export default function VideoGorusmeButonu({ randevuTalepId }) {
+function sureFormatla(saniye) {
+  const dk = Math.floor(saniye / 60);
+  const sn = saniye % 60;
+  return `${String(dk).padStart(2, "0")}:${String(sn).padStart(2, "0")}`;
+}
+
+export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [odaUrl, setOdaUrl] = useState(null);
   const [hata, setHata] = useState(null);
+  const [gecenSaniye, setGecenSaniye] = useState(0);
+  const baslangicRef = useRef(null);
+
+  useEffect(() => {
+    if (!odaUrl) return;
+
+    const zamanlayici = setInterval(() => {
+      setGecenSaniye(Math.floor((Date.now() - baslangicRef.current) / 1000));
+    }, 1000);
+
+    return () => clearInterval(zamanlayici);
+  }, [odaUrl]);
 
   async function gorusmeyeKatil() {
     setHata(null);
@@ -35,8 +53,16 @@ export default function VideoGorusmeButonu({ randevuTalepId }) {
       return;
     }
 
+    baslangicRef.current = new Date(sonuc.videoBaslangicZamani).getTime();
+    setGecenSaniye(Math.floor((Date.now() - baslangicRef.current) / 1000));
     setOdaUrl(sonuc.odaUrl);
     setYukleniyor(false);
+  }
+
+  function gorusmeyiKapat() {
+    const dakika = Math.max(1, Math.ceil(gecenSaniye / 60));
+    setOdaUrl(null);
+    if (onGorusmeBitti) onGorusmeBitti(dakika);
   }
 
   return (
@@ -53,7 +79,7 @@ export default function VideoGorusmeButonu({ randevuTalepId }) {
       {hata && <p className="w-full text-xs text-red-400">{hata}</p>}
 
       {odaUrl && (
-        <Modal baslik="Görüntülü Görüşme" onKapat={() => setOdaUrl(null)}>
+        <Modal baslik={`Görüntülü Görüşme · ${sureFormatla(gecenSaniye)}`} onKapat={gorusmeyiKapat}>
           <div className="overflow-hidden rounded-xl bg-black">
             <iframe
               src={odaUrl}
@@ -62,6 +88,11 @@ export default function VideoGorusmeButonu({ randevuTalepId }) {
               style={{ width: "100%", height: "70vh", border: "none" }}
             />
           </div>
+          {onGorusmeBitti && (
+            <p className="mt-3 text-center text-xs text-white/40">
+              Görüşmeyi kapattığında süre otomatik hesaplanıp tamamlanacak.
+            </p>
+          )}
         </Modal>
       )}
     </>

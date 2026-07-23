@@ -48,11 +48,21 @@ export async function POST(request) {
   const kullaniciAdi =
     talep.avukat_id === kullanici.id ? talep.avukatlar?.ad_soyad ?? "Avukat" : talep.muvekkiller?.ad_soyad ?? "Müvekkil";
 
+  let videoBaslangicZamani = talep.video_baslangic_zamani;
+  if (!videoBaslangicZamani) {
+    videoBaslangicZamani = new Date().toISOString();
+    await supabaseAdmin
+      .from("randevu_talepleri")
+      .update({ video_baslangic_zamani: videoBaslangicZamani })
+      .eq("id", randevuTalepId)
+      .is("video_baslangic_zamani", null);
+  }
+
   try {
     await dailyOdaGetirYaDaOlustur(odaAdi);
     const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi });
     const odaUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${odaAdi}?t=${meetingToken}`;
-    return NextResponse.json({ odaUrl });
+    return NextResponse.json({ odaUrl, videoBaslangicZamani });
   } catch (err) {
     console.error("Daily.co video oda hatasi:", err);
     return NextResponse.json({ hata: "Görüşme odası oluşturulamadı, lütfen tekrar dene." }, { status: 500 });
