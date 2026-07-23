@@ -57,6 +57,7 @@ export default function MuvekkilPanel() {
   const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
   const otomatikTetiklenenlerRef = useRef(new Set());
   const otomatikOdemeDevamEdiyorRef = useRef(false);
+  const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
   const [odemeHatasi, setOdemeHatasi] = useState(() => {
     if (typeof window === "undefined") return null;
     const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
@@ -103,7 +104,20 @@ export default function MuvekkilPanel() {
       .from("degerlendirmeler")
       .select("randevu_talep_id")
       .eq("muvekkil_id", kullaniciId);
-    setDegerlendirilenIdler((degerlendirmeler ?? []).map((d) => d.randevu_talep_id));
+    const degerlendirilenIdListesi = (degerlendirmeler ?? []).map((d) => d.randevu_talep_id);
+    setDegerlendirilenIdler(degerlendirilenIdListesi);
+
+    const degerlendirilmemisTamamlanan = (data ?? []).find(
+      (t) =>
+        t.durum === "tamamlandi" &&
+        !degerlendirilenIdListesi.includes(t.id) &&
+        !otomatikDegerlendirmeGosterilenlerRef.current.has(t.id)
+    );
+
+    if (degerlendirilmemisTamamlanan) {
+      otomatikDegerlendirmeGosterilenlerRef.current.add(degerlendirilmemisTamamlanan.id);
+      setDegerlendirilecekTalep(degerlendirilmemisTamamlanan);
+    }
 
     const odemeBekleyen = (data ?? []).find(
       (t) =>

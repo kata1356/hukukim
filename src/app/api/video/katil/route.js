@@ -56,6 +56,15 @@ export async function POST(request) {
       .update({ video_baslangic_zamani: videoBaslangicZamani })
       .eq("id", randevuTalepId)
       .is("video_baslangic_zamani", null);
+
+    if (kullanici.id === talep.avukat_id) {
+      await supabaseAdmin.from("bildirimler").insert({
+        kullanici_id: talep.muvekkil_id,
+        baslik: "Avukatınız hazır, görüşmede bekliyor",
+        mesaj: talep.konu,
+        link: "/muvekkil/panel#taleplerim",
+      });
+    }
   }
 
   try {
