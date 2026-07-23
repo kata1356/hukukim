@@ -20,20 +20,22 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const [odaUrl, setOdaUrl] = useState(null);
   const [hata, setHata] = useState(null);
   const [gecenSaniye, setGecenSaniye] = useState(0);
+  const [sonlandirmaOnayAcik, setSonlandirmaOnayAcik] = useState(false);
+  const [sonlandiriliyor, setSonlandiriliyor] = useState(false);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
   const bittiCagrildiRef = useRef(false);
 
   useEffect(() => {
-    if (!odaUrl) return;
+    if (!odaUrl || sonlandiriliyor) return;
 
     const zamanlayici = setInterval(() => {
       setGecenSaniye(Math.floor((Date.now() - baslangicRef.current) / 1000));
     }, 1000);
 
     return () => clearInterval(zamanlayici);
-  }, [odaUrl]);
+  }, [odaUrl, sonlandiriliyor]);
 
   useEffect(() => {
     if (!odaUrl || !iframeRef.current) return;
@@ -58,6 +60,8 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
     const saniyeGecti = Math.floor((Date.now() - baslangicRef.current) / 1000);
     const dakika = Math.max(1, Math.ceil(saniyeGecti / 60));
     setOdaUrl(null);
+    setSonlandirmaOnayAcik(false);
+    setSonlandiriliyor(false);
     if (onGorusmeBitti) onGorusmeBitti(dakika);
   }
 
@@ -91,7 +95,8 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
     setYukleniyor(false);
   }
 
-  function gorusmeyiSonlandir() {
+  function sonlandirmayiOnayla() {
+    setSonlandiriliyor(true);
     if (callFrameRef.current) {
       callFrameRef.current.leave();
     } else {
@@ -153,19 +158,58 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
       )}
 
       {odaUrl && (
-        <Modal baslik={`Görüntülü Görüşme · ${sureFormatla(gecenSaniye)}`} onKapat={gorusmeyiSonlandir}>
-          <div className="overflow-hidden rounded-xl bg-black">
+        <Modal
+          baslik={sonlandiriliyor ? "Görüşme Sonlandırılıyor..." : `Görüntülü Görüşme · ${sureFormatla(gecenSaniye)}`}
+          onKapat={() => setSonlandirmaOnayAcik(true)}
+        >
+          <div className="relative overflow-hidden rounded-xl bg-black">
             <iframe
               ref={iframeRef}
               title="Görüntülü Görüşme"
               allow="camera; microphone; fullscreen; display-capture; autoplay"
               style={{ width: "100%", height: "70vh", border: "none" }}
             />
+
+            {(sonlandirmaOnayAcik || sonlandiriliyor) && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 bg-black/85 p-6 text-center">
+                {sonlandiriliyor ? (
+                  <>
+                    <Spinner className="h-8 w-8 text-white" />
+                    <p className="text-lg font-bold text-white">Görüşme Sonlandırılıyor...</p>
+                    <p className="text-sm text-white/60">Süre hesaplanıyor, lütfen bekle.</p>
+                  </>
+                ) : (
+                  <>
+                    <IconTelefonKapat className="h-8 w-8 text-red-500" />
+                    <p className="text-lg font-bold text-white">Görüşmeyi Sonlandır</p>
+                    <p className="max-w-xs text-sm text-white/60">
+                      Görüşmeyi sonlandırmak üzeresin. Süre buna göre hesaplanıp
+                      görüşme tamamlanacak.
+                    </p>
+                    <div className="flex w-full max-w-xs gap-3">
+                      <button
+                        onClick={() => setSonlandirmaOnayAcik(false)}
+                        className="flex-1 rounded-full border-2 border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-white/40"
+                      >
+                        Vazgeç
+                      </button>
+                      <button
+                        onClick={sonlandirmayiOnayla}
+                        className="flex-1 rounded-full bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
+                      >
+                        Evet, Sonlandır
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           <button
-            onClick={gorusmeyiSonlandir}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-red-700"
+            onClick={() => setSonlandirmaOnayAcik(true)}
+            disabled={sonlandiriliyor}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-60"
           >
             <IconTelefonKapat className="h-4 w-4" />
             Görüşmeyi Sonlandır
