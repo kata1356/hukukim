@@ -53,7 +53,8 @@ export async function POST(request) {
     const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi });
     const odaUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${odaAdi}?t=${meetingToken}`;
     return NextResponse.json({ odaUrl });
-  } catch {
+  } catch (err) {
+    console.error("Daily.co video oda hatasi:", err);
     return NextResponse.json({ hata: "Görüşme odası oluşturulamadı, lütfen tekrar dene." }, { status: 500 });
   }
 }
