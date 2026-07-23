@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { IconZil } from "./icons";
 
@@ -17,6 +17,7 @@ function zamanFormatla(tarih) {
 
 export default function BildirimZili() {
   const router = useRouter();
+  const pathname = usePathname();
   const [acik, setAcik] = useState(false);
   const [bildirimler, setBildirimler] = useState([]);
   const kutuRef = useRef(null);
@@ -74,7 +75,15 @@ export default function BildirimZili() {
       );
     }
     setAcik(false);
-    if (bildirim.link) router.push(bildirim.link);
+    if (!bildirim.link) return;
+
+    const [yol, gomulu] = bildirim.link.split("#");
+
+    if (yol === pathname) {
+      if (gomulu) document.getElementById(gomulu)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      router.push(bildirim.link);
+    }
   }
 
   return (

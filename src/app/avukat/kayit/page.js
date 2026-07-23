@@ -143,6 +143,16 @@ export default function AvukatKayit() {
       return;
     }
 
+    // Supabase, e-posta zaten kayıtlı ve onaylanmışsa hata dönmez;
+    // bunun yerine "identities" boş bir dizi olan sahte bir başarı
+    // yanıtı döner (hesap numaralandırmayı önlemek için kasıtlı).
+    if (data.user && data.user.identities?.length === 0) {
+      setHata("Bu e-posta adresi zaten kayıtlı.");
+      setZatenKayitli(true);
+      setYukleniyor(false);
+      return;
+    }
+
     if (data.session) {
       const sonuc = await oturumuTamamla(data.session);
       if (!sonuc.basarili) {

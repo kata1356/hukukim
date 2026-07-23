@@ -154,6 +154,21 @@ export default function MuvekkilPanel() {
   }, [router]);
 
   useEffect(() => {
+    if (!profil?.id) return;
+
+    const kanal = supabase
+      .channel(`randevu-muvekkil-${profil.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "randevu_talepleri", filter: `muvekkil_id=eq.${profil.id}` },
+        () => gonderilenTalepleriGetir(profil.id)
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(kanal);
+  }, [profil?.id]);
+
+  useEffect(() => {
     if (window.location.search.includes("odeme=")) {
       window.history.replaceState(null, "", window.location.pathname);
     }

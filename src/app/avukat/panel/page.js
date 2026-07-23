@@ -251,6 +251,35 @@ export default function AvukatPanel() {
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!profil?.id) return;
+
+    async function talepleriYenile() {
+      const { data } = await supabase
+        .from("randevu_talepleri")
+        .select("*")
+        .eq("avukat_id", profil.id)
+        .order("created_at", { ascending: false });
+      setTalepler(data ?? []);
+    }
+
+    const kanal = supabase
+      .channel(`randevu-avukat-${profil.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "randevu_talepleri", filter: `avukat_id=eq.${profil.id}` },
+        talepleriYenile
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "randevu_talepleri", filter: "tur=eq.genel" },
+        () => acikTalepleriGetir(profil)
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(kanal);
+  }, [profil]);
+
   async function talebiUstlen(talepId) {
     setAcikHata(null);
     setUstlenYukleniyor(talepId);
