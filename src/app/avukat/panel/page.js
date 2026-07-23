@@ -13,6 +13,7 @@ import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import HesapSilButonu from "@/components/HesapSilButonu";
+import YildizGosterge from "@/components/YildizGosterge";
 import {
   IconTelefon,
   IconKonum,
@@ -26,6 +27,7 @@ import {
   IconYayin,
   IconYildirim,
   IconKamera,
+  IconYildiz,
 } from "@/components/icons";
 
 export default function AvukatPanel() {
@@ -43,6 +45,7 @@ export default function AvukatPanel() {
   const [fotografHata, setFotografHata] = useState(null);
   const [dakikaGirisleri, setDakikaGirisleri] = useState({});
   const [tamamlaYukleniyor, setTamamlaYukleniyor] = useState(null);
+  const [degerlendirmeler, setDegerlendirmeler] = useState([]);
 
   async function gorusmeyiTamamla(talepId) {
     const dakika = dakikaGirisleri[talepId];
@@ -174,11 +177,18 @@ export default function AvukatPanel() {
         .eq("avukat_id", user.id)
         .order("created_at", { ascending: false });
 
+      const { data: gelenDegerlendirmeler } = await supabase
+        .from("degerlendirmeler")
+        .select("*")
+        .eq("avukat_id", user.id)
+        .order("created_at", { ascending: false });
+
       await acikTalepleriGetir(avukatProfili);
 
       if (iptalEdildi) return;
       setProfil(avukatProfili);
       setTalepler(randevuTalepleri ?? []);
+      setDegerlendirmeler(gelenDegerlendirmeler ?? []);
       setSayfaYukleniyor(false);
     }
 
@@ -252,6 +262,10 @@ export default function AvukatPanel() {
 
   const bekleyenSayisi = talepler.filter((t) => t.durum === "bekliyor").length;
   const kabulSayisi = talepler.filter((t) => t.durum === "kabul").length;
+  const ortalamaPuan =
+    degerlendirmeler.length > 0
+      ? degerlendirmeler.reduce((t, d) => t + d.puan, 0) / degerlendirmeler.length
+      : 0;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -287,8 +301,9 @@ export default function AvukatPanel() {
                 {profil.ad_soyad}
               </h1>
               <p className="text-sm text-white/60">{profil.email}</p>
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 <DogrulamaRozeti dogrulanmis={profil.dogrulanmis} />
+                <YildizGosterge ortalama={ortalamaPuan} sayi={degerlendirmeler.length} />
               </div>
             </div>
           </div>
@@ -581,6 +596,32 @@ export default function AvukatPanel() {
                       {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
                     </p>
                   )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section id="degerlendirmeler" className="scroll-mt-20">
+          <div className="mb-4 flex items-center gap-3">
+            <h2 className="text-lg font-bold text-white">Değerlendirmelerim</h2>
+            <YildizGosterge ortalama={ortalamaPuan} sayi={degerlendirmeler.length} />
+          </div>
+
+          {degerlendirmeler.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+              Henüz bir değerlendirme almadın.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {degerlendirmeler.map((d) => (
+                <div key={d.id} className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <IconYildiz key={i} className={`h-4 w-4 ${i < d.puan ? "text-turkuaz" : "text-white/15"}`} />
+                    ))}
+                  </div>
+                  {d.yorum && <p className="mt-2 text-sm text-white/70">{d.yorum}</p>}
                 </div>
               ))}
             </div>

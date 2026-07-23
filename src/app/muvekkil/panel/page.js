@@ -15,6 +15,7 @@ import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import HesapSilButonu from "@/components/HesapSilButonu";
+import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
 import {
   IconArama,
@@ -25,6 +26,7 @@ import {
   IconListe,
   IconYayin,
   IconEtiket,
+  IconYildiz,
 } from "@/components/icons";
 
 const ODEME_ROZETLERI = {
@@ -47,6 +49,8 @@ export default function MuvekkilPanel() {
     return odemeSonucu === "basarili" ? "Ödemen alındı, randevun onaylandı." : null;
   });
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
+  const [degerlendirilenIdler, setDegerlendirilenIdler] = useState([]);
+  const [degerlendirilecekTalep, setDegerlendirilecekTalep] = useState(null);
 
   const [odemeToken, setOdemeToken] = useState(null);
   const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
@@ -91,6 +95,18 @@ export default function MuvekkilPanel() {
       .eq("muvekkil_id", kullaniciId)
       .order("created_at", { ascending: false });
     setGonderilenTalepler(data ?? []);
+
+    const { data: degerlendirmeler } = await supabase
+      .from("degerlendirmeler")
+      .select("randevu_talep_id")
+      .eq("muvekkil_id", kullaniciId);
+    setDegerlendirilenIdler((degerlendirmeler ?? []).map((d) => d.randevu_talep_id));
+  }
+
+  function degerlendirmeBasarili() {
+    setDegerlendirilenIdler((oncekiler) => [...oncekiler, degerlendirilecekTalep.id]);
+    setDegerlendirilecekTalep(null);
+    setBasariMesaji("Değerlendirmen için teşekkürler.");
   }
 
   useEffect(() => {
@@ -387,6 +403,22 @@ export default function MuvekkilPanel() {
                             {ODEME_ROZETLERI[talep.odeme_durumu]?.metin}
                           </span>
                         )}
+
+                        {talep.durum === "tamamlandi" &&
+                          (degerlendirilenIdler.includes(talep.id) ? (
+                            <span className="flex items-center gap-1.5 text-xs font-semibold text-turkuaz">
+                              <IconYildiz className="h-3.5 w-3.5" />
+                              Değerlendirdin
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setDegerlendirilecekTalep(talep)}
+                              className="flex items-center gap-1.5 rounded-full border-2 border-turkuaz/30 px-4 py-2 text-xs font-bold text-turkuaz transition hover:bg-turkuaz/10"
+                            >
+                              <IconYildiz className="h-3.5 w-3.5" />
+                              Avukatı Değerlendir
+                            </button>
+                          ))}
                       </div>
                     )}
                   </div>
@@ -416,6 +448,17 @@ export default function MuvekkilPanel() {
             muvekkilProfil={profil}
             onKapat={() => setGenelTalepAcik(false)}
             onBasarili={genelTalepBasarili}
+          />
+        </Modal>
+      )}
+
+      {degerlendirilecekTalep && (
+        <Modal baslik="Avukatı Değerlendir" onKapat={() => setDegerlendirilecekTalep(null)}>
+          <DegerlendirmeFormu
+            talep={degerlendirilecekTalep}
+            muvekkilId={profil.id}
+            onKapat={() => setDegerlendirilecekTalep(null)}
+            onBasarili={degerlendirmeBasarili}
           />
         </Modal>
       )}

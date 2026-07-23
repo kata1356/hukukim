@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Avatar from "@/components/Avatar";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import Spinner from "@/components/Spinner";
+import YildizGosterge from "@/components/YildizGosterge";
 import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { IconArama, IconKonum, IconOk } from "@/components/icons";
@@ -13,6 +14,7 @@ import { IconArama, IconKonum, IconOk } from "@/components/icons";
 export default function Avukatlar() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [avukatlar, setAvukatlar] = useState([]);
+  const [puanlar, setPuanlar] = useState({});
   const [aramaMetni, setAramaMetni] = useState("");
   const [seciliSehir, setSeciliSehir] = useState("");
   const [seciliUzmanlik, setSeciliUzmanlik] = useState("");
@@ -27,8 +29,25 @@ export default function Avukatlar() {
         .order("dogrulanmis", { ascending: false })
         .order("ad_soyad", { ascending: true });
 
+      const { data: degerlendirmeler } = await supabase.from("degerlendirmeler").select("avukat_id, puan");
+
       if (!iptalEdildi) {
         setAvukatlar(data ?? []);
+
+        const gruplar = {};
+        for (const d of degerlendirmeler ?? []) {
+          if (!gruplar[d.avukat_id]) gruplar[d.avukat_id] = [];
+          gruplar[d.avukat_id].push(d.puan);
+        }
+        const ortalamalar = {};
+        for (const avukatId in gruplar) {
+          const puanlarListesi = gruplar[avukatId];
+          ortalamalar[avukatId] = {
+            ortalama: puanlarListesi.reduce((t, p) => t + p, 0) / puanlarListesi.length,
+            sayi: puanlarListesi.length,
+          };
+        }
+        setPuanlar(ortalamalar);
         setYukleniyor(false);
       }
     }
@@ -147,8 +166,14 @@ export default function Avukatlar() {
                       <IconKonum className="h-3.5 w-3.5" />
                       {avukat.sehir}
                     </p>
-                    <div className="mt-1.5">
+                    <div className="mt-1.5 flex items-center gap-2">
                       <DogrulamaRozeti dogrulanmis={avukat.dogrulanmis} />
+                    </div>
+                    <div className="mt-1.5">
+                      <YildizGosterge
+                        ortalama={puanlar[avukat.id]?.ortalama ?? 0}
+                        sayi={puanlar[avukat.id]?.sayi ?? 0}
+                      />
                     </div>
                   </div>
                 </div>
