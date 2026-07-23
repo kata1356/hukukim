@@ -31,6 +31,7 @@ import { HUKUK_ALANLARI_KATEGORILERI } from "@/lib/hukukAlanlariKategorileri";
 import { supabase } from "@/lib/supabaseClient";
 import SssAkordeon from "@/components/SssAkordeon";
 import OneCikanAvukatlar from "@/components/OneCikanAvukatlar";
+import Logo from "@/components/Logo";
 
 export const revalidate = 60;
 
@@ -757,9 +758,7 @@ export default async function AnaSayfa() {
       <footer className="bg-gece-yuzey px-6 py-14 text-white">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 sm:grid-cols-5">
           <div className="col-span-2">
-            <span className="text-xl font-bold">
-              Hukuk<span className="text-turkuaz">im</span>
-            </span>
+            <Logo className="h-7" />
             <p className="mt-3 max-w-xs text-sm text-white/50">
               Avukat ve müvekkilleri güvenli, hızlı ve şeffaf şekilde buluşturan
               dijital hukuk platformu.

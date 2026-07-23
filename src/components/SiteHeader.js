@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import Logo from "./Logo";
 import { IconKitap, IconYildirim, IconMenu } from "./icons";
 
 const NAV_LINKS = [
@@ -67,9 +68,7 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-gece-kenar bg-gece/80 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
-        <span className="shrink-0 text-2xl font-bold text-white">
-          Hukuk<span className="text-turkuaz">im</span>
-        </span>
+        <Logo className="h-8 shrink-0" />
 
         <nav className="hidden items-center gap-5 whitespace-nowrap text-sm font-semibold text-white/60 xl:flex">
           {NAV_LINKS.map((link) => (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { IconArama, IconKitap, IconDisLink, IconTakvim } from "@/components/icons";
+import Logo from "@/components/Logo";
 
 export default function Mevzuat() {
   const [aramaMetni, setAramaMetni] = useState("");
@@ -39,8 +40,8 @@ export default function Mevzuat() {
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-gece/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-2xl font-bold text-white">
-            Hukuk<span className="text-turkuaz">im</span>
+          <Link href="/">
+            <Logo className="h-8" />
           </Link>
           <Link
             href="/"

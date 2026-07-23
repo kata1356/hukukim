@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Avatar from "./Avatar";
 import BildirimZili from "./BildirimZili";
+import Logo from "./Logo";
 
 export default function PanelHeader({ adSoyad, panelAdi }) {
   const router = useRouter();
@@ -18,8 +19,8 @@ export default function PanelHeader({ adSoyad, panelAdi }) {
     <header className="sticky top-0 z-10 border-b border-white/10 bg-gece/90 shadow-sm backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-xl font-bold text-white">
-            Hukuk<span className="text-turkuaz">im</span>
+          <Link href="/">
+            <Logo className="h-7" />
           </Link>
           <span className="hidden text-sm text-white/30 sm:inline">|</span>
           <span className="hidden rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-white/70 sm:inline">

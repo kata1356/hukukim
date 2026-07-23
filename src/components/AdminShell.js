@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Spinner from "./Spinner";
 import BildirimZili from "./BildirimZili";
+import Logo from "./Logo";
 import {
   IconPano,
   IconGrup,
@@ -108,13 +109,8 @@ export default function AdminShell({ baslik, aciklama, children }) {
     <div className="flex min-h-full flex-1 bg-yonetim-dusuk">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-yonetim-kenar bg-yonetim-dusuk px-4 py-6 lg:flex">
         <div className="mb-8 flex items-center gap-2.5 px-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-vurgu/10 text-vurgu">
-            <IconTerazi className="h-5 w-5" />
-          </span>
-          <div className="flex flex-col leading-tight">
-            <span className="font-bold text-white">Hukukim</span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Yönetim</span>
-          </div>
+          <Logo className="h-7" />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Yönetim</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1">

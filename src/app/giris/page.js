@@ -8,6 +8,7 @@ import { turkceHataMesaji } from "@/lib/hataMesajlari";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
 import { IconTerazi, IconKvkk, IconBaro, IconTakvim } from "@/components/icons";
+import Logo from "@/components/Logo";
 
 const OZELLIKLER = [
   { Icon: IconBaro, metin: "Baro sicil numarasıyla doğrulanan avukat profilleri" },
@@ -93,8 +94,8 @@ function GirisIcerik() {
           className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-turkuaz/10 blur-3xl"
         />
 
-        <Link href="/" className="relative text-2xl font-bold">
-          Hukuk<span className="text-turkuaz">im</span>
+        <Link href="/" className="relative">
+          <Logo className="h-8" />
         </Link>
 
         <div className="relative">
@@ -125,8 +126,8 @@ function GirisIcerik() {
       <div className="flex flex-1 flex-col bg-gradient-to-b from-turkuaz/[0.06] to-gece">
         <header className="border-b border-white/10 bg-gece/80 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-5xl items-center px-6 py-5">
-            <Link href="/" className="text-2xl font-bold text-white">
-              Hukuk<span className="text-turkuaz">im</span>
+            <Link href="/">
+              <Logo className="h-8" />
             </Link>
           </div>
         </header>

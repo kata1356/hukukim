@@ -7,6 +7,7 @@ import Avatar from "@/components/Avatar";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import Spinner from "@/components/Spinner";
 import YildizGosterge from "@/components/YildizGosterge";
+import Logo from "@/components/Logo";
 import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { IconArama, IconKonum, IconOk } from "@/components/icons";
@@ -75,8 +76,8 @@ export default function Avukatlar() {
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-gece/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-2xl font-bold text-white">
-            Hukuk<span className="text-turkuaz">im</span>
+          <Link href="/">
+            <Logo className="h-8" />
           </Link>
           <Link
             href="/"
