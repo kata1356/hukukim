@@ -6,12 +6,16 @@ import { supabase } from "@/lib/supabaseClient";
 import Avatar from "@/components/Avatar";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import Spinner from "@/components/Spinner";
+import { SEHIRLER } from "@/lib/sehirler";
+import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { IconArama, IconKonum, IconOk } from "@/components/icons";
 
 export default function Avukatlar() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [avukatlar, setAvukatlar] = useState([]);
   const [aramaMetni, setAramaMetni] = useState("");
+  const [seciliSehir, setSeciliSehir] = useState("");
+  const [seciliUzmanlik, setSeciliUzmanlik] = useState("");
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -37,14 +41,16 @@ export default function Avukatlar() {
 
   const filtrelenmisListe = useMemo(() => {
     const arama = aramaMetni.trim().toLocaleLowerCase("tr-TR");
-    if (!arama) return avukatlar;
     return avukatlar.filter((a) => {
+      if (seciliSehir && a.sehir !== seciliSehir) return false;
+      if (seciliUzmanlik && !(a.uzmanlik_alanlari ?? []).includes(seciliUzmanlik)) return false;
+      if (!arama) return true;
       const metin = [a.ad_soyad, a.sehir, ...(a.uzmanlik_alanlari ?? [])]
         .join(" ")
         .toLocaleLowerCase("tr-TR");
       return metin.includes(arama);
     });
-  }, [avukatlar, aramaMetni]);
+  }, [avukatlar, aramaMetni, seciliSehir, seciliUzmanlik]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -82,6 +88,34 @@ export default function Avukatlar() {
             placeholder="Ör. Ankara, Aile Hukuku, Ayşe Yılmaz..."
             className="w-full rounded-full border border-white/15 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30"
           />
+        </div>
+
+        <div className="mx-auto mt-4 flex max-w-xl flex-col gap-3 sm:flex-row">
+          <select
+            value={seciliSehir}
+            onChange={(e) => setSeciliSehir(e.target.value)}
+            className="w-full rounded-full border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30 [&>option]:bg-gece-yuzey [&>option]:text-white"
+          >
+            <option value="">Tüm Şehirler</option>
+            {SEHIRLER.map((sehir) => (
+              <option key={sehir} value={sehir}>
+                {sehir}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={seciliUzmanlik}
+            onChange={(e) => setSeciliUzmanlik(e.target.value)}
+            className="w-full rounded-full border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30 [&>option]:bg-gece-yuzey [&>option]:text-white"
+          >
+            <option value="">Tüm Uzmanlık Alanları</option>
+            {UZMANLIK_ALANLARI.map((alan) => (
+              <option key={alan} value={alan}>
+                {alan}
+              </option>
+            ))}
+          </select>
         </div>
 
         {yukleniyor ? (
