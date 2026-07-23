@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Avatar from "./Avatar";
+import BildirimZili from "./BildirimZili";
 
 export default function PanelHeader({ adSoyad, panelAdi }) {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function PanelHeader({ adSoyad, panelAdi }) {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <BildirimZili />
           <Avatar adSoyad={adSoyad} boyut="sm" />
           <span className="hidden text-sm font-medium text-white sm:inline">
             {adSoyad}
