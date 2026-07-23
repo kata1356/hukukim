@@ -16,6 +16,7 @@ import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import HesapSilButonu from "@/components/HesapSilButonu";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
+import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
 import {
   IconArama,
@@ -369,6 +370,10 @@ export default function MuvekkilPanel() {
 
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
+                        {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
+                          <VideoGorusmeButonu randevuTalepId={talep.id} />
+                        )}
+
                         {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
                           <span className="text-xs text-white/40">
                             Görüşme sonrası avukat ücreti belirleyecek.

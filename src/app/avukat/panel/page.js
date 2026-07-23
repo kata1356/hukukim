@@ -14,6 +14,7 @@ import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import HesapSilButonu from "@/components/HesapSilButonu";
 import YildizGosterge from "@/components/YildizGosterge";
+import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import {
   IconTelefon,
   IconKonum,
@@ -612,6 +613,12 @@ export default function AvukatPanel() {
                         )}
                         Reddet
                       </button>
+                    </div>
+                  )}
+
+                  {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+                      <VideoGorusmeButonu randevuTalepId={talep.id} />
                     </div>
                   )}
 
