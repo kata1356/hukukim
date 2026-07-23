@@ -14,6 +14,7 @@ import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
+import HesapSilButonu from "@/components/HesapSilButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
 import {
   IconArama,
@@ -394,6 +395,8 @@ export default function MuvekkilPanel() {
             </div>
           )}
         </section>
+
+        <HesapSilButonu />
       </main>
 
       {seciliAvukat && (

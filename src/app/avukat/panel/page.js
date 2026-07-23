@@ -12,6 +12,7 @@ import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
+import HesapSilButonu from "@/components/HesapSilButonu";
 import {
   IconTelefon,
   IconKonum,
@@ -585,6 +586,8 @@ export default function AvukatPanel() {
             </div>
           )}
         </section>
+
+        <HesapSilButonu />
       </main>
 
       <AltMenu
