@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
-import { IconVideo } from "./icons";
+import { IconVideo, IconTelefonKapat } from "./icons";
 
 function sureFormatla(saniye) {
   const dk = Math.floor(saniye / 60);
@@ -88,9 +88,17 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
               style={{ width: "100%", height: "70vh", border: "none" }}
             />
           </div>
+          <button
+            onClick={gorusmeyiKapat}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-red-700"
+          >
+            <IconTelefonKapat className="h-4 w-4" />
+            Görüşmeyi Sonlandır
+          </button>
+
           {onGorusmeBitti && (
             <p className="mt-3 text-center text-xs text-white/40">
-              Görüşmeyi kapattığında süre otomatik hesaplanıp tamamlanacak.
+              Görüşmeyi sonlandırınca süre otomatik hesaplanıp tamamlanacak.
             </p>
           )}
         </Modal>
