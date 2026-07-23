@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { dailyOdaGetirYaDaOlustur, dailyTokenOlustur } from "@/lib/daily";
 
 export async function POST(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
@@ -44,17 +43,11 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Randevu henüz kabul edilmedi." }, { status: 400 });
   }
 
-  const odaAdi = `hukukim-${randevuTalepId}`;
+  const odaAdi = `hukukim-gizli-${randevuTalepId}`;
   const kullaniciAdi =
     talep.avukat_id === kullanici.id ? talep.avukatlar?.ad_soyad ?? "Avukat" : talep.muvekkiller?.ad_soyad ?? "Müvekkil";
 
-  try {
-    await dailyOdaGetirYaDaOlustur(odaAdi);
-    const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi });
-    const odaUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${odaAdi}?t=${meetingToken}`;
-    return NextResponse.json({ odaUrl });
-  } catch (err) {
-    console.error("Daily.co video oda hatasi:", err);
-    return NextResponse.json({ hata: "Görüşme odası oluşturulamadı, lütfen tekrar dene." }, { status: 500 });
-  }
+  const odaUrl = `https://meet.jit.si/${odaAdi}#config.prejoinPageEnabled=false&userInfo.displayName=${encodeURIComponent(kullaniciAdi)}`;
+
+  return NextResponse.json({ odaUrl });
 }
