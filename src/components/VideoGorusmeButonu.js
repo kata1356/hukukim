@@ -22,47 +22,73 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const [gecenSaniye, setGecenSaniye] = useState(0);
   const [sonlandirmaOnayAcik, setSonlandirmaOnayAcik] = useState(false);
   const [sonlandiriliyor, setSonlandiriliyor] = useState(false);
+  const [gorusmeBasladi, setGorusmeBasladi] = useState(false);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
   const bittiCagrildiRef = useRef(false);
+  const gorusmeBasladiRef = useRef(false);
 
   useEffect(() => {
-    if (!odaUrl || sonlandiriliyor) return;
+    if (!odaUrl || !gorusmeBasladi || sonlandiriliyor) return;
 
     const zamanlayici = setInterval(() => {
       setGecenSaniye(Math.floor((Date.now() - baslangicRef.current) / 1000));
     }, 1000);
 
     return () => clearInterval(zamanlayici);
-  }, [odaUrl, sonlandiriliyor]);
+  }, [odaUrl, gorusmeBasladi, sonlandiriliyor]);
 
   useEffect(() => {
     if (!odaUrl || !iframeRef.current) return;
 
     bittiCagrildiRef.current = false;
+    gorusmeBasladiRef.current = false;
+    baslangicRef.current = null;
+    setGorusmeBasladi(false);
+    setGecenSaniye(0);
+
     const callFrame = DailyIframe.wrap(iframeRef.current);
     callFrameRef.current = callFrame;
     callFrame.join({ url: odaUrl });
     callFrame.on("left-meeting", gorusmeBitince);
+    callFrame.on("joined-meeting", katilimcilariKontrolEt);
+    callFrame.on("participant-joined", katilimcilariKontrolEt);
 
     return () => {
       callFrame.off("left-meeting", gorusmeBitince);
+      callFrame.off("joined-meeting", katilimcilariKontrolEt);
+      callFrame.off("participant-joined", katilimcilariKontrolEt);
       callFrame.destroy();
       callFrameRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [odaUrl]);
 
+  function katilimcilariKontrolEt() {
+    if (gorusmeBasladiRef.current || !callFrameRef.current) return;
+    const katilimcilar = callFrameRef.current.participants();
+    if (katilimcilar && Object.keys(katilimcilar).length >= 2) {
+      gorusmeBasladiRef.current = true;
+      baslangicRef.current = Date.now();
+      setGecenSaniye(0);
+      setGorusmeBasladi(true);
+    }
+  }
+
   function gorusmeBitince() {
     if (bittiCagrildiRef.current) return;
     bittiCagrildiRef.current = true;
-    const saniyeGecti = Math.floor((Date.now() - baslangicRef.current) / 1000);
-    const dakika = Math.max(1, Math.ceil(saniyeGecti / 60));
     setOdaUrl(null);
     setSonlandirmaOnayAcik(false);
     setSonlandiriliyor(false);
-    if (onGorusmeBitti) onGorusmeBitti(dakika);
+    setGorusmeBasladi(false);
+
+    if (baslangicRef.current && onGorusmeBitti) {
+      const saniyeGecti = Math.floor((Date.now() - baslangicRef.current) / 1000);
+      const dakika = Math.max(1, Math.ceil(saniyeGecti / 60));
+      onGorusmeBitti(dakika);
+    }
   }
 
   async function gorusmeyeKatil() {
@@ -89,8 +115,6 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
       return;
     }
 
-    baslangicRef.current = new Date(sonuc.videoBaslangicZamani).getTime();
-    setGecenSaniye(Math.floor((Date.now() - baslangicRef.current) / 1000));
     setOdaUrl(sonuc.odaUrl);
     setYukleniyor(false);
   }
@@ -159,7 +183,13 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
 
       {odaUrl && (
         <Modal
-          baslik={sonlandiriliyor ? "Görüşme Sonlandırılıyor..." : `Görüntülü Görüşme · ${sureFormatla(gecenSaniye)}`}
+          baslik={
+            sonlandiriliyor
+              ? "Görüşme Sonlandırılıyor..."
+              : gorusmeBasladi
+              ? `Görüntülü Görüşme · ${sureFormatla(gecenSaniye)}`
+              : "Görüntülü Görüşme · Diğer taraf bekleniyor..."
+          }
           onKapat={() => setSonlandirmaOnayAcik(true)}
         >
           <div className="relative overflow-hidden rounded-xl bg-black">
