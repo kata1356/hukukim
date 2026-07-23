@@ -23,6 +23,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const [sonlandirmaOnayAcik, setSonlandirmaOnayAcik] = useState(false);
   const [sonlandiriliyor, setSonlandiriliyor] = useState(false);
   const [gorusmeBasladi, setGorusmeBasladi] = useState(false);
+  const [katilimciSayisiDebug, setKatilimciSayisiDebug] = useState(0);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -54,11 +55,15 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
     callFrame.on("left-meeting", gorusmeBitince);
     callFrame.on("joined-meeting", katilimcilariKontrolEt);
     callFrame.on("participant-joined", katilimcilariKontrolEt);
+    callFrame.on("participant-left", katilimcilariKontrolEt);
+    callFrame.on("participant-updated", katilimcilariKontrolEt);
 
     return () => {
       callFrame.off("left-meeting", gorusmeBitince);
       callFrame.off("joined-meeting", katilimcilariKontrolEt);
       callFrame.off("participant-joined", katilimcilariKontrolEt);
+      callFrame.off("participant-left", katilimcilariKontrolEt);
+      callFrame.off("participant-updated", katilimcilariKontrolEt);
       callFrame.destroy();
       callFrameRef.current = null;
     };
@@ -66,9 +71,17 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   }, [odaUrl]);
 
   function katilimcilariKontrolEt() {
-    if (gorusmeBasladiRef.current || !callFrameRef.current) return;
+    if (!callFrameRef.current) return;
+
+    const durum = callFrameRef.current.meetingState();
     const katilimcilar = callFrameRef.current.participants();
-    if (katilimcilar && Object.keys(katilimcilar).length >= 2) {
+    const sayi = katilimcilar ? Object.keys(katilimcilar).length : 0;
+    console.log("[video] katilimcilariKontrolEt", { durum, sayi, katilimcilar });
+    setKatilimciSayisiDebug(sayi);
+
+    if (durum !== "joined-meeting") return;
+
+    if (!gorusmeBasladiRef.current && sayi >= 2) {
       gorusmeBasladiRef.current = true;
       baslangicRef.current = Date.now();
       setGecenSaniye(0);
@@ -192,6 +205,9 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
           }
           onKapat={() => setSonlandirmaOnayAcik(true)}
         >
+          <p className="mb-2 text-center text-[11px] text-white/30">
+            (debug) katılımcı sayısı: {katilimciSayisiDebug} · başladı: {gorusmeBasladi ? "evet" : "hayır"}
+          </p>
           <div className="relative overflow-hidden rounded-xl bg-black">
             <iframe
               ref={iframeRef}
