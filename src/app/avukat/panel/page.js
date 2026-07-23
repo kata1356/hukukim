@@ -28,7 +28,10 @@ import {
   IconYildirim,
   IconKamera,
   IconYildiz,
+  IconArti,
 } from "@/components/icons";
+
+const BUGUN = () => new Date().toISOString().split("T")[0];
 
 export default function AvukatPanel() {
   const router = useRouter();
@@ -46,6 +49,48 @@ export default function AvukatPanel() {
   const [dakikaGirisleri, setDakikaGirisleri] = useState({});
   const [tamamlaYukleniyor, setTamamlaYukleniyor] = useState(null);
   const [degerlendirmeler, setDegerlendirmeler] = useState([]);
+  const [kapaliGunler, setKapaliGunler] = useState([]);
+  const [yeniKapaliTarih, setYeniKapaliTarih] = useState("");
+  const [kapatmaYukleniyor, setKapatmaYukleniyor] = useState(false);
+  const [kapaliGunHata, setKapaliGunHata] = useState(null);
+  const [acmaYukleniyorId, setAcmaYukleniyorId] = useState(null);
+
+  async function gunuKapat(e) {
+    e.preventDefault();
+    if (!yeniKapaliTarih) return;
+    setKapaliGunHata(null);
+    setKapatmaYukleniyor(true);
+
+    const { data, error } = await supabase
+      .from("avukat_kapali_gunler")
+      .insert({ avukat_id: profil.id, tarih: yeniKapaliTarih })
+      .select()
+      .single();
+
+    if (error) {
+      setKapaliGunHata(
+        error.code === "23505" ? "Bu gün zaten kapalı." : "Gün kapatılırken bir hata oluştu."
+      );
+      setKapatmaYukleniyor(false);
+      return;
+    }
+
+    setKapaliGunler((oncekiler) =>
+      [...oncekiler, data].sort((a, b) => a.tarih.localeCompare(b.tarih))
+    );
+    setYeniKapaliTarih("");
+    setKapatmaYukleniyor(false);
+  }
+
+  async function gunuAc(id) {
+    setAcmaYukleniyorId(id);
+    const { error } = await supabase.from("avukat_kapali_gunler").delete().eq("id", id);
+
+    if (!error) {
+      setKapaliGunler((oncekiler) => oncekiler.filter((g) => g.id !== id));
+    }
+    setAcmaYukleniyorId(null);
+  }
 
   async function gorusmeyiTamamla(talepId) {
     const dakika = dakikaGirisleri[talepId];
@@ -183,12 +228,19 @@ export default function AvukatPanel() {
         .eq("avukat_id", user.id)
         .order("created_at", { ascending: false });
 
+      const { data: kapaliGunlerListesi } = await supabase
+        .from("avukat_kapali_gunler")
+        .select("*")
+        .eq("avukat_id", user.id)
+        .order("tarih", { ascending: true });
+
       await acikTalepleriGetir(avukatProfili);
 
       if (iptalEdildi) return;
       setProfil(avukatProfili);
       setTalepler(randevuTalepleri ?? []);
       setDegerlendirmeler(gelenDegerlendirmeler ?? []);
+      setKapaliGunler(kapaliGunlerListesi ?? []);
       setSayfaYukleniyor(false);
     }
 
@@ -600,6 +652,71 @@ export default function AvukatPanel() {
               ))}
             </div>
           )}
+        </section>
+
+        <section id="musaitlik" className="scroll-mt-20">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
+            <IconTakvim className="h-5 w-5 text-turkuaz" />
+            Müsaitlik Takvimi
+          </h2>
+
+          <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm">
+            <p className="text-sm text-white/60">
+              Müsait olmadığın günleri işaretle, müvekkiller randevu talebi
+              gönderirken bu günleri seçemesin.
+            </p>
+
+            <form onSubmit={gunuKapat} className="mt-4 flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="kapali-tarih" className="text-sm font-semibold text-white">
+                  Tarih
+                </label>
+                <input
+                  id="kapali-tarih"
+                  type="date"
+                  min={BUGUN()}
+                  value={yeniKapaliTarih}
+                  onChange={(e) => setYeniKapaliTarih(e.target.value)}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-turkuaz"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!yeniKapaliTarih || kapatmaYukleniyor}
+                className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+              >
+                {kapatmaYukleniyor ? <Spinner className="h-4 w-4" /> : <IconArti className="h-4 w-4" />}
+                Bu Günü Kapat
+              </button>
+            </form>
+
+            {kapaliGunHata && (
+              <p className="mt-3 rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+                {kapaliGunHata}
+              </p>
+            )}
+
+            {kapaliGunler.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+                {kapaliGunler.map((gun) => (
+                  <span
+                    key={gun.id}
+                    className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70"
+                  >
+                    {tarihFormatla(gun.tarih)}
+                    <button
+                      onClick={() => gunuAc(gun.id)}
+                      disabled={acmaYukleniyorId === gun.id}
+                      aria-label="Bu günü tekrar aç"
+                      className="text-white/40 hover:text-red-400"
+                    >
+                      {acmaYukleniyorId === gun.id ? <Spinner className="h-3 w-3" /> : "✕"}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         <section id="degerlendirmeler" className="scroll-mt-20">

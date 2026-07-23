@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji } from "@/lib/hataMesajlari";
-import { GORUSME_SEKILLERI } from "@/lib/gorusmeSekli";
+import { GORUSME_SEKILLERI, tarihFormatla } from "@/lib/gorusmeSekli";
 import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
@@ -20,6 +20,19 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
+  const [kapaliGunler, setKapaliGunler] = useState([]);
+
+  useEffect(() => {
+    async function kapaliGunleriGetir() {
+      const { data } = await supabase
+        .from("avukat_kapali_gunler")
+        .select("tarih")
+        .eq("avukat_id", avukat.id)
+        .gte("tarih", BUGUN());
+      setKapaliGunler((data ?? []).map((g) => g.tarih));
+    }
+    kapaliGunleriGetir();
+  }, [avukat.id]);
 
   function alanGuncelle(alan, deger) {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
@@ -28,6 +41,12 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
   async function handleSubmit(e) {
     e.preventDefault();
     setHata(null);
+
+    if (kapaliGunler.includes(form.tarih)) {
+      setHata("Avukat bu tarihte müsait değil, lütfen başka bir gün seç.");
+      return;
+    }
+
     setYukleniyor(true);
 
     const odemeDurumu = await odemeDurumuBelirle(supabase, muvekkilProfil.id);
@@ -114,6 +133,12 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
         value={form.tarih}
         onChange={(e) => alanGuncelle("tarih", e.target.value)}
       />
+
+      {kapaliGunler.length > 0 && (
+        <p className="text-xs text-white/40">
+          Avukatın müsait olmadığı günler: {kapaliGunler.map((g) => tarihFormatla(g)).join(", ")}
+        </p>
+      )}
 
       {hata && (
         <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
