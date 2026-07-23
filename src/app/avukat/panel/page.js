@@ -568,10 +568,6 @@ export default function AvukatPanel() {
                         <p className="font-semibold text-white">
                           {talep.muvekkil_ad_soyad}
                         </p>
-                        <p className="flex items-center gap-1.5 text-sm text-white/60">
-                          <IconTelefon className="h-3.5 w-3.5" />
-                          {talep.muvekkil_telefon}
-                        </p>
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">

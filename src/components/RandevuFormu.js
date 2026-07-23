@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji } from "@/lib/hataMesajlari";
-import { GORUSME_SEKILLERI, tarihFormatla } from "@/lib/gorusmeSekli";
+import { GORUSME_SEKILLERI } from "@/lib/gorusmeSekli";
 import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
@@ -16,22 +16,22 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
     konu: "",
     aciklama: "",
     gorusmeSekli: "goruntulu",
-    tarih: "",
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
-  const [kapaliGunler, setKapaliGunler] = useState([]);
+  const [bugunKapali, setBugunKapali] = useState(false);
 
   useEffect(() => {
-    async function kapaliGunleriGetir() {
+    async function bugunMusaitMi() {
       const { data } = await supabase
         .from("avukat_kapali_gunler")
-        .select("tarih")
+        .select("id")
         .eq("avukat_id", avukat.id)
-        .gte("tarih", BUGUN());
-      setKapaliGunler((data ?? []).map((g) => g.tarih));
+        .eq("tarih", BUGUN())
+        .maybeSingle();
+      setBugunKapali(!!data);
     }
-    kapaliGunleriGetir();
+    bugunMusaitMi();
   }, [avukat.id]);
 
   function alanGuncelle(alan, deger) {
@@ -42,8 +42,8 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
     e.preventDefault();
     setHata(null);
 
-    if (kapaliGunler.includes(form.tarih)) {
-      setHata("Avukat bu tarihte müsait değil, lütfen başka bir gün seç.");
+    if (bugunKapali) {
+      setHata("Avukat bugün müsait değil, lütfen başka bir avukat seç.");
       return;
     }
 
@@ -59,7 +59,7 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
       konu: form.konu,
       aciklama: form.aciklama,
       gorusme_sekli: form.gorusmeSekli,
-      tarih: form.tarih,
+      tarih: BUGUN(),
       odeme_durumu: odemeDurumu,
     });
 
@@ -124,19 +124,9 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
         ))}
       </TextField>
 
-      <TextField
-        label="Tarih"
-        id="tarih"
-        type="date"
-        required
-        min={BUGUN()}
-        value={form.tarih}
-        onChange={(e) => alanGuncelle("tarih", e.target.value)}
-      />
-
-      {kapaliGunler.length > 0 && (
-        <p className="text-xs text-white/40">
-          Avukatın müsait olmadığı günler: {kapaliGunler.map((g) => tarihFormatla(g)).join(", ")}
+      {bugunKapali && (
+        <p className="rounded-lg bg-amber-500/10 px-4 py-2.5 text-xs text-amber-400 ring-1 ring-amber-500/20">
+          Bu avukat bugün müsait değil.
         </p>
       )}
 

@@ -13,7 +13,7 @@ function sureFormatla(saniye) {
   return `${String(dk).padStart(2, "0")}:${String(sn).padStart(2, "0")}`;
 }
 
-export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
+export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti, otomatikAc }) {
   const [onayAcik, setOnayAcik] = useState(false);
   const [onayVerildi, setOnayVerildi] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -28,6 +28,14 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const callFrameRef = useRef(null);
   const bittiCagrildiRef = useRef(false);
   const gorusmeBasladiRef = useRef(false);
+  const otomatikAcildiRef = useRef(false);
+
+  useEffect(() => {
+    if (otomatikAc && !otomatikAcildiRef.current) {
+      otomatikAcildiRef.current = true;
+      setOnayAcik(true);
+    }
+  }, [otomatikAc]);
 
   useEffect(() => {
     if (!odaUrl || !gorusmeBasladi || sonlandiriliyor) return;

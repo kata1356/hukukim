@@ -52,6 +52,10 @@ export default function MuvekkilPanel() {
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
   const [degerlendirilenIdler, setDegerlendirilenIdler] = useState([]);
   const [degerlendirilecekTalep, setDegerlendirilecekTalep] = useState(null);
+  const [videoTalepId, setVideoTalepId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("video");
+  });
 
   const [odemeToken, setOdemeToken] = useState(null);
   const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
@@ -199,7 +203,7 @@ export default function MuvekkilPanel() {
   }, [profil?.id]);
 
   useEffect(() => {
-    if (window.location.search.includes("odeme=")) {
+    if (window.location.search.includes("odeme=") || window.location.search.includes("video=")) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -416,7 +420,7 @@ export default function MuvekkilPanel() {
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
                         {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
-                          <VideoGorusmeButonu randevuTalepId={talep.id} />
+                          <VideoGorusmeButonu randevuTalepId={talep.id} otomatikAc={talep.id === videoTalepId} />
                         )}
 
                         {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (

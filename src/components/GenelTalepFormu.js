@@ -19,7 +19,6 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
     konu: "",
     aciklama: "",
     gorusmeSekli: "goruntulu",
-    tarih: "",
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -46,7 +45,7 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
       konu: form.konu,
       aciklama: form.aciklama,
       gorusme_sekli: form.gorusmeSekli,
-      tarih: form.tarih,
+      tarih: BUGUN(),
       odeme_durumu: odemeDurumu,
     });
 
@@ -140,16 +139,6 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
           </option>
         ))}
       </TextField>
-
-      <TextField
-        label="Tarih"
-        id="genelTarih"
-        type="date"
-        required
-        min={BUGUN()}
-        value={form.tarih}
-        onChange={(e) => alanGuncelle("tarih", e.target.value)}
-      />
 
       {hata && (
         <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
