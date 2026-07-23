@@ -23,7 +23,6 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
   const [sonlandirmaOnayAcik, setSonlandirmaOnayAcik] = useState(false);
   const [sonlandiriliyor, setSonlandiriliyor] = useState(false);
   const [gorusmeBasladi, setGorusmeBasladi] = useState(false);
-  const [katilimciSayisiDebug, setKatilimciSayisiDebug] = useState(0);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -74,12 +73,10 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
     if (!callFrameRef.current) return;
 
     const durum = callFrameRef.current.meetingState();
+    if (durum !== "joined-meeting") return;
+
     const katilimcilar = callFrameRef.current.participants();
     const sayi = katilimcilar ? Object.keys(katilimcilar).length : 0;
-    console.log("[video] katilimcilariKontrolEt", { durum, sayi, katilimcilar });
-    setKatilimciSayisiDebug(sayi);
-
-    if (durum !== "joined-meeting") return;
 
     if (!gorusmeBasladiRef.current && sayi >= 2) {
       gorusmeBasladiRef.current = true;
@@ -205,9 +202,6 @@ export default function VideoGorusmeButonu({ randevuTalepId, onGorusmeBitti }) {
           }
           onKapat={() => setSonlandirmaOnayAcik(true)}
         >
-          <p className="mb-2 text-center text-[11px] text-white/30">
-            (debug) katılımcı sayısı: {katilimciSayisiDebug} · başladı: {gorusmeBasladi ? "evet" : "hayır"}
-          </p>
           <div className="relative overflow-hidden rounded-xl bg-black">
             <iframe
               ref={iframeRef}

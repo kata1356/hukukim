@@ -5,13 +5,26 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Spinner from "./Spinner";
-import { IconPano, IconGrup, IconTerazi, IconYayin, IconCikis, IconKalkan, IconTarihce, IconEtiket, IconKitap } from "./icons";
+import BildirimZili from "./BildirimZili";
+import {
+  IconPano,
+  IconGrup,
+  IconTerazi,
+  IconYayin,
+  IconCikis,
+  IconKalkan,
+  IconTarihce,
+  IconEtiket,
+  IconKitap,
+  IconYildiz,
+} from "./icons";
 
 const MENU = [
   { etiket: "Panel", href: "/admin", Icon: IconPano },
   { etiket: "Avukatlar", href: "/admin/avukatlar", Icon: IconTerazi },
   { etiket: "Kullanıcılar", href: "/admin/kullanicilar", Icon: IconGrup },
   { etiket: "Talepler", href: "/admin/talepler", Icon: IconYayin },
+  { etiket: "Değerlendirmeler", href: "/admin/degerlendirmeler", Icon: IconYildiz },
   { etiket: "SSS", href: "/admin/icerik/sss", Icon: IconEtiket },
   { etiket: "Mevzuat", href: "/admin/icerik/mevzuat", Icon: IconKitap },
   { etiket: "Yöneticiler", href: "/admin/yoneticiler", Icon: IconKalkan },
@@ -138,9 +151,12 @@ export default function AdminShell({ baslik, aciklama, children }) {
       </aside>
 
       <div className="flex flex-1 flex-col lg:pl-64">
-        <header className="sticky top-0 z-30 border-b border-yonetim-kenar bg-yonetim/90 px-6 py-4 backdrop-blur">
-          <h1 className="text-lg font-bold text-white">{baslik}</h1>
-          {aciklama && <p className="mt-0.5 text-sm text-white/50">{aciklama}</p>}
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-yonetim-kenar bg-yonetim/90 px-6 py-4 backdrop-blur">
+          <div>
+            <h1 className="text-lg font-bold text-white">{baslik}</h1>
+            {aciklama && <p className="mt-0.5 text-sm text-white/50">{aciklama}</p>}
+          </div>
+          <BildirimZili />
         </header>
 
         <main className="flex-1 px-6 py-6">{children}</main>

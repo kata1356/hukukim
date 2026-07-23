@@ -65,11 +65,22 @@ export default function DegerlendirmeFormu({ talep, muvekkilId, onKapat, onBasar
         })}
       </div>
 
+      {puan > 0 && puan <= 2 && (
+        <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+          Üzgünüz, beklediğin gibi geçmemiş. Ne yaşadığını aşağıya yazarsan
+          ekibimiz inceleyip seninle iletişime geçer.
+        </p>
+      )}
+
       <textarea
         value={yorum}
         onChange={(e) => setYorum(e.target.value)}
         rows={3}
-        placeholder="İsteğe bağlı yorum yaz..."
+        placeholder={
+          puan > 0 && puan <= 2
+            ? "Ne ters gitti? Bir sorun yaşadıysan lütfen anlat..."
+            : "İsteğe bağlı yorum yaz, bir sorun yaşadıysan da belirtebilirsin..."
+        }
         className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30"
       />
 
