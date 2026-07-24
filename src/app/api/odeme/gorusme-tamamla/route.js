@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { DAKIKA_UCRETI } from "@/lib/odemeYardimci";
+import { DAKIKA_UCRETI, ILK_UCRETSIZ_DAKIKA } from "@/lib/odemeYardimci";
 
 export async function POST(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
@@ -41,14 +41,21 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu randevu tamamlanabilir durumda değil." }, { status: 400 });
   }
 
-  const tutar = talep.odeme_durumu === "muaf" ? 0 : dakikaSayisi * DAKIKA_UCRETI;
+  // "muaf" olarak isaretlenmis (musterinin ilk randevusu olan) talepler icin
+  // ilk ILK_UCRETSIZ_DAKIKA dakika ucretsiz, sadece asan sure faturalandirilir.
+  // Diger talepler icin sure tamamen ucretlidir.
+  const ucretliDakika =
+    talep.odeme_durumu === "muaf" ? Math.max(0, dakikaSayisi - ILK_UCRETSIZ_DAKIKA) : dakikaSayisi;
+  const tutar = ucretliDakika * DAKIKA_UCRETI;
+  const odemeGerekli = tutar > 0;
 
   const { error: guncelleHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
     .update({
       gorusme_suresi_dakika: dakikaSayisi,
       odeme_tutari: tutar,
-      durum: talep.odeme_durumu === "muaf" ? "tamamlandi" : "kabul",
+      odeme_durumu: odemeGerekli ? "gerekli" : "muaf",
+      durum: odemeGerekli ? "kabul" : "tamamlandi",
     })
     .eq("id", randevuTalepId);
 
@@ -56,5 +63,5 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Güncellenemedi." }, { status: 500 });
   }
 
-  return NextResponse.json({ basarili: true, tutar, odemeGerekli: talep.odeme_durumu !== "muaf" });
+  return NextResponse.json({ basarili: true, tutar, odemeGerekli });
 }

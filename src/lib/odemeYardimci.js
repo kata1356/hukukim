@@ -1,4 +1,5 @@
 export const DAKIKA_UCRETI = 40;
+export const ILK_UCRETSIZ_DAKIKA = 5;
 
 export async function odemeDurumuBelirle(supabase, muvekkilId) {
   const { count } = await supabase
