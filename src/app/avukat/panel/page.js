@@ -12,7 +12,6 @@ import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
-import HesapSilButonu from "@/components/HesapSilButonu";
 import YildizGosterge from "@/components/YildizGosterge";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import {
@@ -351,7 +350,7 @@ export default function AvukatPanel() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" />
+      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" panelYolu="/avukat" />
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <section id="profil-bilgileri" className="scroll-mt-20 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm">
@@ -785,8 +784,6 @@ export default function AvukatPanel() {
             </div>
           )}
         </section>
-
-        <HesapSilButonu />
       </main>
 
       <AltMenu

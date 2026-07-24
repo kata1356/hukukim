@@ -14,7 +14,6 @@ import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
-import HesapSilButonu from "@/components/HesapSilButonu";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
@@ -244,7 +243,7 @@ export default function MuvekkilPanel() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" />
+      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" panelYolu="/muvekkil" />
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
@@ -481,8 +480,6 @@ export default function MuvekkilPanel() {
             </div>
           )}
         </section>
-
-        <HesapSilButonu />
       </main>
 
       {seciliAvukat && (

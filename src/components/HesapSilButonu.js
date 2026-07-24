@@ -9,7 +9,7 @@ import { IconRed } from "./icons";
 
 const ONAY_METNI = "HESABIMI SİL";
 
-export default function HesapSilButonu() {
+export default function HesapSilButonu({ onKapat }) {
   const router = useRouter();
   const [modalAcik, setModalAcik] = useState(false);
   const [onayMetni, setOnayMetni] = useState("");
@@ -41,16 +41,13 @@ export default function HesapSilButonu() {
   }
 
   return (
-    <section className="rounded-2xl border border-red-500/20 bg-red-500/[0.03] p-6">
-      <h2 className="text-sm font-bold text-red-400">Tehlikeli Bölge</h2>
-      <p className="mt-1.5 text-sm text-white/50">
-        Hesabını kalıcı olarak silersin; profilin, randevu taleplerin ve tüm
-        kişisel verilerin KVKK kapsamında sistemden kaldırılır. Bu işlem geri
-        alınamaz.
-      </p>
+    <>
       <button
-        onClick={() => setModalAcik(true)}
-        className="mt-4 flex items-center gap-2 rounded-full border-2 border-red-500/30 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+        onClick={() => {
+          setModalAcik(true);
+          if (onKapat) onKapat();
+        }}
+        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
       >
         <IconRed className="h-4 w-4" />
         Hesabımı Kalıcı Olarak Sil
@@ -67,7 +64,9 @@ export default function HesapSilButonu() {
         >
           <div className="flex flex-col gap-4">
             <p className="text-sm text-white/70">
-              Bu işlem geri alınamaz. Devam etmek için aşağıya{" "}
+              Hesabını silersen profilin, randevu taleplerin ve tüm kişisel
+              verilerin KVKK kapsamında sistemden kaldırılır. Bu işlem geri
+              alınamaz. Devam etmek için aşağıya{" "}
               <span className="font-bold text-white">{ONAY_METNI}</span>{" "}
               yaz.
             </p>
@@ -96,6 +95,6 @@ export default function HesapSilButonu() {
           </div>
         </Modal>
       )}
-    </section>
+    </>
   );
 }
