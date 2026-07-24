@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -11,11 +11,16 @@ import TextField from "@/components/TextField";
 import KvkkOnay from "@/components/KvkkOnay";
 import Button from "@/components/Button";
 import Honeypot from "@/components/Honeypot";
+import GoogleGirisButonu from "@/components/GoogleGirisButonu";
+import Spinner from "@/components/Spinner";
 import { IconOnay } from "@/components/icons";
 
 export default function MuvekkilKayit() {
   const router = useRouter();
   const [gonderildi, setGonderildi] = useState(false);
+  const [oauthKontrolEdiliyor, setOauthKontrolEdiliyor] = useState(true);
+  const [oauthTamamlaniyor, setOauthTamamlaniyor] = useState(false);
+  const [oauthYukleniyor, setOauthYukleniyor] = useState(false);
 
   const [form, setForm] = useState({
     adSoyad: "",
@@ -29,6 +34,47 @@ export default function MuvekkilKayit() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [zatenKayitli, setZatenKayitli] = useState(false);
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function oauthDurumunuKontrolEt() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!iptalEdildi) setOauthKontrolEdiliyor(false);
+        return;
+      }
+
+      const { data: muvekkilKaydi } = await supabase
+        .from("muvekkiller")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (iptalEdildi) return;
+
+      if (muvekkilKaydi) {
+        router.push("/muvekkil/panel");
+        return;
+      }
+
+      setForm((onceki) => ({
+        ...onceki,
+        adSoyad: user.user_metadata?.full_name ?? user.user_metadata?.name ?? "",
+        email: user.email ?? "",
+      }));
+      setOauthTamamlaniyor(true);
+      setOauthKontrolEdiliyor(false);
+    }
+
+    oauthDurumunuKontrolEt();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, [router]);
 
   const [kod, setKod] = useState("");
   const [dogrulaniyor, setDogrulaniyor] = useState(false);
@@ -90,6 +136,40 @@ export default function MuvekkilKayit() {
     setYenidenGonderildi(true);
   }
 
+  async function profiliTamamla(e) {
+    e.preventDefault();
+    setHata(null);
+    setOauthYukleniyor(true);
+
+    const { error: guncelleHatasi } = await supabase.auth.updateUser({
+      data: {
+        rol: "muvekkil",
+        profil: {
+          ad_soyad: form.adSoyad,
+          telefon: form.telefon,
+          sehir: form.sehir,
+          kvkk_onay: kvkkOnay,
+        },
+      },
+    });
+
+    if (guncelleHatasi) {
+      setHata(turkceHataMesaji(guncelleHatasi));
+      setOauthYukleniyor(false);
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const sonuc = await oturumuTamamla(session);
+    if (!sonuc.basarili) {
+      setHata(sonuc.hata);
+      setOauthYukleniyor(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setHata(null);
@@ -143,6 +223,73 @@ export default function MuvekkilKayit() {
 
     setYukleniyor(false);
     setGonderildi(true);
+  }
+
+  if (oauthKontrolEdiliyor) {
+    return (
+      <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
+        <Spinner className="h-8 w-8 text-white" />
+      </div>
+    );
+  }
+
+  if (oauthTamamlaniyor) {
+    return (
+      <AuthShell
+        baslik="Profilini Tamamla"
+        altBaslik={`${form.email} ile giriş yaptın, devam etmek için birkaç bilgi daha lazım.`}
+      >
+        <form onSubmit={profiliTamamla} className="flex flex-col gap-5">
+          <TextField
+            label="Ad Soyad"
+            id="oauthAdSoyad"
+            type="text"
+            required
+            value={form.adSoyad}
+            onChange={(e) => alanGuncelle("adSoyad", e.target.value)}
+            placeholder="Ör. Mehmet Demir"
+          />
+          <TextField
+            label="Telefon"
+            id="oauthTelefon"
+            type="tel"
+            required
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XX XXX XX XX"
+          />
+          <TextField
+            label="Şehir"
+            id="oauthSehir"
+            as="select"
+            required
+            value={form.sehir}
+            onChange={(e) => alanGuncelle("sehir", e.target.value)}
+          >
+            <option value="" disabled>
+              Şehir seç
+            </option>
+            {SEHIRLER.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </TextField>
+
+          <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
+
+          {hata && (
+            <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+              {hata}
+            </p>
+          )}
+
+          <Button type="submit" yukleniyor={oauthYukleniyor}>
+            Kaydı Tamamla
+          </Button>
+        </form>
+      </AuthShell>
+    );
   }
 
   if (gonderildi) {
@@ -202,7 +349,16 @@ export default function MuvekkilKayit() {
       baslik="Müvekkil Kaydı"
       altBaslik="Uzman avukatları bul, kolayca randevu talebi gönder."
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
+        <GoogleGirisButonu redirectYolu="/muvekkil/kayit" />
+        <div className="flex items-center gap-3 text-xs font-semibold text-white/30">
+          <span className="h-px flex-1 bg-white/10" />
+          VEYA
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-5">
         <Honeypot value={webSitesi} onChange={(e) => setWebSitesi(e.target.value)} />
         <TextField
           label="Ad Soyad"

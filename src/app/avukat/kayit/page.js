@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
@@ -12,11 +12,16 @@ import TextField from "@/components/TextField";
 import KvkkOnay from "@/components/KvkkOnay";
 import Button from "@/components/Button";
 import Honeypot from "@/components/Honeypot";
+import GoogleGirisButonu from "@/components/GoogleGirisButonu";
+import Spinner from "@/components/Spinner";
 import { IconOnay } from "@/components/icons";
 
 export default function AvukatKayit() {
   const router = useRouter();
   const [gonderildi, setGonderildi] = useState(false);
+  const [oauthKontrolEdiliyor, setOauthKontrolEdiliyor] = useState(true);
+  const [oauthTamamlaniyor, setOauthTamamlaniyor] = useState(false);
+  const [oauthYukleniyor, setOauthYukleniyor] = useState(false);
 
   const [form, setForm] = useState({
     adSoyad: "",
@@ -33,6 +38,47 @@ export default function AvukatKayit() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [zatenKayitli, setZatenKayitli] = useState(false);
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function oauthDurumunuKontrolEt() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!iptalEdildi) setOauthKontrolEdiliyor(false);
+        return;
+      }
+
+      const { data: avukatKaydi } = await supabase
+        .from("avukatlar")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (iptalEdildi) return;
+
+      if (avukatKaydi) {
+        router.push("/avukat/panel");
+        return;
+      }
+
+      setForm((onceki) => ({
+        ...onceki,
+        adSoyad: user.user_metadata?.full_name ?? user.user_metadata?.name ?? "",
+        email: user.email ?? "",
+      }));
+      setOauthTamamlaniyor(true);
+      setOauthKontrolEdiliyor(false);
+    }
+
+    oauthDurumunuKontrolEt();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, [router]);
 
   const [kod, setKod] = useState("");
   const [dogrulaniyor, setDogrulaniyor] = useState(false);
@@ -102,6 +148,49 @@ export default function AvukatKayit() {
     setYenidenGonderildi(true);
   }
 
+  async function profiliTamamla(e) {
+    e.preventDefault();
+    setHata(null);
+
+    if (uzmanlikSecimi.length === 0) {
+      setHata("En az bir uzmanlık alanı seçmelisin.");
+      return;
+    }
+
+    setOauthYukleniyor(true);
+
+    const { error: guncelleHatasi } = await supabase.auth.updateUser({
+      data: {
+        rol: "avukat",
+        profil: {
+          ad_soyad: form.adSoyad,
+          telefon: form.telefon,
+          baro_sicil_no: form.baroSicilNo,
+          sehir: form.sehir,
+          uzmanlik_alanlari: uzmanlikSecimi,
+          biyografi: form.biyografi,
+          kvkk_onay: kvkkOnay,
+        },
+      },
+    });
+
+    if (guncelleHatasi) {
+      setHata(turkceHataMesaji(guncelleHatasi));
+      setOauthYukleniyor(false);
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const sonuc = await oturumuTamamla(session);
+    if (!sonuc.basarili) {
+      setHata(sonuc.hata);
+      setOauthYukleniyor(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setHata(null);
@@ -166,6 +255,124 @@ export default function AvukatKayit() {
     setGonderildi(true);
   }
 
+  if (oauthKontrolEdiliyor) {
+    return (
+      <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
+        <Spinner className="h-8 w-8 text-white" />
+      </div>
+    );
+  }
+
+  if (oauthTamamlaniyor) {
+    return (
+      <AuthShell
+        baslik="Profilini Tamamla"
+        altBaslik={`${form.email} ile giriş yaptın, avukat profilini tamamlamak için birkaç bilgi daha lazım.`}
+        genis
+      >
+        <form onSubmit={profiliTamamla} className="flex flex-col gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <TextField
+              label="Ad Soyad"
+              id="oauthAdSoyad"
+              type="text"
+              required
+              value={form.adSoyad}
+              onChange={(e) => alanGuncelle("adSoyad", e.target.value)}
+              placeholder="Ör. Ayşe Yılmaz"
+            />
+            <TextField
+              label="Telefon"
+              id="oauthTelefon"
+              type="tel"
+              required
+              value={form.telefon}
+              onChange={(e) => alanGuncelle("telefon", e.target.value)}
+              placeholder="05XX XXX XX XX"
+            />
+            <TextField
+              label="Baro Sicil Numarası"
+              id="oauthBaroSicilNo"
+              type="text"
+              required
+              value={form.baroSicilNo}
+              onChange={(e) => alanGuncelle("baroSicilNo", e.target.value)}
+              placeholder="Ör. 12345"
+            />
+            <TextField
+              label="Şehir"
+              id="oauthSehir"
+              as="select"
+              required
+              value={form.sehir}
+              onChange={(e) => alanGuncelle("sehir", e.target.value)}
+            >
+              <option value="" disabled>
+                Şehir seç
+              </option>
+              {SEHIRLER.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </TextField>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-semibold text-white">
+              Uzmanlık Alanları
+            </span>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-white/15 p-4 sm:grid-cols-3">
+              {UZMANLIK_ALANLARI.map((alan) => (
+                <label
+                  key={alan}
+                  className="flex items-center gap-2 text-sm text-white/70"
+                >
+                  <input
+                    type="checkbox"
+                    checked={uzmanlikSecimi.includes(alan)}
+                    onChange={() => uzmanlikDegistir(alan)}
+                    className="h-4 w-4 shrink-0 rounded border-white/20 bg-white/5 text-turkuaz focus:ring-turkuaz/40"
+                  />
+                  {alan}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <TextField
+              label="Biyografi"
+              id="oauthBiyografi"
+              as="textarea"
+              rows={4}
+              required
+              minLength={100}
+              value={form.biyografi}
+              onChange={(e) => alanGuncelle("biyografi", e.target.value)}
+              placeholder="Deneyimlerinden ve çalışma alanlarından en az 100 karakter olacak şekilde bahset."
+            />
+            <p className={`text-xs ${form.biyografi.length < 100 ? "text-white/40" : "text-turkuaz"}`}>
+              En az 100 karakter gerekli · şu an {form.biyografi.length}
+            </p>
+          </div>
+
+          <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
+
+          {hata && (
+            <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+              {hata}
+            </p>
+          )}
+
+          <Button type="submit" yukleniyor={oauthYukleniyor}>
+            Kaydı Tamamla
+          </Button>
+        </form>
+      </AuthShell>
+    );
+  }
+
   if (gonderildi) {
     return (
       <AuthShell baslik="E-postanı Kontrol Et" altBaslik="Kaydını tamamlamak için sana bir kod gönderdik.">
@@ -224,7 +431,16 @@ export default function AvukatKayit() {
       altBaslik="Profilini oluştur, müvekkillerden randevu talebi almaya başla."
       genis
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
+        <GoogleGirisButonu redirectYolu="/avukat/kayit" />
+        <div className="flex items-center gap-3 text-xs font-semibold text-white/30">
+          <span className="h-px flex-1 bg-white/10" />
+          VEYA
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-5">
         <Honeypot value={webSitesi} onChange={(e) => setWebSitesi(e.target.value)} />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <TextField

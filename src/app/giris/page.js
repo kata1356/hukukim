@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji } from "@/lib/hataMesajlari";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
+import GoogleGirisButonu from "@/components/GoogleGirisButonu";
+import Spinner from "@/components/Spinner";
 import { IconTerazi, IconKvkk, IconBaro, IconTakvim } from "@/components/icons";
 import Logo from "@/components/Logo";
 
@@ -33,6 +35,59 @@ function GirisIcerik() {
   const [sifre, setSifre] = useState("");
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
+  const [oauthKontrolEdiliyor, setOauthKontrolEdiliyor] = useState(true);
+  const [rolSeciliyor, setRolSeciliyor] = useState(false);
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function oauthDurumunuKontrolEt() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!iptalEdildi) setOauthKontrolEdiliyor(false);
+        return;
+      }
+
+      const { data: avukatKaydi } = await supabase
+        .from("avukatlar")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (iptalEdildi) return;
+
+      if (avukatKaydi) {
+        router.push("/avukat/panel");
+        return;
+      }
+
+      const { data: muvekkilKaydi } = await supabase
+        .from("muvekkiller")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (iptalEdildi) return;
+
+      if (muvekkilKaydi) {
+        router.push(donusAdresi && donusAdresi.startsWith("/") ? donusAdresi : "/muvekkil/panel");
+        return;
+      }
+
+      // Google ile ilk kez giriş yapan, henuz avukat/muvekkil profili
+      // olmayan bir kullanici: hangi rolde devam edecegini soralim.
+      setRolSeciliyor(true);
+      setOauthKontrolEdiliyor(false);
+    }
+
+    oauthDurumunuKontrolEt();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, [router, donusAdresi]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -75,6 +130,42 @@ function GirisIcerik() {
 
     setHata("Bu hesaba ait bir profil bulunamadı.");
     setYukleniyor(false);
+  }
+
+  if (oauthKontrolEdiliyor) {
+    return (
+      <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
+        <Spinner className="h-8 w-8 text-white" />
+      </div>
+    );
+  }
+
+  if (rolSeciliyor) {
+    return (
+      <div className="flex min-h-full flex-1 items-center justify-center bg-gradient-to-b from-turkuaz/[0.06] to-gece px-4">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-lg sm:p-8">
+          <h1 className="text-2xl font-bold text-white">Nasıl Devam Etmek İstersin?</h1>
+          <p className="mt-1 text-sm text-white/60">
+            Google hesabınla ilk kez giriş yapıyorsun, hangi rolde devam edeceğini seç.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3">
+            <Link
+              href="/avukat/kayit"
+              className="rounded-full bg-turkuaz px-5 py-3 text-center text-sm font-bold text-gece transition hover:bg-turkuaz-parlak"
+            >
+              Avukat Olarak Devam Et
+            </Link>
+            <Link
+              href="/muvekkil/kayit"
+              className="rounded-full border-2 border-white/15 px-5 py-3 text-center text-sm font-bold text-white transition hover:border-white/40"
+            >
+              Müvekkil Olarak Devam Et
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -139,7 +230,16 @@ function GirisIcerik() {
               Hukukim hesabınla devam et.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
+            <div className="mt-6 flex flex-col gap-4">
+              <GoogleGirisButonu redirectYolu="/giris" metin="Google ile Giriş Yap" />
+              <div className="flex items-center gap-3 text-xs font-semibold text-white/30">
+                <span className="h-px flex-1 bg-white/10" />
+                VEYA
+                <span className="h-px flex-1 bg-white/10" />
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-5">
               <TextField
                 label="E-posta"
                 id="email"
