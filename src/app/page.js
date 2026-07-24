@@ -600,28 +600,29 @@ export default async function AnaSayfa() {
                   Yeni Üyelere Özel
                 </span>
                 <p className="mt-2 text-4xl font-extrabold text-white">
-                  Ücretsiz
+                  İlk 5 Dakika
                 </p>
-                <p className="text-sm text-white/60">İlk randevu talebin</p>
+                <p className="text-sm text-white/60">Ücretsiz, ilk randevunda</p>
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-gece-yuzey p-8 shadow-sm">
                 <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                  Sonraki Randevular
+                  Sonraki Her Dakika
                 </span>
                 <p className="mt-2 text-4xl font-extrabold text-white">
-                  199 TL
-                  <span className="text-base font-semibold text-white/50"> / görüşme</span>
+                  40 TL
+                  <span className="text-base font-semibold text-white/50"> / dakika</span>
                 </p>
-                <p className="text-sm text-white/60">Avukat kabul edince ödenir</p>
+                <p className="text-sm text-white/60">Sadece konuştuğun kadar öde</p>
               </div>
             </div>
 
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-              Ödeme, avukat randevu talebini kabul ettikten sonra güvenli
-              ödeme altyapımız (PayTR) üzerinden alınır. Talebin reddedilir ya
-              da avukat katılmazsa ücret tahsil edilmez.
+              Ücretlendirme taksimetre mantığıyla dakika bazlı çalışır. İlk
+              randevunda ilk 5 dakika tamamen ücretsizdir, sonrasında yalnızca
+              konuştuğun süre kadar ödersin. Ödeme, görüşme tamamlandıktan
+              sonra güvenli ödeme altyapımız (PayTR) üzerinden otomatik alınır.
             </p>
           </div>
         </section>
