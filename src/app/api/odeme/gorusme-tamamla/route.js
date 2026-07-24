@@ -63,5 +63,14 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Güncellenemedi." }, { status: 500 });
   }
 
+  if (odemeGerekli) {
+    await supabaseAdmin.from("bildirimler").insert({
+      kullanici_id: talep.muvekkil_id,
+      baslik: "Görüşme ücretin belirlendi",
+      mesaj: `${dakikaSayisi} dakikalık görüşmen için ${tutar} TL ödeme bekliyor. Panelinden tamamlayabilirsin.`,
+      link: "/muvekkil/panel#taleplerim",
+    });
+  }
+
   return NextResponse.json({ basarili: true, tutar, odemeGerekli });
 }
