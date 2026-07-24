@@ -7,6 +7,7 @@ import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
+import HesapSilButonu from "@/components/HesapSilButonu";
 import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 
@@ -218,6 +219,10 @@ export default function AvukatAyarlar() {
             Kaydet
           </Button>
         </form>
+
+        <div className="flex justify-center border-t border-white/5 pt-6">
+          <HesapSilButonu />
+        </div>
       </main>
     </div>
   );

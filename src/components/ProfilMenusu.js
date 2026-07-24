@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Avatar from "./Avatar";
-import HesapSilButonu from "./HesapSilButonu";
 import { IconAsagiOk, IconCuzdan, IconAyarlar, IconCikis } from "./icons";
 
 export default function ProfilMenusu({ adSoyad, panelYolu }) {
@@ -55,10 +54,6 @@ export default function ProfilMenusu({ adSoyad, panelYolu }) {
             <IconAyarlar className="h-4 w-4" />
             Ayarlar
           </Link>
-
-          <div className="border-t border-white/5" />
-
-          <HesapSilButonu onKapat={() => setAcik(false)} />
 
           <div className="border-t border-white/5" />
 

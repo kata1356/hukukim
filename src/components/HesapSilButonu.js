@@ -47,10 +47,10 @@ export default function HesapSilButonu({ onKapat }) {
           setModalAcik(true);
           if (onKapat) onKapat();
         }}
-        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+        className="flex items-center gap-1.5 text-xs font-medium text-white/30 transition hover:text-red-400"
       >
-        <IconRed className="h-4 w-4" />
-        Hesabımı Kalıcı Olarak Sil
+        <IconRed className="h-3 w-3" />
+        Hesabımı kalıcı olarak sil
       </button>
 
       {modalAcik && (
