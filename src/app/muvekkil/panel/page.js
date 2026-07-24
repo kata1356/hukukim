@@ -240,6 +240,9 @@ export default function MuvekkilPanel() {
 
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
+  const odemeBekleyenTalep = gonderilenTalepler.find(
+    (t) => t.odeme_durumu === "gerekli" && t.gorusme_suresi_dakika
+  );
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -261,6 +264,13 @@ export default function MuvekkilPanel() {
           <StatKarti deger={onaylananSayisi} etiket="Onaylanan" />
         </div>
 
+        {odemeBekleyenTalep && (
+          <p className="rounded-xl bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 ring-1 ring-red-500/20">
+            Ödemesi bekleyen bir görüşmen var. Yeni randevu talebi
+            oluşturabilmek için önce bu ödemeyi tamamlaman gerekiyor.
+          </p>
+        )}
+
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
           <div>
             <h2 className="text-lg font-bold text-white">
@@ -273,7 +283,9 @@ export default function MuvekkilPanel() {
           </div>
           <button
             onClick={() => setGenelTalepAcik(true)}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
+            disabled={!!odemeBekleyenTalep}
+            title={odemeBekleyenTalep ? "Önce bekleyen ödemeni tamamlamalısın." : undefined}
+            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md disabled:pointer-events-none disabled:opacity-40"
           >
             <IconYayin className="h-4 w-4" />
             Genel Talep Oluştur
@@ -362,7 +374,9 @@ export default function MuvekkilPanel() {
 
                 <button
                   onClick={() => setSeciliAvukat(avukat)}
-                  className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md"
+                  disabled={!!odemeBekleyenTalep}
+                  title={odemeBekleyenTalep ? "Önce bekleyen ödemeni tamamlamalısın." : undefined}
+                  className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md disabled:pointer-events-none disabled:opacity-40"
                 >
                   Randevu Talebi Gönder
                   <IconOk className="h-4 w-4" />
@@ -515,15 +529,21 @@ export default function MuvekkilPanel() {
       )}
 
       {odemeToken && (
-        <Modal baslik="Randevu Ödemesi" onKapat={() => setOdemeToken(null)}>
-          <div className="overflow-hidden rounded-xl bg-white">
-            <iframe
-              src={`https://www.paytr.com/odeme/guvenli/${odemeToken}`}
-              title="PayTR Ödeme"
-              style={{ width: "100%", height: "600px", border: "none" }}
-            />
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="max-h-[90vh] w-full animate-[modal-in_0.2s_ease-out] overflow-y-auto rounded-t-2xl border border-white/10 bg-gece-yuzey p-6 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+            <h2 className="mb-1 text-lg font-bold text-white">Görüşme Ücretini Öde</h2>
+            <p className="mb-4 text-sm text-white/60">
+              Tamamlanan görüşmenin ücretini ödemeden panele devam edemezsin.
+            </p>
+            <div className="overflow-hidden rounded-xl bg-white">
+              <iframe
+                src={`https://www.paytr.com/odeme/guvenli/${odemeToken}`}
+                title="PayTR Ödeme"
+                style={{ width: "100%", height: "600px", border: "none" }}
+              />
+            </div>
           </div>
-        </Modal>
+        </div>
       )}
 
       <AltMenu
