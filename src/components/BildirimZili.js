@@ -123,7 +123,7 @@ export default function BildirimZili() {
                     {!b.okundu && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-turkuaz" />}
                     {b.baslik}
                   </span>
-                  {b.mesaj && <span className="line-clamp-2 text-xs text-white/60">{b.mesaj}</span>}
+                  {b.mesaj && <span className="line-clamp-2 break-words text-xs text-white/60">{b.mesaj}</span>}
                   <span className="mt-0.5 text-[11px] text-white/30">{zamanFormatla(b.created_at)}</span>
                 </button>
               ))}
