@@ -9,6 +9,7 @@ import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
+import AIKonuAsistani from "./AIKonuAsistani";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
@@ -66,6 +67,35 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
         gösterilir. İlk yanıt veren avukat talebini üstlenir.
       </p>
 
+      <TextField
+        label="Açıklama"
+        id="genelAciklama"
+        as="textarea"
+        rows={4}
+        required
+        value={form.aciklama}
+        onChange={(e) => alanGuncelle("aciklama", e.target.value)}
+        placeholder="Durumunu kısaca anlat."
+      />
+
+      <AIKonuAsistani
+        aciklama={form.aciklama}
+        onSonuc={(sonuc) => {
+          alanGuncelle("konu", sonuc.konu);
+          if (sonuc.uzmanlikAlani) alanGuncelle("uzmanlikAlani", sonuc.uzmanlikAlani);
+        }}
+      />
+
+      <TextField
+        label="Konu"
+        id="genelKonu"
+        type="text"
+        required
+        value={form.konu}
+        onChange={(e) => alanGuncelle("konu", e.target.value)}
+        placeholder="Ör. Kira sözleşmesi uyuşmazlığı"
+      />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField
           label="Şehir"
@@ -103,27 +133,6 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
           ))}
         </TextField>
       </div>
-
-      <TextField
-        label="Konu"
-        id="genelKonu"
-        type="text"
-        required
-        value={form.konu}
-        onChange={(e) => alanGuncelle("konu", e.target.value)}
-        placeholder="Ör. Kira sözleşmesi uyuşmazlığı"
-      />
-
-      <TextField
-        label="Açıklama"
-        id="genelAciklama"
-        as="textarea"
-        rows={4}
-        required
-        value={form.aciklama}
-        onChange={(e) => alanGuncelle("aciklama", e.target.value)}
-        placeholder="Durumunu kısaca anlat."
-      />
 
       <TextField
         label="Görüşme Şekli"

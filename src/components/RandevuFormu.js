@@ -8,6 +8,7 @@ import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
 import Avatar from "./Avatar";
+import AIKonuAsistani from "./AIKonuAsistani";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
@@ -89,16 +90,6 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
       </div>
 
       <TextField
-        label="Konu"
-        id="konu"
-        type="text"
-        required
-        value={form.konu}
-        onChange={(e) => alanGuncelle("konu", e.target.value)}
-        placeholder="Ör. Kira sözleşmesi uyuşmazlığı"
-      />
-
-      <TextField
         label="Açıklama"
         id="aciklama"
         as="textarea"
@@ -107,6 +98,21 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
         value={form.aciklama}
         onChange={(e) => alanGuncelle("aciklama", e.target.value)}
         placeholder="Durumunu kısaca anlat."
+      />
+
+      <AIKonuAsistani
+        aciklama={form.aciklama}
+        onSonuc={(sonuc) => alanGuncelle("konu", sonuc.konu)}
+      />
+
+      <TextField
+        label="Konu"
+        id="konu"
+        type="text"
+        required
+        value={form.konu}
+        onChange={(e) => alanGuncelle("konu", e.target.value)}
+        placeholder="Ör. Kira sözleşmesi uyuşmazlığı"
       />
 
       <TextField
