@@ -256,7 +256,7 @@ export default function MuvekkilPanel() {
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
   const odemeBekleyenTalep = gonderilenTalepler.find(
-    (t) => t.odeme_durumu === "gerekli" && t.gorusme_suresi_dakika
+    (t) => t.durum === "kabul" && t.odeme_durumu === "gerekli" && t.gorusme_suresi_dakika
   );
 
   return (
