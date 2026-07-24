@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrBildirimHashDogrula } from "@/lib/paytr";
+import { paytrBildirimHashDogrula, paytrIadeYap } from "@/lib/paytr";
 
 export async function POST(request) {
   const formVerisi = await request.formData();
@@ -24,7 +24,7 @@ export async function POST(request) {
       guncellendi_at: new Date().toISOString(),
     })
     .eq("merchant_oid", merchantOid)
-    .select("randevu_talep_id")
+    .select("randevu_talep_id, muvekkil_id")
     .maybeSingle();
 
   if (status === "success" && odeme?.randevu_talep_id) {
@@ -40,6 +40,21 @@ export async function POST(request) {
         .from("muvekkiller")
         .update({ kart_token: utoken })
         .eq("id", talep.muvekkil_id);
+    }
+  }
+
+  // Gorusme oncesi kart dogrulama akisi: randevu_talep_id yok, sadece
+  // muvekkil_id var. Karti kaydedip tahsil edilen kucuk tutari hemen iade et.
+  if (status === "success" && !odeme?.randevu_talep_id && odeme?.muvekkil_id) {
+    if (utoken) {
+      await supabaseAdmin
+        .from("muvekkiller")
+        .update({ kart_token: utoken })
+        .eq("id", odeme.muvekkil_id);
+    }
+
+    if (totalAmount) {
+      await paytrIadeYap({ merchantOid, tutarKurus: Number(totalAmount) });
     }
   }
 

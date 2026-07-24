@@ -82,6 +82,39 @@ export async function paytrTokenAl({
   return { basarili: true, token: sonuc.token };
 }
 
+export async function paytrIadeYap({ merchantOid, tutarKurus }) {
+  const merchantId = ortamDegiskeni("PAYTR_MERCHANT_ID");
+  const merchantKey = ortamDegiskeni("PAYTR_MERCHANT_KEY");
+  const merchantSalt = ortamDegiskeni("PAYTR_MERCHANT_SALT");
+
+  const hashStr = `${merchantId}${merchantOid}${tutarKurus}`;
+  const paytrToken = crypto
+    .createHmac("sha256", merchantKey)
+    .update(hashStr + merchantSalt)
+    .digest("base64");
+
+  const govde = new URLSearchParams({
+    merchant_id: merchantId,
+    merchant_oid: merchantOid,
+    return_amount: String(tutarKurus),
+    paytr_token: paytrToken,
+  });
+
+  const yanit = await fetch("https://www.paytr.com/odeme/iade", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: govde.toString(),
+  });
+
+  const sonuc = await yanit.json();
+
+  if (sonuc.status !== "success") {
+    return { basarili: false, hata: sonuc.err_msg ?? "PayTR iade işlemi başarısız." };
+  }
+
+  return { basarili: true };
+}
+
 export function paytrBildirimHashDogrula({ merchantOid, status, totalAmount, hash }) {
   const merchantKey = ortamDegiskeni("PAYTR_MERCHANT_KEY");
   const merchantSalt = ortamDegiskeni("PAYTR_MERCHANT_SALT");

@@ -45,8 +45,10 @@ export default function MuvekkilPanel() {
   const [genelTalepAcik, setGenelTalepAcik] = useState(false);
   const [basariMesaji, setBasariMesaji] = useState(() => {
     if (typeof window === "undefined") return null;
-    const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
-    return odemeSonucu === "basarili" ? "Ödemen alındı, randevun onaylandı." : null;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("odeme") === "basarili") return "Ödemen alındı, randevun onaylandı.";
+    if (params.get("kartdogrulama") === "basarili") return "Kartın doğrulandı, 1 TL'lik tutar iade edildi.";
+    return null;
   });
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
   const [degerlendirilenIdler, setDegerlendirilenIdler] = useState([]);
@@ -66,6 +68,31 @@ export default function MuvekkilPanel() {
     const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
     return odemeSonucu === "basarisiz" ? "Ödeme tamamlanamadı, tekrar deneyebilirsin." : null;
   });
+
+  const [kartDogrulamaToken, setKartDogrulamaToken] = useState(null);
+  const [kartDogrulaniyor, setKartDogrulaniyor] = useState(false);
+
+  async function kartDogrula() {
+    setKartDogrulaniyor(true);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const yanit = await fetch("/api/odeme/kart-dogrula", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    });
+    const sonuc = await yanit.json();
+
+    if (yanit.ok) {
+      setKartDogrulamaToken(sonuc.token);
+    }
+    setKartDogrulaniyor(false);
+  }
 
   async function odemeBaslat(talepId) {
     setOdemeHatasi(null);
@@ -202,7 +229,11 @@ export default function MuvekkilPanel() {
   }, [profil?.id]);
 
   useEffect(() => {
-    if (window.location.search.includes("odeme=") || window.location.search.includes("video=")) {
+    if (
+      window.location.search.includes("odeme=") ||
+      window.location.search.includes("video=") ||
+      window.location.search.includes("kartdogrulama=")
+    ) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -433,7 +464,23 @@ export default function MuvekkilPanel() {
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
                         {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
-                          <VideoGorusmeButonu randevuTalepId={talep.id} otomatikAc={talep.id === videoTalepId} />
+                          profil.kart_token ? (
+                            <VideoGorusmeButonu randevuTalepId={talep.id} otomatikAc={talep.id === videoTalepId} />
+                          ) : (
+                            <div className="flex flex-col gap-1.5">
+                              <button
+                                onClick={kartDogrula}
+                                disabled={kartDogrulaniyor}
+                                className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                              >
+                                {kartDogrulaniyor && <Spinner className="h-3.5 w-3.5" />}
+                                Kartını Doğrula ve Görüşmeye Başla
+                              </button>
+                              <span className="text-[11px] text-white/40">
+                                Görüşmeye başlamadan önce kartını doğrulaman gerekiyor. 1 TL tahsil edilip anında iade edilir.
+                              </span>
+                            </div>
+                          )
                         )}
 
                         {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
@@ -525,6 +572,21 @@ export default function MuvekkilPanel() {
             onKapat={() => setDegerlendirilecekTalep(null)}
             onBasarili={degerlendirmeBasarili}
           />
+        </Modal>
+      )}
+
+      {kartDogrulamaToken && (
+        <Modal baslik="Kart Doğrulama" onKapat={() => setKartDogrulamaToken(null)}>
+          <p className="mb-4 text-sm text-white/60">
+            Kartından 1 TL tahsil edilecek ve işlem onaylanır onaylanmaz otomatik iade edilecek.
+          </p>
+          <div className="overflow-hidden rounded-xl bg-white">
+            <iframe
+              src={`https://www.paytr.com/odeme/guvenli/${kartDogrulamaToken}`}
+              title="PayTR Kart Doğrulama"
+              style={{ width: "100%", height: "600px", border: "none" }}
+            />
+          </div>
         </Modal>
       )}
 
