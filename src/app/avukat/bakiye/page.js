@@ -67,6 +67,9 @@ export default function AvukatBakiye() {
   }
 
   const toplamKazanc = kazanclar.reduce((t, k) => t + Number(k.odeme_tutari || 0), 0);
+  const odenmemisKazanc = kazanclar
+    .filter((k) => !k.avukata_odendi)
+    .reduce((t, k) => t + Number(k.odeme_tutari || 0), 0);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -80,13 +83,14 @@ export default function AvukatBakiye() {
 
         <div className="grid grid-cols-2 gap-4">
           <StatKarti deger={`${toplamKazanc} TL`} etiket="Toplam Kazanç" />
-          <StatKarti deger={kazanclar.length} etiket="Ücretli Görüşme" />
+          <StatKarti deger={`${odenmemisKazanc} TL`} etiket="Havalesi Bekleyen" />
         </div>
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
           <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Bu tutarlar bilgilendirme amaçlıdır. Hak edişlerinin sana aktarılması
-          ile ilgili detaylar için ekibimizle iletişime geçebilirsin.
+          Hakedişlerin, Ayarlar sayfasına gireceğin IBAN&apos;a periyodik olarak
+          havale ile gönderilir. Aşağıdaki listede her görüşmenin havalesinin
+          yapılıp yapılmadığını görebilirsin.
         </p>
 
         <section>
@@ -108,7 +112,16 @@ export default function AvukatBakiye() {
                       {tarihFormatla(k.tarih)} · {k.gorusme_suresi_dakika} dk
                     </p>
                   </div>
-                  <span className="font-bold text-turkuaz">{k.odeme_tutari} TL</span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="font-bold text-turkuaz">{k.odeme_tutari} TL</span>
+                    <span
+                      className={`text-[11px] font-semibold ${
+                        k.avukata_odendi ? "text-green-400" : "text-white/40"
+                      }`}
+                    >
+                      {k.avukata_odendi ? "Havale edildi" : "Havale bekliyor"}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

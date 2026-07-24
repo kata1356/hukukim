@@ -15,7 +15,7 @@ export default function AvukatAyarlar() {
   const router = useRouter();
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
-  const [form, setForm] = useState({ adSoyad: "", telefon: "", sehir: "", biyografi: "" });
+  const [form, setForm] = useState({ adSoyad: "", telefon: "", sehir: "", biyografi: "", iban: "" });
   const [uzmanlikSecimi, setUzmanlikSecimi] = useState([]);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -52,6 +52,7 @@ export default function AvukatAyarlar() {
         telefon: avukatProfili.telefon ?? "",
         sehir: avukatProfili.sehir ?? "",
         biyografi: avukatProfili.biyografi ?? "",
+        iban: avukatProfili.iban ?? "",
       });
       setUzmanlikSecimi(avukatProfili.uzmanlik_alanlari ?? []);
       setSayfaYukleniyor(false);
@@ -93,6 +94,7 @@ export default function AvukatAyarlar() {
         sehir: form.sehir,
         biyografi: form.biyografi,
         uzmanlik_alanlari: uzmanlikSecimi,
+        iban: form.iban,
       })
       .eq("id", profil.id);
 
@@ -172,6 +174,20 @@ export default function AvukatAyarlar() {
           <p className="-mt-3 text-xs text-white/40">
             Baro sicil numaranı değiştirmek istersen bizimle iletişime geç.
           </p>
+
+          <div className="flex flex-col gap-1.5">
+            <TextField
+              label="IBAN"
+              id="iban"
+              type="text"
+              value={form.iban}
+              onChange={(e) => alanGuncelle("iban", e.target.value)}
+              placeholder="TR00 0000 0000 0000 0000 0000 00"
+            />
+            <p className="text-xs text-white/40">
+              Hakedişlerin bu IBAN&apos;a havale edilir. Bakiye sayfandan takip edebilirsin.
+            </p>
+          </div>
 
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-semibold text-white">Uzmanlık Alanları</span>
