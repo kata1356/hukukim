@@ -7,6 +7,7 @@ import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import StatKarti from "@/components/StatKarti";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
+import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 import { IconOnay } from "@/components/icons";
 
 export default function AvukatBakiye() {
@@ -66,10 +67,10 @@ export default function AvukatBakiye() {
     );
   }
 
-  const toplamKazanc = kazanclar.reduce((t, k) => t + Number(k.odeme_tutari || 0), 0);
+  const toplamKazanc = kazanclar.reduce((t, k) => t + avukatPayiHesapla(k.odeme_tutari), 0);
   const odenmemisKazanc = kazanclar
     .filter((k) => !k.avukata_odendi)
-    .reduce((t, k) => t + Number(k.odeme_tutari || 0), 0);
+    .reduce((t, k) => t + avukatPayiHesapla(k.odeme_tutari), 0);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -88,9 +89,9 @@ export default function AvukatBakiye() {
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
           <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Hakedişlerin, Ayarlar sayfasına gireceğin IBAN&apos;a periyodik olarak
-          havale ile gönderilir. Aşağıdaki listede her görüşmenin havalesinin
-          yapılıp yapılmadığını görebilirsin.
+          Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına
+          gireceğin IBAN&apos;a periyodik olarak havale ile gönderilir. Aşağıdaki
+          listede her görüşmenin havalesinin yapılıp yapılmadığını görebilirsin.
         </p>
 
         <section>
@@ -113,7 +114,8 @@ export default function AvukatBakiye() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="font-bold text-turkuaz">{k.odeme_tutari} TL</span>
+                    <span className="font-bold text-turkuaz">{avukatPayiHesapla(k.odeme_tutari)} TL</span>
+                    <span className="text-[11px] text-white/30">Toplam ücret: {k.odeme_tutari} TL</span>
                     <span
                       className={`text-[11px] font-semibold ${
                         k.avukata_odendi ? "text-green-400" : "text-white/40"

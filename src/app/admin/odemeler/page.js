@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import AdminShell from "@/components/AdminShell";
+import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 
 export default function AdminOdemeler() {
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -35,6 +36,7 @@ export default function AdminOdemeler() {
           adSoyad: t.avukatlar?.ad_soyad ?? "Bilinmiyor",
           iban: t.avukatlar?.iban ?? null,
           bekleyenTutar: 0,
+          bekleyenBrutTutar: 0,
           bekleyenTalepIdleri: [],
           gorusmeler: [],
         });
@@ -42,7 +44,8 @@ export default function AdminOdemeler() {
       const kayit = map.get(t.avukat_id);
       kayit.gorusmeler.push(t);
       if (!t.avukata_odendi) {
-        kayit.bekleyenTutar += Number(t.odeme_tutari || 0);
+        kayit.bekleyenTutar += avukatPayiHesapla(t.odeme_tutari);
+        kayit.bekleyenBrutTutar += Number(t.odeme_tutari || 0);
         kayit.bekleyenTalepIdleri.push(t.id);
       }
     }
@@ -92,6 +95,7 @@ export default function AdminOdemeler() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-lg font-bold text-vurgu">{kayit.bekleyenTutar} TL</span>
+                  <span className="text-[11px] text-white/40">Brüt: {kayit.bekleyenBrutTutar} TL (%60 avukat payı)</span>
                   {onayBekleyenAvukatId === kayit.avukatId ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-white/50">Havaleyi gönderdin mi?</span>
