@@ -1,6 +1,5 @@
 export const GORUSME_SEKILLERI = [
   { value: "goruntulu", label: "Görüntülü Görüşme" },
-  { value: "yuz_yuze", label: "Yüz Yüze Görüşme" },
   { value: "mesaj", label: "Mesajla Görüşme" },
 ];
 
