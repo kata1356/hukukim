@@ -6,7 +6,7 @@ import DailyIframe from "@daily-co/daily-js";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
-import { MIN_BAKIYE, BAKIYE_UYARI_ESIGI } from "@/lib/odemeYardimci";
+import { MIN_BAKIYE, BAKIYE_UYARI_ESIGI, ILK_UCRETSIZ_DAKIKA } from "@/lib/odemeYardimci";
 import { IconVideo, IconTelefonKapat, IconKvkk } from "./icons";
 
 const DAKIKA_MS = 60 * 1000;
@@ -33,6 +33,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, rol, otomatikAc }) 
   const [bakiye, setBakiye] = useState(null);
   const [bakiyeUyari, setBakiyeUyari] = useState(false);
   const [bakiyeYetersiz, setBakiyeYetersiz] = useState(false);
+  const [ucretsizDakika, setUcretsizDakika] = useState(false);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -134,6 +135,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, rol, otomatikAc }) 
 
     setBakiye(sonuc.bakiye);
     setBakiyeUyari(sonuc.uyari);
+    setUcretsizDakika(!!sonuc.ucretsiz);
 
     if (sonuc.yetersiz) {
       setBakiyeYetersiz(true);
@@ -366,7 +368,13 @@ export default function VideoGorusmeButonu({ randevuTalepId, rol, otomatikAc }) 
             )}
           </div>
 
-          {muvekkilModu && bakiye !== null && (
+          {muvekkilModu && ucretsizDakika && (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-turkuaz/10 px-4 py-3 text-sm font-semibold text-turkuaz">
+              <span>İlk {ILK_UCRETSIZ_DAKIKA} Dakika</span>
+              <span>Ücretsiz</span>
+            </div>
+          )}
+          {muvekkilModu && !ucretsizDakika && bakiye !== null && (
             <div
               className={`mt-4 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
                 bakiyeUyari ? "bg-red-500/10 text-red-400" : "bg-white/5 text-white/70"

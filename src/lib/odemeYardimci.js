@@ -1,4 +1,5 @@
 export const DAKIKA_UCRETI = 15;
+export const ILK_UCRETSIZ_DAKIKA = 5;
 export const AVUKAT_KOMISYON_ORANI = 0.8;
 export const MIN_BAKIYE = 150;
 export const BAKIYE_UYARI_ESIGI = 60;

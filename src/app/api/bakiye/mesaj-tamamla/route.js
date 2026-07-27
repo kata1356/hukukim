@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { DAKIKA_UCRETI, avukatPayiHesapla } from "@/lib/odemeYardimci";
+import { DAKIKA_UCRETI, ILK_UCRETSIZ_DAKIKA, avukatPayiHesapla } from "@/lib/odemeYardimci";
 
 // Goruntulu olmayan (mesajla) gorusmeler icin: video akisindaki gibi canli
 // dakika sayaci calismadigi icin, avukat gorusme bitince sureyi elle girer
@@ -44,7 +44,16 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu randevu tamamlanabilir durumda değil." }, { status: 400 });
   }
 
-  const tutar = dakikaSayisi * DAKIKA_UCRETI;
+  const { count: gecmisGorusmeSayisi } = await supabaseAdmin
+    .from("randevu_talepleri")
+    .select("id", { count: "exact", head: true })
+    .eq("muvekkil_id", talep.muvekkil_id)
+    .neq("id", randevuTalepId)
+    .gt("gorusme_suresi_dakika", 0);
+
+  const ilkGorusmeMi = !gecmisGorusmeSayisi;
+  const ucretliDakika = ilkGorusmeMi ? Math.max(0, dakikaSayisi - ILK_UCRETSIZ_DAKIKA) : dakikaSayisi;
+  const tutar = ucretliDakika * DAKIKA_UCRETI;
 
   const { data: rpcSonuc, error: rpcHatasi } = await supabaseAdmin.rpc("bakiye_dakika_dus", {
     p_muvekkil_id: talep.muvekkil_id,
