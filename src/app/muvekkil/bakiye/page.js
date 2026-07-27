@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import StatKarti from "@/components/StatKarti";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
-import { IconKvkk } from "@/components/icons";
+import { IconKvkk, IconEtiket } from "@/components/icons";
 
 export default function MuvekkilBakiye() {
   const router = useRouter();
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
+  const [bakiye, setBakiye] = useState(0);
   const [odemeler, setOdemeler] = useState([]);
 
   useEffect(() => {
@@ -39,15 +41,19 @@ export default function MuvekkilBakiye() {
         return;
       }
 
-      const { data: talepler } = await supabase
-        .from("randevu_talepleri")
-        .select("*, avukatlar(ad_soyad)")
-        .eq("muvekkil_id", user.id)
-        .eq("odeme_durumu", "odendi")
-        .order("created_at", { ascending: false });
+      const [{ data: bakiyeSatiri }, { data: talepler }] = await Promise.all([
+        supabase.from("muvekkil_bakiyeleri").select("bakiye_miktari").eq("muvekkil_id", user.id).maybeSingle(),
+        supabase
+          .from("randevu_talepleri")
+          .select("*, avukatlar(ad_soyad)")
+          .eq("muvekkil_id", user.id)
+          .eq("odeme_durumu", "odendi")
+          .order("created_at", { ascending: false }),
+      ]);
 
       if (iptalEdildi) return;
       setProfil(muvekkilProfili);
+      setBakiye(Number(bakiyeSatiri?.bakiye_miktari || 0));
       setOdemeler(talepler ?? []);
       setSayfaYukleniyor(false);
     }
@@ -66,7 +72,7 @@ export default function MuvekkilBakiye() {
     );
   }
 
-  const toplamOdenen = odemeler.reduce((t, o) => t + Number(o.odeme_tutari || 0), 0);
+  const toplamHarcanan = odemeler.reduce((t, o) => t + Number(o.odeme_tutari || 0), 0);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -75,25 +81,40 @@ export default function MuvekkilBakiye() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
         <div>
           <h1 className="text-xl font-bold text-white">Bakiye</h1>
-          <p className="mt-1 text-sm text-white/60">Ödeme geçmişini buradan görebilirsin.</p>
+          <p className="mt-1 text-sm text-white/60">Görüşme ücretleri güncel bakiyenden düşülür.</p>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <p className="text-sm text-white/60">Güncel Bakiye</p>
+            <p className="text-3xl font-bold text-turkuaz">{bakiye} TL</p>
+          </div>
+          <Link
+            href="/muvekkil/bakiye-yukle"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
+          >
+            <IconEtiket className="h-4 w-4" />
+            Bakiye Yükle
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <StatKarti deger={`${toplamOdenen} TL`} etiket="Toplam Ödenen" />
-          <StatKarti deger={odemeler.length} etiket="Ödenen Görüşme" />
+          <StatKarti deger={`${toplamHarcanan} TL`} etiket="Toplam Harcanan" />
+          <StatKarti deger={odemeler.length} etiket="Tamamlanan Görüşme" />
         </div>
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
           <IconKvkk className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Kayıtlı kartın, bir sonraki ödemende otomatik olarak kullanılır.
-          Kart bilgilerin bizde saklanmaz, PayTR güvenli altyapısında tutulur.
+          Görüşme başlamadan önce en az 150 TL bakiyen olması gerekir. Görüşme
+          sırasında her dakika bakiyenden otomatik düşülür, bakiye biterse
+          görüşme sona erer.
         </p>
 
         <section>
-          <h2 className="mb-3 text-sm font-bold text-white">Ödeme Geçmişi</h2>
+          <h2 className="mb-3 text-sm font-bold text-white">Görüşme Geçmişi</h2>
           {odemeler.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
-              Henüz bir ödemen yok.
+              Henüz tamamlanan bir görüşmen yok.
             </p>
           ) : (
             <div className="flex flex-col gap-3">

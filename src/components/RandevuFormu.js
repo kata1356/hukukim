@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji } from "@/lib/hataMesajlari";
 import { GORUSME_SEKILLERI } from "@/lib/gorusmeSekli";
-import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
 import Avatar from "./Avatar";
@@ -50,8 +49,6 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
 
     setYukleniyor(true);
 
-    const odemeDurumu = await odemeDurumuBelirle(supabase, muvekkilProfil.id);
-
     const { error } = await supabase.from("randevu_talepleri").insert({
       muvekkil_id: muvekkilProfil.id,
       avukat_id: avukat.id,
@@ -61,7 +58,6 @@ export default function RandevuFormu({ avukat, muvekkilProfil, onKapat, onBasari
       aciklama: form.aciklama,
       gorusme_sekli: form.gorusmeSekli,
       tarih: BUGUN(),
-      odeme_durumu: odemeDurumu,
     });
 
     if (error) {

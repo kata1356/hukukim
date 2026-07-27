@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { DAKIKA_UCRETI, ILK_UCRETSIZ_DAKIKA } from "@/lib/odemeYardimci";
+import { DAKIKA_UCRETI, avukatPayiHesapla } from "@/lib/odemeYardimci";
 
+// Goruntulu olmayan (mesajla) gorusmeler icin: video akisindaki gibi canli
+// dakika sayaci calismadigi icin, avukat gorusme bitince sureyi elle girer
+// ve o an toplu bakiye dusumu yapilir.
 export async function POST(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
   const token = yetkiBasligi.replace(/^Bearer\s+/i, "");
@@ -41,21 +44,26 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu randevu tamamlanabilir durumda değil." }, { status: 400 });
   }
 
-  // "muaf" olarak isaretlenmis (musterinin ilk randevusu olan) talepler icin
-  // ilk ILK_UCRETSIZ_DAKIKA dakika ucretsiz, sadece asan sure faturalandirilir.
-  // Diger talepler icin sure tamamen ucretlidir.
-  const ucretliDakika =
-    talep.odeme_durumu === "muaf" ? Math.max(0, dakikaSayisi - ILK_UCRETSIZ_DAKIKA) : dakikaSayisi;
-  const tutar = ucretliDakika * DAKIKA_UCRETI;
-  const odemeGerekli = tutar > 0;
+  const tutar = dakikaSayisi * DAKIKA_UCRETI;
+
+  const { data: rpcSonuc, error: rpcHatasi } = await supabaseAdmin.rpc("bakiye_dakika_dus", {
+    p_muvekkil_id: talep.muvekkil_id,
+    p_tutar: tutar,
+  });
+
+  if (rpcHatasi || !rpcSonuc?.[0]) {
+    return NextResponse.json({ hata: "Bakiye düşülemedi." }, { status: 500 });
+  }
+
+  const { yeni_bakiye: yeniBakiye, dusulen_tutar: dusulenTutar } = rpcSonuc[0];
 
   const { error: guncelleHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
     .update({
       gorusme_suresi_dakika: dakikaSayisi,
-      odeme_tutari: tutar,
-      odeme_durumu: odemeGerekli ? "gerekli" : "muaf",
-      durum: odemeGerekli ? "kabul" : "tamamlandi",
+      odeme_tutari: Number(dusulenTutar),
+      odeme_durumu: "odendi",
+      durum: "tamamlandi",
     })
     .eq("id", randevuTalepId);
 
@@ -63,14 +71,14 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Güncellenemedi." }, { status: 500 });
   }
 
-  if (odemeGerekli) {
-    await supabaseAdmin.from("bildirimler").insert({
-      kullanici_id: talep.muvekkil_id,
-      baslik: "Görüşme ücretin belirlendi",
-      mesaj: `${dakikaSayisi} dakikalık görüşmen için ${tutar} TL ödeme bekliyor. Panelinden tamamlayabilirsin.`,
-      link: "/muvekkil/panel#taleplerim",
+  if (Number(dusulenTutar) > 0) {
+    await supabaseAdmin.from("avukat_kazanclari").insert({
+      avukat_id: talep.avukat_id,
+      randevu_talep_id: talep.id,
+      muvekkil_ad_soyad: talep.muvekkil_ad_soyad,
+      kazanilan_miktar: avukatPayiHesapla(dusulenTutar),
     });
   }
 
-  return NextResponse.json({ basarili: true, tutar, odemeGerekli });
+  return NextResponse.json({ basarili: true, tutar: Number(dusulenTutar), bakiye: Number(yeniBakiye) });
 }

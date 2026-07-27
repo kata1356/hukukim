@@ -92,8 +92,8 @@ export default function AvukatPanel() {
     setAcmaYukleniyorId(null);
   }
 
-  async function gorusmeyiTamamla(talepId, elleGirilenDakika) {
-    const dakika = elleGirilenDakika ?? dakikaGirisleri[talepId];
+  async function mesajGorusmesiniTamamla(talepId) {
+    const dakika = dakikaGirisleri[talepId];
     if (!dakika || Number(dakika) <= 0) return;
 
     setHata(null);
@@ -103,7 +103,7 @@ export default function AvukatPanel() {
       data: { session },
     } = await supabase.auth.getSession();
 
-    const yanit = await fetch("/api/odeme/gorusme-tamamla", {
+    const yanit = await fetch("/api/bakiye/mesaj-tamamla", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -122,12 +122,7 @@ export default function AvukatPanel() {
     setTalepler((oncekiler) =>
       oncekiler.map((t) =>
         t.id === talepId
-          ? {
-              ...t,
-              gorusme_suresi_dakika: Number(dakika),
-              odeme_tutari: sonuc.tutar,
-              durum: sonuc.odemeGerekli ? "kabul" : "tamamlandi",
-            }
+          ? { ...t, gorusme_suresi_dakika: Number(dakika), odeme_tutari: sonuc.tutar, durum: "tamamlandi" }
           : t
       )
     );
@@ -571,19 +566,9 @@ export default function AvukatPanel() {
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <DurumRozeti durum={talep.durum} />
-                      {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                            talep.odeme_durumu === "gerekli"
-                              ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20"
-                              : "bg-green-500/10 text-green-400 ring-1 ring-green-500/20"
-                          }`}
-                        >
-                          {talep.odeme_durumu === "gerekli"
-                            ? "Ödeme Bekleniyor"
-                            : talep.odeme_durumu === "muaf"
-                            ? "Ücretsiz Görüşme"
-                            : "Ödendi"}
+                      {talep.gorusme_suresi_dakika > 0 && (
+                        <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-400 ring-1 ring-green-500/20">
+                          Ödendi
                         </span>
                       )}
                     </div>
@@ -642,16 +627,10 @@ export default function AvukatPanel() {
 
                   {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
                     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <VideoGorusmeButonu
-                        randevuTalepId={talep.id}
-                        onGorusmeBitti={(dakika) => gorusmeyiTamamla(talep.id, dakika)}
-                      />
-                      {tamamlaYukleniyor === talep.id && (
-                        <span className="flex items-center gap-1.5 text-xs text-white/50">
-                          <Spinner className="h-3.5 w-3.5" />
-                          Süre hesaplanıyor...
-                        </span>
-                      )}
+                      <VideoGorusmeButonu randevuTalepId={talep.id} rol="avukat" />
+                      <span className="text-xs text-white/40">
+                        Ücret, görüşme sırasında müvekkilin bakiyesinden otomatik düşülür.
+                      </span>
                     </div>
                   )}
 
@@ -672,7 +651,7 @@ export default function AvukatPanel() {
                         className="w-24 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-turkuaz"
                       />
                       <button
-                        onClick={() => gorusmeyiTamamla(talep.id)}
+                        onClick={() => mesajGorusmesiniTamamla(talep.id)}
                         disabled={tamamlaYukleniyor === talep.id}
                         className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
                       >

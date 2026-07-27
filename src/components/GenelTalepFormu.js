@@ -6,7 +6,6 @@ import { turkceHataMesaji } from "@/lib/hataMesajlari";
 import { GORUSME_SEKILLERI } from "@/lib/gorusmeSekli";
 import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
-import { odemeDurumuBelirle } from "@/lib/odemeYardimci";
 import TextField from "./TextField";
 import Button from "./Button";
 import AIKonuAsistani from "./AIKonuAsistani";
@@ -33,8 +32,6 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
     setHata(null);
     setYukleniyor(true);
 
-    const odemeDurumu = await odemeDurumuBelirle(supabase, muvekkilProfil.id);
-
     const { error } = await supabase.from("randevu_talepleri").insert({
       muvekkil_id: muvekkilProfil.id,
       avukat_id: null,
@@ -47,7 +44,6 @@ export default function GenelTalepFormu({ muvekkilProfil, onKapat, onBasarili })
       aciklama: form.aciklama,
       gorusme_sekli: form.gorusmeSekli,
       tarih: BUGUN(),
-      odeme_durumu: odemeDurumu,
     });
 
     if (error) {

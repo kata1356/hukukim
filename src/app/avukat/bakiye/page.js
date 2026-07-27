@@ -6,9 +6,17 @@ import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import StatKarti from "@/components/StatKarti";
-import { tarihFormatla } from "@/lib/gorusmeSekli";
-import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 import { IconOnay } from "@/components/icons";
+
+function tarihSaatFormatla(tarih) {
+  return new Date(tarih).toLocaleString("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function AvukatBakiye() {
   const router = useRouter();
@@ -40,16 +48,15 @@ export default function AvukatBakiye() {
         return;
       }
 
-      const { data: talepler } = await supabase
-        .from("randevu_talepleri")
+      const { data: kazanclarListesi } = await supabase
+        .from("avukat_kazanclari")
         .select("*")
         .eq("avukat_id", user.id)
-        .eq("odeme_durumu", "odendi")
-        .order("created_at", { ascending: false });
+        .order("tarih", { ascending: false });
 
       if (iptalEdildi) return;
       setProfil(avukatProfili);
-      setKazanclar(talepler ?? []);
+      setKazanclar(kazanclarListesi ?? []);
       setSayfaYukleniyor(false);
     }
 
@@ -67,10 +74,10 @@ export default function AvukatBakiye() {
     );
   }
 
-  const toplamKazanc = kazanclar.reduce((t, k) => t + avukatPayiHesapla(k.odeme_tutari), 0);
+  const toplamKazanc = kazanclar.reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
   const odenmemisKazanc = kazanclar
     .filter((k) => !k.avukata_odendi)
-    .reduce((t, k) => t + avukatPayiHesapla(k.odeme_tutari), 0);
+    .reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -79,7 +86,7 @@ export default function AvukatBakiye() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
         <div>
           <h1 className="text-xl font-bold text-white">Bakiye</h1>
-          <p className="mt-1 text-sm text-white/60">Tamamlanmış ve ödemesi alınmış görüşmelerin özeti.</p>
+          <p className="mt-1 text-sm text-white/60">Tamamlanmış görüşmelerden kazandığın tutarların özeti.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -89,7 +96,7 @@ export default function AvukatBakiye() {
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
           <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına
+          Görüşme ücretinin %80&apos;i sana ait. Hakedişlerin, Ayarlar sayfasına
           gireceğin IBAN&apos;a periyodik olarak havale ile gönderilir. Aşağıdaki
           listede her görüşmenin havalesinin yapılıp yapılmadığını görebilirsin.
         </p>
@@ -109,13 +116,10 @@ export default function AvukatBakiye() {
                 >
                   <div>
                     <p className="text-sm font-semibold text-white">{k.muvekkil_ad_soyad}</p>
-                    <p className="text-xs text-white/40">
-                      {tarihFormatla(k.tarih)} · {k.gorusme_suresi_dakika} dk
-                    </p>
+                    <p className="text-xs text-white/40">{tarihSaatFormatla(k.tarih)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="font-bold text-turkuaz">{avukatPayiHesapla(k.odeme_tutari)} TL</span>
-                    <span className="text-[11px] text-white/30">Toplam ücret: {k.odeme_tutari} TL</span>
+                    <span className="font-bold text-turkuaz">{k.kazanilan_miktar} TL</span>
                     <span
                       className={`text-[11px] font-semibold ${
                         k.avukata_odendi ? "text-green-400" : "text-white/40"

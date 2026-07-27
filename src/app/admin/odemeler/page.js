@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import AdminShell from "@/components/AdminShell";
-import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 
 export default function AdminOdemeler() {
   const [yukleniyor, setYukleniyor] = useState(true);
-  const [talepler, setTalepler] = useState([]);
+  const [kazanclar, setKazanclar] = useState([]);
   const [onayBekleyenAvukatId, setOnayBekleyenAvukatId] = useState(null);
   const [isleniyor, setIsleniyor] = useState(false);
 
@@ -18,48 +17,43 @@ export default function AdminOdemeler() {
   async function veriGetir() {
     setYukleniyor(true);
     const { data } = await supabase
-      .from("randevu_talepleri")
-      .select("id, avukat_id, muvekkil_ad_soyad, tarih, gorusme_suresi_dakika, odeme_tutari, avukata_odendi, avukatlar(ad_soyad, iban)")
-      .eq("odeme_durumu", "odendi")
+      .from("avukat_kazanclari")
+      .select("id, avukat_id, muvekkil_ad_soyad, tarih, kazanilan_miktar, avukata_odendi, avukatlar(ad_soyad, iban)")
       .order("tarih", { ascending: false });
 
-    setTalepler(data ?? []);
+    setKazanclar(data ?? []);
     setYukleniyor(false);
   }
 
   const avukatBazliOzet = useMemo(() => {
     const map = new Map();
-    for (const t of talepler) {
-      if (!map.has(t.avukat_id)) {
-        map.set(t.avukat_id, {
-          avukatId: t.avukat_id,
-          adSoyad: t.avukatlar?.ad_soyad ?? "Bilinmiyor",
-          iban: t.avukatlar?.iban ?? null,
+    for (const k of kazanclar) {
+      if (!map.has(k.avukat_id)) {
+        map.set(k.avukat_id, {
+          avukatId: k.avukat_id,
+          adSoyad: k.avukatlar?.ad_soyad ?? "Bilinmiyor",
+          iban: k.avukatlar?.iban ?? null,
           bekleyenTutar: 0,
-          bekleyenBrutTutar: 0,
-          bekleyenTalepIdleri: [],
-          gorusmeler: [],
+          bekleyenKayitIdleri: [],
         });
       }
-      const kayit = map.get(t.avukat_id);
-      kayit.gorusmeler.push(t);
-      if (!t.avukata_odendi) {
-        kayit.bekleyenTutar += avukatPayiHesapla(t.odeme_tutari);
-        kayit.bekleyenBrutTutar += Number(t.odeme_tutari || 0);
-        kayit.bekleyenTalepIdleri.push(t.id);
+      const kayit = map.get(k.avukat_id);
+      if (!k.avukata_odendi) {
+        kayit.bekleyenTutar += Number(k.kazanilan_miktar || 0);
+        kayit.bekleyenKayitIdleri.push(k.id);
       }
     }
     return Array.from(map.values())
-      .filter((k) => k.bekleyenTalepIdleri.length > 0)
+      .filter((k) => k.bekleyenKayitIdleri.length > 0)
       .sort((a, b) => b.bekleyenTutar - a.bekleyenTutar);
-  }, [talepler]);
+  }, [kazanclar]);
 
   async function odendiOlarakIsaretle(kayit) {
     setIsleniyor(true);
     await supabase
-      .from("randevu_talepleri")
+      .from("avukat_kazanclari")
       .update({ avukata_odendi: true })
-      .in("id", kayit.bekleyenTalepIdleri);
+      .in("id", kayit.bekleyenKayitIdleri);
 
     await veriGetir();
     setOnayBekleyenAvukatId(null);
@@ -69,7 +63,7 @@ export default function AdminOdemeler() {
   return (
     <AdminShell
       baslik="Avukat Ödemeleri"
-      aciklama="Müvekkillerden tahsil edilen tutarların avukatlara IBAN üzerinden havalesini takip et."
+      aciklama="Müvekkillerin bakiyesinden tahsil edilen tutarların avukatlara IBAN üzerinden havalesini takip et."
     >
       {yukleniyor ? (
         <p className="text-sm text-white/40">Yükleniyor...</p>
@@ -90,12 +84,11 @@ export default function AdminOdemeler() {
                     <p className="mt-0.5 text-xs text-red-400">IBAN girilmemiş — avukata ulaşman gerekiyor.</p>
                   )}
                   <p className="mt-1 text-xs text-white/40">
-                    {kayit.bekleyenTalepIdleri.length} görüşme · havalesi bekleyen
+                    {kayit.bekleyenKayitIdleri.length} görüşme · havalesi bekleyen
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="text-lg font-bold text-vurgu">{kayit.bekleyenTutar} TL</span>
-                  <span className="text-[11px] text-white/40">Brüt: {kayit.bekleyenBrutTutar} TL (%60 avukat payı)</span>
                   {onayBekleyenAvukatId === kayit.avukatId ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-white/50">Havaleyi gönderdin mi?</span>

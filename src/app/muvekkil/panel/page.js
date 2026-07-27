@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Avatar from "@/components/Avatar";
@@ -17,6 +18,7 @@ import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
+import { MIN_BAKIYE } from "@/lib/odemeYardimci";
 import {
   IconArama,
   IconKonum,
@@ -29,27 +31,17 @@ import {
   IconYildiz,
 } from "@/components/icons";
 
-const ODEME_ROZETLERI = {
-  odendi: { metin: "Ödendi", sinif: "bg-green-500/10 text-green-400 ring-1 ring-green-500/20" },
-  muaf: { metin: "Ücretsiz (İlk Görüşme)", sinif: "bg-turkuaz/15 text-turkuaz ring-1 ring-turkuaz/20" },
-};
-
 export default function MuvekkilPanel() {
   const router = useRouter();
 
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
+  const [bakiye, setBakiye] = useState(0);
   const [avukatlar, setAvukatlar] = useState([]);
   const [aramaMetni, setAramaMetni] = useState("");
   const [seciliAvukat, setSeciliAvukat] = useState(null);
   const [genelTalepAcik, setGenelTalepAcik] = useState(false);
-  const [basariMesaji, setBasariMesaji] = useState(() => {
-    if (typeof window === "undefined") return null;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("odeme") === "basarili") return "Ödemen alındı, randevun onaylandı.";
-    if (params.get("kartdogrulama") === "basarili") return "Kartın doğrulandı, 1 TL'lik tutar iade edildi.";
-    return null;
-  });
+  const [basariMesaji, setBasariMesaji] = useState(null);
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
   const [degerlendirilenIdler, setDegerlendirilenIdler] = useState([]);
   const [degerlendirilecekTalep, setDegerlendirilecekTalep] = useState(null);
@@ -58,66 +50,15 @@ export default function MuvekkilPanel() {
     return new URLSearchParams(window.location.search).get("video");
   });
 
-  const [odemeToken, setOdemeToken] = useState(null);
-  const [odemeYukleniyorId, setOdemeYukleniyorId] = useState(null);
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
-  const [odemeHatasi, setOdemeHatasi] = useState(() => {
-    if (typeof window === "undefined") return null;
-    const odemeSonucu = new URLSearchParams(window.location.search).get("odeme");
-    return odemeSonucu === "basarisiz" ? "Ödeme tamamlanamadı, tekrar deneyebilirsin." : null;
-  });
 
-  const [kartDogrulamaToken, setKartDogrulamaToken] = useState(null);
-  const [kartDogrulaniyor, setKartDogrulaniyor] = useState(false);
-
-  async function kartDogrula() {
-    setKartDogrulaniyor(true);
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    const yanit = await fetch("/api/odeme/kart-dogrula", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`,
-      },
-    });
-    const sonuc = await yanit.json();
-
-    if (yanit.ok) {
-      setKartDogrulamaToken(sonuc.token);
-    }
-    setKartDogrulaniyor(false);
-  }
-
-  async function odemeBaslat(talepId) {
-    setOdemeHatasi(null);
-    setOdemeYukleniyorId(talepId);
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    const yanit = await fetch("/api/odeme/randevu-ode", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`,
-      },
-      body: JSON.stringify({ randevuTalepId: talepId }),
-    });
-    const sonuc = await yanit.json();
-
-    if (!yanit.ok) {
-      setOdemeHatasi(sonuc.hata ?? "Ödeme başlatılamadı.");
-      setOdemeYukleniyorId(null);
-      return;
-    }
-
-    setOdemeToken(sonuc.token);
-    setOdemeYukleniyorId(null);
+  async function bakiyeGetir(kullaniciId) {
+    const { data } = await supabase
+      .from("muvekkil_bakiyeleri")
+      .select("bakiye_miktari")
+      .eq("muvekkil_id", kullaniciId)
+      .maybeSingle();
+    setBakiye(Number(data?.bakiye_miktari || 0));
   }
 
   async function gonderilenTalepleriGetir(kullaniciId) {
@@ -183,7 +124,7 @@ export default function MuvekkilPanel() {
         .select("*")
         .order("ad_soyad", { ascending: true });
 
-      await gonderilenTalepleriGetir(user.id);
+      await Promise.all([gonderilenTalepleriGetir(user.id), bakiyeGetir(user.id)]);
 
       if (iptalEdildi) return;
       setProfil(muvekkilProfili);
@@ -207,17 +148,18 @@ export default function MuvekkilPanel() {
         { event: "*", schema: "public", table: "randevu_talepleri", filter: `muvekkil_id=eq.${profil.id}` },
         () => gonderilenTalepleriGetir(profil.id)
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "muvekkil_bakiyeleri", filter: `muvekkil_id=eq.${profil.id}` },
+        () => bakiyeGetir(profil.id)
+      )
       .subscribe();
 
     return () => supabase.removeChannel(kanal);
   }, [profil?.id]);
 
   useEffect(() => {
-    if (
-      window.location.search.includes("odeme=") ||
-      window.location.search.includes("video=") ||
-      window.location.search.includes("kartdogrulama=")
-    ) {
+    if (window.location.search.includes("video=")) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -255,9 +197,7 @@ export default function MuvekkilPanel() {
 
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
-  const odemeBekleyenTalep = gonderilenTalepler.find(
-    (t) => t.durum === "kabul" && t.odeme_durumu === "gerekli" && t.gorusme_suresi_dakika
-  );
+  const bakiyeYetersiz = bakiye < MIN_BAKIYE;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -273,28 +213,30 @@ export default function MuvekkilPanel() {
           </p>
         </div>
 
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <p className="text-sm text-white/60">Güncel Bakiye</p>
+            <p className="text-2xl font-bold text-turkuaz">{bakiye} TL</p>
+            {bakiyeYetersiz && (
+              <p className="mt-1 text-xs text-red-400">
+                Görüşme başlatabilmek için en az {MIN_BAKIYE} TL bakiyen olmalı.
+              </p>
+            )}
+          </div>
+          <Link
+            href="/muvekkil/bakiye-yukle"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
+          >
+            <IconEtiket className="h-4 w-4" />
+            Bakiye Yükle
+          </Link>
+        </div>
+
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
           <StatKarti deger={bekleyenSayisi} etiket="Bekleyen" />
           <StatKarti deger={onaylananSayisi} etiket="Onaylanan" />
         </div>
-
-        {odemeBekleyenTalep && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-medium text-red-400 ring-1 ring-red-500/20">
-            <span>
-              Ödemesi bekleyen bir görüşmen var ({odemeBekleyenTalep.odeme_tutari} TL). Yeni
-              randevu talebi oluşturabilmek için önce bu ödemeyi tamamlaman gerekiyor.
-            </span>
-            <button
-              onClick={() => odemeBaslat(odemeBekleyenTalep.id)}
-              disabled={odemeYukleniyorId === odemeBekleyenTalep.id}
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-500 px-4 py-1.5 text-xs font-bold text-white transition hover:bg-red-400 disabled:opacity-60"
-            >
-              {odemeYukleniyorId === odemeBekleyenTalep.id && <Spinner className="h-3.5 w-3.5" />}
-              Şimdi Öde
-            </button>
-          </div>
-        )}
 
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
           <div>
@@ -308,9 +250,7 @@ export default function MuvekkilPanel() {
           </div>
           <button
             onClick={() => setGenelTalepAcik(true)}
-            disabled={!!odemeBekleyenTalep}
-            title={odemeBekleyenTalep ? "Önce bekleyen ödemeni tamamlamalısın." : undefined}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md disabled:pointer-events-none disabled:opacity-40"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
           >
             <IconYayin className="h-4 w-4" />
             Genel Talep Oluştur
@@ -338,12 +278,6 @@ export default function MuvekkilPanel() {
           <p className="flex items-start gap-2 rounded-lg bg-green-500/10 px-4 py-2.5 text-sm text-green-400 ring-1 ring-green-500/20">
             <IconOnay className="mt-0.5 h-4 w-4 shrink-0" />
             {basariMesaji}
-          </p>
-        )}
-
-        {odemeHatasi && (
-          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
-            {odemeHatasi}
           </p>
         )}
 
@@ -399,9 +333,7 @@ export default function MuvekkilPanel() {
 
                 <button
                   onClick={() => setSeciliAvukat(avukat)}
-                  disabled={!!odemeBekleyenTalep}
-                  title={odemeBekleyenTalep ? "Önce bekleyen ödemeni tamamlamalısın." : undefined}
-                  className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md disabled:pointer-events-none disabled:opacity-40"
+                  className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md"
                 >
                   Randevu Talebi Gönder
                   <IconOk className="h-4 w-4" />
@@ -457,58 +389,17 @@ export default function MuvekkilPanel() {
 
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
                       <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
-                        {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
-                          profil.kart_token ? (
-                            <VideoGorusmeButonu randevuTalepId={talep.id} otomatikAc={talep.id === videoTalepId} />
-                          ) : (
-                            <div className="flex flex-col gap-1.5">
-                              <button
-                                onClick={kartDogrula}
-                                disabled={kartDogrulaniyor}
-                                className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
-                              >
-                                {kartDogrulaniyor && <Spinner className="h-3.5 w-3.5" />}
-                                Kartını Doğrula ve Görüşmeye Başla
-                              </button>
-                              <span className="text-[11px] text-white/40">
-                                Görüşmeye başlamadan önce kartını doğrulaman gerekiyor. 1 TL tahsil edilip anında iade edilir.
-                              </span>
-                            </div>
-                          )
+                        {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
+                          <VideoGorusmeButonu
+                            randevuTalepId={talep.id}
+                            rol="muvekkil"
+                            otomatikAc={talep.id === videoTalepId}
+                          />
                         )}
 
-                        {talep.durum === "kabul" && !talep.gorusme_suresi_dakika && (
+                        {talep.gorusme_suresi_dakika > 0 && (
                           <span className="text-xs text-white/40">
-                            Görüşme sonrası avukat ücreti belirleyecek.
-                          </span>
-                        )}
-
-                        {talep.gorusme_suresi_dakika && (
-                          <span className="text-xs text-white/40">
-                            Görüşme süresi: {talep.gorusme_suresi_dakika} dk
-                          </span>
-                        )}
-
-                        {talep.gorusme_suresi_dakika && talep.odeme_durumu === "gerekli" && (
-                          <button
-                            onClick={() => odemeBaslat(talep.id)}
-                            disabled={odemeYukleniyorId === talep.id}
-                            className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
-                          >
-                            {odemeYukleniyorId === talep.id ? (
-                              <Spinner className="h-3.5 w-3.5" />
-                            ) : (
-                              <IconEtiket className="h-3.5 w-3.5" />
-                            )}
-                            Ödeme Yap ({talep.odeme_tutari} TL)
-                          </button>
-                        )}
-
-                        {talep.odeme_durumu !== "gerekli" && (
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${ODEME_ROZETLERI[talep.odeme_durumu]?.sinif ?? ""}`}
-                          >
-                            {ODEME_ROZETLERI[talep.odeme_durumu]?.metin}
+                            {talep.gorusme_suresi_dakika} dk · {talep.odeme_tutari} TL
                           </span>
                         )}
 
@@ -566,33 +457,6 @@ export default function MuvekkilPanel() {
             onKapat={() => setDegerlendirilecekTalep(null)}
             onBasarili={degerlendirmeBasarili}
           />
-        </Modal>
-      )}
-
-      {kartDogrulamaToken && (
-        <Modal baslik="Kart Doğrulama" onKapat={() => setKartDogrulamaToken(null)}>
-          <p className="mb-4 text-sm text-white/60">
-            Kartından 1 TL tahsil edilecek ve işlem onaylanır onaylanmaz otomatik iade edilecek.
-          </p>
-          <div className="overflow-hidden rounded-xl bg-white">
-            <iframe
-              src={`https://www.paytr.com/odeme/guvenli/${kartDogrulamaToken}`}
-              title="PayTR Kart Doğrulama"
-              style={{ width: "100%", height: "600px", border: "none" }}
-            />
-          </div>
-        </Modal>
-      )}
-
-      {odemeToken && (
-        <Modal baslik="Randevu Ödemesi" onKapat={() => setOdemeToken(null)}>
-          <div className="overflow-hidden rounded-xl bg-white">
-            <iframe
-              src={`https://www.paytr.com/odeme/guvenli/${odemeToken}`}
-              title="PayTR Ödeme"
-              style={{ width: "100%", height: "600px", border: "none" }}
-            />
-          </div>
         </Modal>
       )}
 
