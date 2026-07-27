@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
-import { BAKIYE_PAKETLERI } from "@/lib/odemeYardimci";
+import { BAKIYE_PAKETLERI, OZEL_BAKIYE_MIN, OZEL_BAKIYE_MAX } from "@/lib/odemeYardimci";
 
 function istekIpAdresi(request) {
   const ileriIp = request.headers.get("x-forwarded-for");
@@ -25,9 +25,17 @@ export async function POST(request) {
 
   const kullanici = kullaniciVerisi.user;
   const { tutar } = await request.json();
+  const tutarSayi = Number(tutar);
 
-  if (!BAKIYE_PAKETLERI.includes(Number(tutar))) {
-    return NextResponse.json({ hata: "Geçersiz bakiye paketi." }, { status: 400 });
+  const paketMi = BAKIYE_PAKETLERI.includes(tutarSayi);
+  const gecerliOzelTutarMi =
+    Number.isInteger(tutarSayi) && tutarSayi >= OZEL_BAKIYE_MIN && tutarSayi <= OZEL_BAKIYE_MAX;
+
+  if (!paketMi && !gecerliOzelTutarMi) {
+    return NextResponse.json(
+      { hata: `Geçerli bir tutar gir (${OZEL_BAKIYE_MIN} - ${OZEL_BAKIYE_MAX} TL arası).` },
+      { status: 400 }
+    );
   }
 
   const { data: muvekkilProfili } = await supabaseAdmin

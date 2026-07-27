@@ -6,7 +6,9 @@ import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import Modal from "@/components/Modal";
-import { BAKIYE_PAKETLERI } from "@/lib/odemeYardimci";
+import { BAKIYE_PAKETLERI, OZEL_BAKIYE_MIN, OZEL_BAKIYE_MAX } from "@/lib/odemeYardimci";
+import TextField from "@/components/TextField";
+import Button from "@/components/Button";
 import { IconEtiket } from "@/components/icons";
 
 export default function MuvekkilBakiyeYukle() {
@@ -15,6 +17,7 @@ export default function MuvekkilBakiyeYukle() {
   const [profil, setProfil] = useState(null);
   const [odemeToken, setOdemeToken] = useState(null);
   const [secilenTutar, setSecilenTutar] = useState(null);
+  const [ozelTutar, setOzelTutar] = useState("");
   const [hata, setHata] = useState(() => {
     if (typeof window === "undefined") return null;
     const sonuc = new URLSearchParams(window.location.search).get("odeme");
@@ -95,6 +98,18 @@ export default function MuvekkilBakiyeYukle() {
     setSecilenTutar(null);
   }
 
+  function ozelTutarYukle(e) {
+    e.preventDefault();
+    const tutar = Number(ozelTutar);
+
+    if (!Number.isInteger(tutar) || tutar < OZEL_BAKIYE_MIN || tutar > OZEL_BAKIYE_MAX) {
+      setHata(`Lütfen ${OZEL_BAKIYE_MIN} - ${OZEL_BAKIYE_MAX} TL arasında tam sayı bir tutar gir.`);
+      return;
+    }
+
+    bakiyeYukle(tutar);
+  }
+
   if (sayfaYukleniyor) {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
@@ -142,6 +157,31 @@ export default function MuvekkilBakiyeYukle() {
             </button>
           ))}
         </div>
+
+        <div className="flex items-center gap-3 text-xs font-semibold text-white/30">
+          <span className="h-px flex-1 bg-white/10" />
+          YA DA KENDİ TUTARINI GİR
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <form onSubmit={ozelTutarYukle} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <TextField
+              label="Tutar (TL)"
+              id="ozelTutar"
+              type="number"
+              min={OZEL_BAKIYE_MIN}
+              max={OZEL_BAKIYE_MAX}
+              step="1"
+              value={ozelTutar}
+              onChange={(e) => setOzelTutar(e.target.value)}
+              placeholder={`${OZEL_BAKIYE_MIN} - ${OZEL_BAKIYE_MAX} TL arası`}
+            />
+          </div>
+          <Button type="submit" yukleniyor={secilenTutar !== null} className="w-auto sm:self-end">
+            Yükle
+          </Button>
+        </form>
       </main>
 
       {odemeToken && (
