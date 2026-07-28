@@ -24,6 +24,12 @@ import {
   IconArama,
 } from "@/components/icons";
 
+function sureFormatla(saniye) {
+  const dk = Math.floor(saniye / 60);
+  const sn = saniye % 60;
+  return `${String(dk).padStart(2, "0")}:${String(sn).padStart(2, "0")}`;
+}
+
 export default function MuvekkilPanel() {
   const router = useRouter();
 
@@ -51,6 +57,7 @@ export default function MuvekkilPanel() {
     if (typeof window === "undefined") return null;
     return new URLSearchParams(window.location.search).get("talep");
   });
+  const [beklemeSaniye, setBeklemeSaniye] = useState(0);
 
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
 
@@ -156,6 +163,17 @@ export default function MuvekkilPanel() {
     if (profil?.id) await gonderilenTalepleriGetir(profil.id);
   }
 
+  useEffect(() => {
+    if (!aktifBeklemeTalepId) return;
+
+    const baslangic = Date.now();
+    const zamanlayici = setInterval(() => {
+      setBeklemeSaniye(Math.floor((Date.now() - baslangic) / 1000));
+    }, 1000);
+
+    return () => clearInterval(zamanlayici);
+  }, [aktifBeklemeTalepId]);
+
   if (sayfaYukleniyor) {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
@@ -186,24 +204,54 @@ export default function MuvekkilPanel() {
         </div>
 
         {beklenenTalep && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-turkuaz/30 bg-gece-yuzey p-8 text-center shadow-md">
-            <div className="relative flex h-16 w-16 items-center justify-center">
-              <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/30" />
-              <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz/20">
-                <IconArama className="h-6 w-6 text-turkuaz" />
-              </span>
-            </div>
-            <p className="text-lg font-bold text-white">Avukat aranıyor...</p>
-            <p className="max-w-sm text-sm text-white/60">
-              {beklenenTalep.hedef_sehir} · {beklenenTalep.hedef_uzmanlik_alani} alanında uygun
-              avukatlara bildirim gönderildi. Bir avukat kabul eder etmez burada bilgilendirileceksin.
-            </p>
+          <div
+            className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-turkuaz/20 p-8 text-center shadow-lg sm:p-10"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 0%, rgba(45,212,191,0.14), transparent 60%), #0d1520",
+            }}
+          >
             <button
               onClick={() => setAktifBeklemeTalepId(null)}
-              className="mt-1 text-xs font-semibold text-white/40 underline"
+              aria-label="Kapat"
+              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full text-white/40 transition hover:bg-white/5 hover:text-white"
             >
-              Bekleme ekranını kapat
+              ✕
             </button>
+
+            <div className="relative flex h-24 w-24 items-center justify-center">
+              <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/20" />
+              <span
+                className="absolute h-[72%] w-[72%] animate-ping rounded-full bg-turkuaz/25"
+                style={{ animationDelay: "0.4s" }}
+              />
+              <span
+                className="absolute h-[48%] w-[48%] animate-ping rounded-full bg-turkuaz/30"
+                style={{ animationDelay: "0.8s" }}
+              />
+              <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz text-gece shadow-lg shadow-turkuaz/30">
+                <IconArama className="h-5 w-5" />
+              </span>
+            </div>
+
+            <div>
+              <p className="text-xl font-bold text-white">Avukat aranıyor</p>
+              <p className="mt-1 font-mono text-sm text-turkuaz">{sureFormatla(beklemeSaniye)}</p>
+            </div>
+
+            <p className="max-w-sm text-sm text-white/60">
+              <strong className="text-white/80">{beklenenTalep.hedef_sehir}</strong> ·{" "}
+              {beklenenTalep.hedef_uzmanlik_alani} alanında uygun avukatlara bildirim gönderildi.
+              Bir avukat kabul eder etmez burada bilgilendirileceksin.
+            </p>
+
+            {beklenenTalep.paket_dakika && (
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
+                <IconYayin className="h-3.5 w-3.5 text-turkuaz" />
+                {beklenenTalep.paket_dakika} dk paket
+                {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
+              </div>
+            )}
           </div>
         )}
 
