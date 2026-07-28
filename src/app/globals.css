@@ -37,6 +37,17 @@ h1, h2, h3, h4 {
   overflow-wrap: anywhere;
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes yuzen-kart {
   0%, 100% {
     transform: translateY(0);

@@ -30,6 +30,45 @@ function sureFormatla(saniye) {
   return `${String(dk).padStart(2, "0")}:${String(sn).padStart(2, "0")}`;
 }
 
+const BEKLEME_IPUCLARI = [
+  "Görüşmeye başlamadan önce anlatmak istediklerini kısaca not al, zamanını verimli kullan.",
+  "Elindeki belgeleri (sözleşme, tebligat, fatura vb.) yanında bulundur, avukatın işine yarayabilir.",
+  "Telefon numaran avukatla asla paylaşılmaz, gizliliğin platform tarafından korunur.",
+  "Görüşme bitince avukatını değerlendirmeyi unutma, diğer müvekkillere yol gösterir.",
+  "Paket sürene 1 dakika kalınca ekranda uyarı çıkar, aniden kesilme diye endişelenme.",
+  "Bu görüşme seninle ilgilenecek ilk uygun avukata anında iletiliyor.",
+];
+
+function BeklemeIpuclari() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const zamanlayici = setInterval(() => {
+      setIndex((onceki) => (onceki + 1) % BEKLEME_IPUCLARI.length);
+    }, 4500);
+    return () => clearInterval(zamanlayici);
+  }, []);
+
+  return (
+    <div className="flex w-full flex-col gap-3 sm:w-64 sm:shrink-0 sm:border-l sm:border-white/10 sm:pl-6">
+      <p className="text-xs font-semibold uppercase tracking-wider text-white/30">Beklerken</p>
+      <p key={index} className="animate-[fade-in_0.4s_ease-out] text-sm leading-relaxed text-white/70">
+        {BEKLEME_IPUCLARI[index]}
+      </p>
+      <div className="flex gap-1.5">
+        {BEKLEME_IPUCLARI.map((_, i) => (
+          <span
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              i === index ? "bg-turkuaz" : "bg-white/10"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function MuvekkilPanel() {
   const router = useRouter();
 
@@ -205,7 +244,7 @@ export default function MuvekkilPanel() {
 
         {beklenenTalep && (
           <div
-            className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-turkuaz/20 p-8 text-center shadow-lg sm:p-10"
+            className="relative overflow-hidden rounded-3xl border border-turkuaz/20 p-8 shadow-lg sm:p-10"
             style={{
               background:
                 "radial-gradient(circle at 50% 0%, rgba(45,212,191,0.14), transparent 60%), #0d1520",
@@ -219,39 +258,45 @@ export default function MuvekkilPanel() {
               ✕
             </button>
 
-            <div className="relative flex h-24 w-24 items-center justify-center">
-              <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/20" />
-              <span
-                className="absolute h-[72%] w-[72%] animate-ping rounded-full bg-turkuaz/25"
-                style={{ animationDelay: "0.4s" }}
-              />
-              <span
-                className="absolute h-[48%] w-[48%] animate-ping rounded-full bg-turkuaz/30"
-                style={{ animationDelay: "0.8s" }}
-              />
-              <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz text-gece shadow-lg shadow-turkuaz/30">
-                <IconArama className="h-5 w-5" />
-              </span>
-            </div>
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="relative flex h-24 w-24 items-center justify-center">
+                  <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/20" />
+                  <span
+                    className="absolute h-[72%] w-[72%] animate-ping rounded-full bg-turkuaz/25"
+                    style={{ animationDelay: "0.4s" }}
+                  />
+                  <span
+                    className="absolute h-[48%] w-[48%] animate-ping rounded-full bg-turkuaz/30"
+                    style={{ animationDelay: "0.8s" }}
+                  />
+                  <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz text-gece shadow-lg shadow-turkuaz/30">
+                    <IconArama className="h-5 w-5" />
+                  </span>
+                </div>
 
-            <div>
-              <p className="text-xl font-bold text-white">Avukat aranıyor</p>
-              <p className="mt-1 font-mono text-sm text-turkuaz">{sureFormatla(beklemeSaniye)}</p>
-            </div>
+                <div>
+                  <p className="text-xl font-bold text-white">Avukat aranıyor</p>
+                  <p className="mt-1 font-mono text-sm text-turkuaz">{sureFormatla(beklemeSaniye)}</p>
+                </div>
 
-            <p className="max-w-sm text-sm text-white/60">
-              <strong className="text-white/80">{beklenenTalep.hedef_sehir}</strong> ·{" "}
-              {beklenenTalep.hedef_uzmanlik_alani} alanında uygun avukatlara bildirim gönderildi.
-              Bir avukat kabul eder etmez burada bilgilendirileceksin.
-            </p>
+                <p className="max-w-sm text-sm text-white/60">
+                  <strong className="text-white/80">{beklenenTalep.hedef_sehir}</strong> ·{" "}
+                  {beklenenTalep.hedef_uzmanlik_alani} alanında uygun avukatlara bildirim gönderildi.
+                  Bir avukat kabul eder etmez burada bilgilendirileceksin.
+                </p>
 
-            {beklenenTalep.paket_dakika && (
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
-                <IconYayin className="h-3.5 w-3.5 text-turkuaz" />
-                {beklenenTalep.paket_dakika} dk paket
-                {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
+                {beklenenTalep.paket_dakika && (
+                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
+                    <IconYayin className="h-3.5 w-3.5 text-turkuaz" />
+                    {beklenenTalep.paket_dakika} dk paket
+                    {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
+                  </div>
+                )}
               </div>
-            )}
+
+              <BeklemeIpuclari />
+            </div>
           </div>
         )}
 
