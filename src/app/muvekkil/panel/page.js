@@ -97,8 +97,15 @@ export default function MuvekkilPanel() {
     return new URLSearchParams(window.location.search).get("talep");
   });
   const [beklemeSaniye, setBeklemeSaniye] = useState(0);
+  const [eslesmeTalep, setEslesmeTalep] = useState(null);
 
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
+  const eslesmeGosterilenlerRef = useRef(new Set());
+  const aktifBeklemeTalepIdRef = useRef(aktifBeklemeTalepId);
+
+  useEffect(() => {
+    aktifBeklemeTalepIdRef.current = aktifBeklemeTalepId;
+  }, [aktifBeklemeTalepId]);
 
   async function gonderilenTalepleriGetir(kullaniciId) {
     const { data } = await supabase
@@ -107,6 +114,17 @@ export default function MuvekkilPanel() {
       .eq("muvekkil_id", kullaniciId)
       .order("created_at", { ascending: false });
     setGonderilenTalepler(data ?? []);
+
+    const beklenenId = aktifBeklemeTalepIdRef.current;
+    if (beklenenId) {
+      const eslesen = (data ?? []).find(
+        (t) => t.id === beklenenId && t.durum === "kabul" && !eslesmeGosterilenlerRef.current.has(t.id)
+      );
+      if (eslesen) {
+        eslesmeGosterilenlerRef.current.add(eslesen.id);
+        setEslesmeTalep(eslesen);
+      }
+    }
 
     const { data: degerlendirmeler } = await supabase
       .from("degerlendirmeler")
@@ -200,6 +218,14 @@ export default function MuvekkilPanel() {
     setGenelTalepAcik(false);
     setAktifBeklemeTalepId(talepId);
     if (profil?.id) await gonderilenTalepleriGetir(profil.id);
+  }
+
+  function eslesmeyiGorusmeyeBaslat() {
+    if (eslesmeTalep?.gorusme_sekli === "goruntulu") {
+      setVideoTalepId(eslesmeTalep.id);
+    }
+    setAktifBeklemeTalepId(null);
+    setEslesmeTalep(null);
   }
 
   useEffect(() => {
@@ -297,6 +323,42 @@ export default function MuvekkilPanel() {
 
               <BeklemeIpuclari />
             </div>
+          </div>
+        )}
+
+        {eslesmeTalep && (
+          <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-green-500/30 bg-green-500/[0.06] p-8 text-center shadow-lg sm:p-10">
+            <button
+              onClick={() => {
+                setAktifBeklemeTalepId(null);
+                setEslesmeTalep(null);
+              }}
+              aria-label="Kapat"
+              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full text-white/40 transition hover:bg-white/5 hover:text-white"
+            >
+              ✕
+            </button>
+
+            <Avatar
+              adSoyad={eslesmeTalep.avukatlar?.ad_soyad}
+              fotografUrl={eslesmeTalep.avukatlar?.profil_fotografi_url}
+              boyut="lg"
+            />
+
+            <div>
+              <p className="text-xl font-bold text-white">Eşleşme Bulundu!</p>
+              <p className="mt-1 text-sm text-white/70">
+                <strong className="text-green-400">{eslesmeTalep.avukatlar?.ad_soyad ?? "Bir avukat"}</strong>{" "}
+                talebini kabul etti.
+              </p>
+            </div>
+
+            <button
+              onClick={eslesmeyiGorusmeyeBaslat}
+              className="flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-green-400 hover:shadow-md"
+            >
+              {eslesmeTalep.gorusme_sekli === "goruntulu" ? "Görüşmeye Başla" : "Tamam"}
+            </button>
           </div>
         )}
 
