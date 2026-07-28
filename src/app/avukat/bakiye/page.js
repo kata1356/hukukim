@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
-import StatKarti from "@/components/StatKarti";
 import { IconOnay } from "@/components/icons";
 
 function tarihSaatFormatla(tarih) {
@@ -75,9 +74,11 @@ export default function AvukatBakiye() {
   }
 
   const toplamKazanc = kazanclar.reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
-  const odenmemisKazanc = kazanclar
-    .filter((k) => !k.avukata_odendi)
+  const odenenKazanc = kazanclar
+    .filter((k) => k.avukata_odendi)
     .reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
+  const odenmemisKazanc = toplamKazanc - odenenKazanc;
+  const odenenYuzde = toplamKazanc > 0 ? Math.round((odenenKazanc / toplamKazanc) * 100) : 0;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -89,9 +90,27 @@ export default function AvukatBakiye() {
           <p className="mt-1 text-sm text-white/60">Tamamlanmış görüşmelerden kazandığın tutarların özeti.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <StatKarti deger={`${toplamKazanc} TL`} etiket="Toplam Kazanç" />
-          <StatKarti deger={`${odenmemisKazanc} TL`} etiket="Havalesi Bekleyen" />
+        <div className="rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 shadow-sm">
+          <p className="text-sm text-white/50">Toplam Kazanç</p>
+          <p className="mt-1 text-4xl font-bold text-white">{toplamKazanc} TL</p>
+
+          <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full rounded-full bg-green-400 transition-all"
+              style={{ width: `${odenenYuzde}%` }}
+            />
+          </div>
+
+          <div className="mt-4 flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-white/70">
+              <span className="h-2 w-2 rounded-full bg-green-400" />
+              Ödendi: <strong className="text-white">{odenenKazanc} TL</strong>
+            </span>
+            <span className="flex items-center gap-2 text-white/70">
+              <span className="h-2 w-2 rounded-full bg-white/20" />
+              Bekliyor: <strong className="text-white">{odenmemisKazanc} TL</strong>
+            </span>
+          </div>
         </div>
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
@@ -121,8 +140,10 @@ export default function AvukatBakiye() {
                   <div className="flex flex-col items-end gap-1">
                     <span className="font-bold text-turkuaz">{k.kazanilan_miktar} TL</span>
                     <span
-                      className={`text-[11px] font-semibold ${
-                        k.avukata_odendi ? "text-green-400" : "text-white/40"
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        k.avukata_odendi
+                          ? "bg-green-500/10 text-green-400"
+                          : "bg-white/5 text-white/40"
                       }`}
                     >
                       {k.avukata_odendi ? "Havale edildi" : "Havale bekliyor"}

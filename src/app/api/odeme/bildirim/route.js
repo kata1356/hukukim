@@ -1,5 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrBildirimHashDogrula } from "@/lib/paytr";
+import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
+
+const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
 
 export async function POST(request) {
   const formVerisi = await request.formData();
@@ -27,10 +30,33 @@ export async function POST(request) {
     .select("muvekkil_id, randevu_talep_id")
     .maybeSingle();
 
+  const ekSureMi = String(merchantOid).startsWith("EKS");
+
+  // Gorusme sirasinda satin alinan ek sure: paket dakikasini ve tutarini
+  // mevcut talebin uzerine ekle, gorusme devam ediyor.
+  if (status === "success" && ekSureMi && odeme?.randevu_talep_id) {
+    const { data: talep } = await supabaseAdmin
+      .from("randevu_talepleri")
+      .select("paket_dakika, paket_tutari, odeme_tutari")
+      .eq("id", odeme.randevu_talep_id)
+      .maybeSingle();
+
+    if (talep) {
+      await supabaseAdmin
+        .from("randevu_talepleri")
+        .update({
+          paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
+          paket_tutari: Number(talep.paket_tutari || 0) + EK_SURE_PAKETI.tutar,
+          odeme_tutari: Number(talep.odeme_tutari || 0) + EK_SURE_PAKETI.tutar,
+        })
+        .eq("id", odeme.randevu_talep_id);
+    }
+  }
+
   // Talep on-odemesi: gorusme henuz eslesmedi, sadece odeme_durumu
   // "odendi" olarak isaretlenir, talep havuzda gorunur hale gelir.
   // durum ("bekliyor") kasten degistirilmez.
-  if (status === "success" && odeme?.randevu_talep_id) {
+  if (status === "success" && !ekSureMi && odeme?.randevu_talep_id) {
     await supabaseAdmin
       .from("randevu_talepleri")
       .update({ odeme_durumu: "odendi" })

@@ -5,7 +5,12 @@ import DailyIframe from "@daily-co/daily-js";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "./Modal";
 import Spinner from "./Spinner";
-import { IconVideo, IconTelefonKapat, IconKvkk } from "./icons";
+import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
+import { IconVideo, IconTelefonKapat, IconKvkk, IconEtiket } from "./icons";
+
+const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
+const EK_SURE_POLL_MS = 3000;
+const EK_SURE_POLL_SURE_MS = 3 * 60 * 1000;
 
 function sureFormatla(saniye) {
   const dk = Math.floor(saniye / 60);
@@ -14,8 +19,6 @@ function sureFormatla(saniye) {
 }
 
 export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomatikAc }) {
-  const paketSaniye = Number(paketDakika || 0) * 60;
-
   const [onayAcik, setOnayAcik] = useState(false);
   const [onayVerildi, setOnayVerildi] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -26,6 +29,9 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
   const [sonlandiriliyor, setSonlandiriliyor] = useState(false);
   const [gorusmeBasladi, setGorusmeBasladi] = useState(false);
   const [sureDoldu, setSureDoldu] = useState(false);
+  const [ekSaniye, setEkSaniye] = useState(0);
+  const [ekSureYukleniyor, setEkSureYukleniyor] = useState(false);
+  const [ekSureMesaji, setEkSureMesaji] = useState(null);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -33,6 +39,16 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
   const gorusmeBasladiRef = useRef(false);
   const otomatikAcildiRef = useRef(false);
   const sureDolduRef = useRef(false);
+  const bilinenPaketDakikaRef = useRef(Number(paketDakika || 0));
+  const ekSurePollRef = useRef(null);
+  const ekSureYukleniyorRef = useRef(false);
+
+  function ekSureYukleniyorAyarla(deger) {
+    ekSureYukleniyorRef.current = deger;
+    setEkSureYukleniyor(deger);
+  }
+
+  const paketSaniye = Number(paketDakika || 0) * 60 + ekSaniye;
 
   useEffect(() => {
     if (otomatikAc && !otomatikAcildiRef.current) {
@@ -48,7 +64,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
       const saniye = Math.floor((Date.now() - baslangicRef.current) / 1000);
       setGecenSaniye(saniye);
 
-      if (paketSaniye > 0 && saniye >= paketSaniye && !sureDolduRef.current) {
+      if (paketSaniye > 0 && saniye >= paketSaniye && !sureDolduRef.current && !ekSureYukleniyorRef.current) {
         sureDolduRef.current = true;
         setSureDoldu(true);
         if (callFrameRef.current) {
@@ -69,10 +85,14 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     bittiCagrildiRef.current = false;
     gorusmeBasladiRef.current = false;
     sureDolduRef.current = false;
+    ekSureYukleniyorRef.current = false;
     baslangicRef.current = null;
+    bilinenPaketDakikaRef.current = Number(paketDakika || 0);
     setGorusmeBasladi(false);
     setGecenSaniye(0);
     setSureDoldu(false);
+    setEkSaniye(0);
+    setEkSureMesaji(null);
 
     const callFrame = DailyIframe.wrap(iframeRef.current);
     callFrameRef.current = callFrame;
@@ -91,6 +111,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
       callFrame.off("participant-updated", katilimcilariKontrolEt);
       callFrame.destroy();
       callFrameRef.current = null;
+      clearInterval(ekSurePollRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [odaUrl]);
@@ -134,11 +155,66 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     setSonlandirmaOnayAcik(false);
     setSonlandiriliyor(false);
     setGorusmeBasladi(false);
+    clearInterval(ekSurePollRef.current);
 
     if (baslangicRef.current) {
       const saniyeGecti = Math.floor((Date.now() - baslangicRef.current) / 1000);
       gorusmeyiTamamla(saniyeGecti);
     }
+  }
+
+  async function ekSureSatinAl() {
+    ekSureYukleniyorAyarla(true);
+    setEkSureMesaji(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const yanit = await fetch("/api/talep/ek-sure", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ randevuTalepId }),
+    });
+    const sonuc = await yanit.json();
+
+    if (!yanit.ok) {
+      setEkSureMesaji(sonuc.hata ?? "Ek süre alınamadı.");
+      ekSureYukleniyorAyarla(false);
+      return;
+    }
+
+    window.open(`https://www.paytr.com/odeme/guvenli/${sonuc.token}`, "_blank");
+    setEkSureMesaji("Açılan sekmede ödemeni tamamla, onaylanınca süre otomatik eklenecek.");
+
+    const baslangicZamani = Date.now();
+    ekSurePollRef.current = setInterval(async () => {
+      if (Date.now() - baslangicZamani > EK_SURE_POLL_SURE_MS) {
+        clearInterval(ekSurePollRef.current);
+        ekSureYukleniyorAyarla(false);
+        setEkSureMesaji("Ödeme onayı gelmedi. Tamamladıysan birazdan otomatik yansıyacaktır.");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("randevu_talepleri")
+        .select("paket_dakika")
+        .eq("id", randevuTalepId)
+        .maybeSingle();
+
+      const yeniDakika = Number(data?.paket_dakika || 0);
+      if (yeniDakika > bilinenPaketDakikaRef.current) {
+        const farkDakika = yeniDakika - bilinenPaketDakikaRef.current;
+        bilinenPaketDakikaRef.current = yeniDakika;
+        setEkSaniye((onceki) => onceki + farkDakika * 60);
+        setEkSureMesaji(`+${farkDakika} dakika eklendi!`);
+        ekSureYukleniyorAyarla(false);
+        clearInterval(ekSurePollRef.current);
+      }
+    }, EK_SURE_POLL_MS);
   }
 
   async function gorusmeyeKatil() {
@@ -180,6 +256,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
 
   const kalanSaniye = Math.max(0, paketSaniye - gecenSaniye);
   const sureUyari = paketSaniye > 0 && kalanSaniye > 0 && kalanSaniye <= 60;
+  const ekSureGosterilsin = paketSaniye > 0 && kalanSaniye > 0 && kalanSaniye <= 30;
 
   const baslikMetni = sureDoldu
     ? "Paket Süresi Doldu, Görüşme Sonlandırılıyor..."
@@ -308,10 +385,22 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               <span>{sureFormatla(kalanSaniye)}</span>
             </div>
           )}
-          {sureUyari && (
-            <p className="mt-2 text-center text-xs text-red-400">
-              Paket süren azalıyor, görüşme yakında sona erebilir.
-            </p>
+
+          {ekSureGosterilsin && (
+            <div className="mt-3 flex flex-col gap-2 rounded-xl border border-red-500/30 bg-red-500/[0.06] p-4">
+              <p className="text-center text-sm font-semibold text-red-400">
+                Süren doluyor! Görüşmeye devam etmek için ek süre alabilirsin.
+              </p>
+              <button
+                onClick={ekSureSatinAl}
+                disabled={ekSureYukleniyor}
+                className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+              >
+                {ekSureYukleniyor ? <Spinner className="h-4 w-4" /> : <IconEtiket className="h-4 w-4" />}
+                +{EK_SURE_PAKETI.dakika} Dakika Al ({EK_SURE_PAKETI.tutar} TL)
+              </button>
+              {ekSureMesaji && <p className="text-center text-xs text-white/60">{ekSureMesaji}</p>}
+            </div>
           )}
 
           <button
