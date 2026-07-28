@@ -1,12 +1,15 @@
-export const DAKIKA_UCRETI = 15;
-export const ILK_UCRETSIZ_DAKIKA = 5;
 export const AVUKAT_KOMISYON_ORANI = 0.8;
-export const MIN_BAKIYE = 150;
-export const BAKIYE_UYARI_ESIGI = 60;
-export const BAKIYE_PAKETLERI = [300, 500, 1000];
-export const OZEL_BAKIYE_MIN = 50;
-export const OZEL_BAKIYE_MAX = 10000;
+
+export const GORUSME_PAKETLERI = [
+  { dakika: 5, tutar: 200 },
+  { dakika: 10, tutar: 349 },
+  { dakika: 15, tutar: 499 },
+];
 
 export function avukatPayiHesapla(tutar) {
   return Math.round(Number(tutar || 0) * AVUKAT_KOMISYON_ORANI);
+}
+
+export function paketBul(dakika) {
+  return GORUSME_PAKETLERI.find((p) => p.dakika === Number(dakika)) ?? null;
 }

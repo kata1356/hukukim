@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Spinner from "@/components/Spinner";
 import StatKarti from "@/components/StatKarti";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
-import { IconKvkk, IconEtiket } from "@/components/icons";
 
-export default function MuvekkilBakiye() {
+export default function MuvekkilOdemelerim() {
   const router = useRouter();
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
-  const [bakiye, setBakiye] = useState(0);
   const [odemeler, setOdemeler] = useState([]);
 
   useEffect(() => {
@@ -41,19 +38,15 @@ export default function MuvekkilBakiye() {
         return;
       }
 
-      const [{ data: bakiyeSatiri }, { data: talepler }] = await Promise.all([
-        supabase.from("muvekkil_bakiyeleri").select("bakiye_miktari").eq("muvekkil_id", user.id).maybeSingle(),
-        supabase
-          .from("randevu_talepleri")
-          .select("*, avukatlar(ad_soyad)")
-          .eq("muvekkil_id", user.id)
-          .eq("odeme_durumu", "odendi")
-          .order("created_at", { ascending: false }),
-      ]);
+      const { data: talepler } = await supabase
+        .from("randevu_talepleri")
+        .select("*, avukatlar(ad_soyad)")
+        .eq("muvekkil_id", user.id)
+        .eq("odeme_durumu", "odendi")
+        .order("created_at", { ascending: false });
 
       if (iptalEdildi) return;
       setProfil(muvekkilProfili);
-      setBakiye(Number(bakiyeSatiri?.bakiye_miktari || 0));
       setOdemeler(talepler ?? []);
       setSayfaYukleniyor(false);
     }
@@ -80,35 +73,14 @@ export default function MuvekkilBakiye() {
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
         <div>
-          <h1 className="text-xl font-bold text-white">Bakiye</h1>
-          <p className="mt-1 text-sm text-white/60">Görüşme ücretleri güncel bakiyenden düşülür.</p>
-        </div>
-
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <p className="text-sm text-white/60">Güncel Bakiye</p>
-            <p className="text-3xl font-bold text-turkuaz">{bakiye} TL</p>
-          </div>
-          <Link
-            href="/muvekkil/bakiye-yukle"
-            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
-          >
-            <IconEtiket className="h-4 w-4" />
-            Bakiye Yükle
-          </Link>
+          <h1 className="text-xl font-bold text-white">Ödemelerim</h1>
+          <p className="mt-1 text-sm text-white/60">Geçmiş görüşme paketlerinin özeti.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <StatKarti deger={`${toplamHarcanan} TL`} etiket="Toplam Harcanan" />
+          <StatKarti deger={`${toplamHarcanan} TL`} etiket="Toplam Ödenen" />
           <StatKarti deger={odemeler.length} etiket="Tamamlanan Görüşme" />
         </div>
-
-        <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
-          <IconKvkk className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Görüşme başlamadan önce en az 150 TL bakiyen olması gerekir. Görüşme
-          sırasında her dakika bakiyenden otomatik düşülür, bakiye biterse
-          görüşme sona erer.
-        </p>
 
         <section>
           <h2 className="mb-3 text-sm font-bold text-white">Görüşme Geçmişi</h2>
@@ -126,10 +98,12 @@ export default function MuvekkilBakiye() {
                   <div>
                     <p className="text-sm font-semibold text-white">{o.avukatlar?.ad_soyad ?? "Avukat"}</p>
                     <p className="text-xs text-white/40">
-                      {tarihFormatla(o.tarih)} · {o.gorusme_suresi_dakika} dk
+                      {tarihFormatla(o.tarih)} · {o.paket_dakika ? `${o.paket_dakika} dk paket` : ""}
                     </p>
                   </div>
-                  <span className="font-bold text-turkuaz">{o.odeme_tutari} TL</span>
+                  <span className="font-bold text-turkuaz">
+                    {o.odeme_tutari > 0 ? `${o.odeme_tutari} TL` : "Ücretsiz"}
+                  </span>
                 </div>
               ))}
             </div>

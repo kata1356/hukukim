@@ -1,34 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
 import Avatar from "@/components/Avatar";
 import Spinner from "@/components/Spinner";
 import Modal from "@/components/Modal";
-import RandevuFormu from "@/components/RandevuFormu";
 import GenelTalepFormu from "@/components/GenelTalepFormu";
 import DurumRozeti from "@/components/DurumRozeti";
-import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
-import { MIN_BAKIYE } from "@/lib/odemeYardimci";
 import {
-  IconArama,
-  IconKonum,
   IconOnay,
-  IconOk,
   IconEv,
   IconListe,
   IconYayin,
-  IconEtiket,
   IconYildiz,
+  IconArama,
 } from "@/components/icons";
 
 export default function MuvekkilPanel() {
@@ -36,12 +29,17 @@ export default function MuvekkilPanel() {
 
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
-  const [bakiye, setBakiye] = useState(0);
-  const [avukatlar, setAvukatlar] = useState([]);
-  const [aramaMetni, setAramaMetni] = useState("");
-  const [seciliAvukat, setSeciliAvukat] = useState(null);
   const [genelTalepAcik, setGenelTalepAcik] = useState(false);
-  const [basariMesaji, setBasariMesaji] = useState(null);
+  const [basariMesaji, setBasariMesaji] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const sonuc = new URLSearchParams(window.location.search).get("odeme");
+    return sonuc === "basarili" ? "Ödemen alındı, talebin avukatlara gönderildi." : null;
+  });
+  const [odemeHatasi, setOdemeHatasi] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const sonuc = new URLSearchParams(window.location.search).get("odeme");
+    return sonuc === "basarisiz" ? "Ödeme tamamlanamadı, tekrar deneyebilirsin." : null;
+  });
   const [gonderilenTalepler, setGonderilenTalepler] = useState([]);
   const [degerlendirilenIdler, setDegerlendirilenIdler] = useState([]);
   const [degerlendirilecekTalep, setDegerlendirilecekTalep] = useState(null);
@@ -49,17 +47,12 @@ export default function MuvekkilPanel() {
     if (typeof window === "undefined") return null;
     return new URLSearchParams(window.location.search).get("video");
   });
+  const [aktifBeklemeTalepId, setAktifBeklemeTalepId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("talep");
+  });
 
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
-
-  async function bakiyeGetir(kullaniciId) {
-    const { data } = await supabase
-      .from("muvekkil_bakiyeleri")
-      .select("bakiye_miktari")
-      .eq("muvekkil_id", kullaniciId)
-      .maybeSingle();
-    setBakiye(Number(data?.bakiye_miktari || 0));
-  }
 
   async function gonderilenTalepleriGetir(kullaniciId) {
     const { data } = await supabase
@@ -119,16 +112,10 @@ export default function MuvekkilPanel() {
         return;
       }
 
-      const { data: avukatListesi } = await supabase
-        .from("avukatlar")
-        .select("*")
-        .order("ad_soyad", { ascending: true });
-
-      await Promise.all([gonderilenTalepleriGetir(user.id), bakiyeGetir(user.id)]);
+      await gonderilenTalepleriGetir(user.id);
 
       if (iptalEdildi) return;
       setProfil(muvekkilProfili);
-      setAvukatlar(avukatListesi ?? []);
       setSayfaYukleniyor(false);
     }
 
@@ -148,42 +135,24 @@ export default function MuvekkilPanel() {
         { event: "*", schema: "public", table: "randevu_talepleri", filter: `muvekkil_id=eq.${profil.id}` },
         () => gonderilenTalepleriGetir(profil.id)
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "muvekkil_bakiyeleri", filter: `muvekkil_id=eq.${profil.id}` },
-        () => bakiyeGetir(profil.id)
-      )
       .subscribe();
 
     return () => supabase.removeChannel(kanal);
   }, [profil?.id]);
 
   useEffect(() => {
-    if (window.location.search.includes("video=")) {
+    if (
+      window.location.search.includes("video=") ||
+      window.location.search.includes("odeme=") ||
+      window.location.search.includes("talep=")
+    ) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
 
-  const filtrelenmisAvukatlar = useMemo(() => {
-    const arama = aramaMetni.trim().toLocaleLowerCase("tr-TR");
-    if (!arama) return avukatlar;
-    return avukatlar.filter((a) => {
-      const metin = [a.ad_soyad, a.sehir, ...(a.uzmanlik_alanlari ?? [])]
-        .join(" ")
-        .toLocaleLowerCase("tr-TR");
-      return metin.includes(arama);
-    });
-  }, [avukatlar, aramaMetni]);
-
-  async function talepBasarili() {
-    setSeciliAvukat(null);
-    setBasariMesaji("Randevu talebin gönderildi, aşağıdaki \"Gönderdiğim Talepler\" listesinde görebilirsin.");
-    if (profil?.id) await gonderilenTalepleriGetir(profil.id);
-  }
-
-  async function genelTalepBasarili() {
+  async function genelTalepBasarili(talepId) {
     setGenelTalepAcik(false);
-    setBasariMesaji("Talebin yayınlandı, uygun avukatlara gösterilecek. İlk yanıt veren avukat talebini üstlenecek.");
+    setAktifBeklemeTalepId(talepId);
     if (profil?.id) await gonderilenTalepleriGetir(profil.id);
   }
 
@@ -197,7 +166,10 @@ export default function MuvekkilPanel() {
 
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
-  const bakiyeYetersiz = bakiye < MIN_BAKIYE;
+  const ilkGorusmeMi = gonderilenTalepler.length === 0;
+  const beklenenTalep = gonderilenTalepler.find(
+    (t) => t.id === aktifBeklemeTalepId && t.durum === "bekliyor" && t.odeme_durumu === "odendi"
+  );
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
@@ -209,28 +181,31 @@ export default function MuvekkilPanel() {
             Merhaba, {profil.ad_soyad}
           </h1>
           <p className="mt-1 text-sm text-white/60">
-            Uzmanlık alanına, şehrine veya ada göre avukat ara.
+            İhtiyacını anlat, uygun bir avukat sana bağlansın.
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <p className="text-sm text-white/60">Güncel Bakiye</p>
-            <p className="text-2xl font-bold text-turkuaz">{bakiye} TL</p>
-            {bakiyeYetersiz && (
-              <p className="mt-1 text-xs text-red-400">
-                Görüşme başlatabilmek için en az {MIN_BAKIYE} TL bakiyen olmalı.
-              </p>
-            )}
+        {beklenenTalep && (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-turkuaz/30 bg-gece-yuzey p-8 text-center shadow-md">
+            <div className="relative flex h-16 w-16 items-center justify-center">
+              <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/30" />
+              <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz/20">
+                <IconArama className="h-6 w-6 text-turkuaz" />
+              </span>
+            </div>
+            <p className="text-lg font-bold text-white">Avukat aranıyor...</p>
+            <p className="max-w-sm text-sm text-white/60">
+              {beklenenTalep.hedef_sehir} · {beklenenTalep.hedef_uzmanlik_alani} alanında uygun
+              avukatlara bildirim gönderildi. Bir avukat kabul eder etmez burada bilgilendirileceksin.
+            </p>
+            <button
+              onClick={() => setAktifBeklemeTalepId(null)}
+              className="mt-1 text-xs font-semibold text-white/40 underline"
+            >
+              Bekleme ekranını kapat
+            </button>
           </div>
-          <Link
-            href="/muvekkil/bakiye-yukle"
-            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
-          >
-            <IconEtiket className="h-4 w-4" />
-            Bakiye Yükle
-          </Link>
-        </div>
+        )}
 
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
@@ -241,11 +216,11 @@ export default function MuvekkilPanel() {
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
           <div>
             <h2 className="text-lg font-bold text-white">
-              İhtiyacını anlat, avukatlar sana ulaşsın
+              {ilkGorusmeMi ? "İlk görüşmen ücretsiz!" : "İhtiyacını anlat, avukatlar sana ulaşsın"}
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              Şehrini ve uzmanlık alanını seç, tek bir avukat aramana gerek
-              kalmadan uygun avukatlar talebini görsün.
+              Şehrini ve uzmanlık alanını seç, talebin uygun tüm avukatlara anında
+              gösterilsin. İlk kabul eden avukatla görüşmen hemen başlar.
             </p>
           </div>
           <button
@@ -253,25 +228,8 @@ export default function MuvekkilPanel() {
             className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
           >
             <IconYayin className="h-4 w-4" />
-            Genel Talep Oluştur
+            Avukatla Görüş
           </button>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs font-semibold text-white/30">
-          <span className="h-px flex-1 bg-white/10" />
-          VEYA KENDİN ARA
-          <span className="h-px flex-1 bg-white/10" />
-        </div>
-
-        <div id="ara" className="scroll-mt-20 relative">
-          <IconArama className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-          <input
-            type="text"
-            value={aramaMetni}
-            onChange={(e) => setAramaMetni(e.target.value)}
-            placeholder="Ör. Ankara, Aile Hukuku, Ayşe Yılmaz..."
-            className="w-full rounded-lg border border-white/15 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30"
-          />
         </div>
 
         {basariMesaji && (
@@ -281,66 +239,10 @@ export default function MuvekkilPanel() {
           </p>
         )}
 
-        {filtrelenmisAvukatlar.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
-            Aramanla eşleşen avukat bulunamadı.
+        {odemeHatasi && (
+          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
+            {odemeHatasi}
           </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {filtrelenmisAvukatlar.map((avukat) => (
-              <div
-                key={avukat.id}
-                className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-white/20"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar
-                    adSoyad={avukat.ad_soyad}
-                    fotografUrl={avukat.profil_fotografi_url}
-                    dogrulanmis={avukat.dogrulanmis}
-                  />
-                  <div>
-                    <p className="font-semibold text-white">
-                      {avukat.ad_soyad}
-                    </p>
-                    <p className="flex items-center gap-1 text-sm text-white/60">
-                      <IconKonum className="h-3.5 w-3.5" />
-                      {avukat.sehir}
-                    </p>
-                    <div className="mt-1.5">
-                      <DogrulamaRozeti dogrulanmis={avukat.dogrulanmis} />
-                    </div>
-                  </div>
-                </div>
-
-                {avukat.uzmanlik_alanlari?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {avukat.uzmanlik_alanlari.map((alan) => (
-                      <span
-                        key={alan}
-                        className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-medium text-white/70"
-                      >
-                        {alan}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {avukat.biyografi && (
-                  <p className="line-clamp-3 text-sm text-white/60">
-                    {avukat.biyografi}
-                  </p>
-                )}
-
-                <button
-                  onClick={() => setSeciliAvukat(avukat)}
-                  className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md"
-                >
-                  Randevu Talebi Gönder
-                  <IconOk className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
         )}
 
         <section id="taleplerim" className="scroll-mt-20">
@@ -350,12 +252,12 @@ export default function MuvekkilPanel() {
 
           {gonderilenTalepler.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
-              Henüz bir randevu talebi göndermedin.
+              Henüz bir talep göndermedin.
             </p>
           ) : (
             <div className="flex flex-col gap-4">
               {gonderilenTalepler.map((talep) => {
-                const genelHavuzda = talep.tur === "genel" && !talep.avukatlar;
+                const havuzdaBekliyor = talep.durum === "bekliyor" && !talep.avukatlar;
                 return (
                   <div
                     key={talep.id}
@@ -369,10 +271,10 @@ export default function MuvekkilPanel() {
                         />
                         <div>
                           <p className="font-semibold text-white">
-                            {talep.avukatlar?.ad_soyad ?? "Genel Talep"}
+                            {talep.avukatlar?.ad_soyad ?? "Eşleşme Bekleniyor"}
                           </p>
                           <p className="text-sm text-white/60">{talep.konu}</p>
-                          {genelHavuzda && (
+                          {havuzdaBekliyor && (
                             <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-turkuaz">
                               <IconYayin className="h-3.5 w-3.5" />
                               {talep.hedef_sehir} · {talep.hedef_uzmanlik_alani} havuzunda bekliyor
@@ -385,6 +287,11 @@ export default function MuvekkilPanel() {
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/60">
                       <GorusmeSekliEtiketi deger={talep.gorusme_sekli} />
                       <span>{tarihFormatla(talep.tarih)}</span>
+                      {talep.paket_dakika && (
+                        <span>
+                          {talep.paket_dakika} dk paket · {talep.odeme_tutari > 0 ? `${talep.odeme_tutari} TL` : "Ücretsiz"}
+                        </span>
+                      )}
                     </div>
 
                     {(talep.durum === "kabul" || talep.durum === "tamamlandi") && (
@@ -392,15 +299,9 @@ export default function MuvekkilPanel() {
                         {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
                           <VideoGorusmeButonu
                             randevuTalepId={talep.id}
-                            rol="muvekkil"
+                            paketDakika={talep.paket_dakika}
                             otomatikAc={talep.id === videoTalepId}
                           />
-                        )}
-
-                        {talep.gorusme_suresi_dakika > 0 && (
-                          <span className="text-xs text-white/40">
-                            {talep.gorusme_suresi_dakika} dk · {talep.odeme_tutari} TL
-                          </span>
                         )}
 
                         {talep.durum === "tamamlandi" &&
@@ -428,21 +329,11 @@ export default function MuvekkilPanel() {
         </section>
       </main>
 
-      {seciliAvukat && (
-        <Modal baslik="Randevu Talebi" onKapat={() => setSeciliAvukat(null)}>
-          <RandevuFormu
-            avukat={seciliAvukat}
-            muvekkilProfil={profil}
-            onKapat={() => setSeciliAvukat(null)}
-            onBasarili={talepBasarili}
-          />
-        </Modal>
-      )}
-
       {genelTalepAcik && (
-        <Modal baslik="Genel Talep Oluştur" onKapat={() => setGenelTalepAcik(false)}>
+        <Modal baslik="Avukatla Görüş" onKapat={() => setGenelTalepAcik(false)}>
           <GenelTalepFormu
             muvekkilProfil={profil}
+            ilkGorusmeMi={ilkGorusmeMi}
             onKapat={() => setGenelTalepAcik(false)}
             onBasarili={genelTalepBasarili}
           />
@@ -462,7 +353,7 @@ export default function MuvekkilPanel() {
 
       <AltMenu
         sekmeler={[
-          { etiket: "Ara", href: "#ara", Icon: IconEv },
+          { etiket: "Panel", href: "#taleplerim", Icon: IconEv },
           { etiket: "Taleplerim", href: "#taleplerim", Icon: IconListe },
         ]}
       />

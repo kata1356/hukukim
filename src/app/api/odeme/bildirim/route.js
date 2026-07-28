@@ -24,23 +24,24 @@ export async function POST(request) {
       guncellendi_at: new Date().toISOString(),
     })
     .eq("merchant_oid", merchantOid)
-    .select("muvekkil_id, tutar")
+    .select("muvekkil_id, randevu_talep_id")
     .maybeSingle();
 
-  // Bakiye yukleme (top-up) akisi: merchant_oid "BKY" ile basliyor,
-  // odeme.tutar kadari muvekkilin bakiyesine ekleniyor.
-  if (status === "success" && String(merchantOid).startsWith("BKY") && odeme?.muvekkil_id) {
-    await supabaseAdmin.rpc("bakiye_ekle", {
-      p_muvekkil_id: odeme.muvekkil_id,
-      p_tutar: odeme.tutar,
-    });
+  // Talep on-odemesi: gorusme henuz eslesmedi, sadece odeme_durumu
+  // "odendi" olarak isaretlenir, talep havuzda gorunur hale gelir.
+  // durum ("bekliyor") kasten degistirilmez.
+  if (status === "success" && odeme?.randevu_talep_id) {
+    await supabaseAdmin
+      .from("randevu_talepleri")
+      .update({ odeme_durumu: "odendi" })
+      .eq("id", odeme.randevu_talep_id);
+  }
 
-    if (utoken) {
-      await supabaseAdmin
-        .from("muvekkiller")
-        .update({ kart_token: utoken })
-        .eq("id", odeme.muvekkil_id);
-    }
+  if (status === "success" && utoken && odeme?.muvekkil_id) {
+    await supabaseAdmin
+      .from("muvekkiller")
+      .update({ kart_token: utoken })
+      .eq("id", odeme.muvekkil_id);
   }
 
   return new Response("OK");

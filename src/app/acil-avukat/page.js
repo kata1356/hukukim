@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji, emailZatenKayitliMi } from "@/lib/hataMesajlari";
 import { SEHIRLER } from "@/lib/sehirler";
@@ -15,9 +16,10 @@ import Honeypot from "@/components/Honeypot";
 import { IconYildirim } from "@/components/icons";
 
 export default function AcilAvukat() {
+  const router = useRouter();
   const [durum, setDurum] = useState("yukleniyor");
   const [profil, setProfil] = useState(null);
-  const [gonderildi, setGonderildi] = useState(false);
+  const [ilkGorusmeMi, setIlkGorusmeMi] = useState(true);
 
   const [form, setForm] = useState({
     adSoyad: "",
@@ -54,6 +56,11 @@ export default function AcilAvukat() {
       if (iptalEdildi) return;
 
       if (muvekkilProfili) {
+        const { count } = await supabase
+          .from("randevu_talepleri")
+          .select("id", { count: "exact", head: true })
+          .eq("muvekkil_id", user.id);
+        if (!iptalEdildi) setIlkGorusmeMi(!count);
         setProfil(muvekkilProfili);
         setDurum("form");
         return;
@@ -161,28 +168,6 @@ export default function AcilAvukat() {
   }
 
   if (durum === "form") {
-    if (gonderildi) {
-      return (
-        <AuthShell baslik="Talebin Gönderildi" altBaslik="Şehrindeki uygun avukatlara ulaştı.">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400 ring-1 ring-red-500/20">
-              <IconYildirim className="h-7 w-7" />
-            </span>
-            <p className="text-sm text-white/60">
-              Uygun avukatlar talebini görüyor. İlk yanıt veren avukat seninle
-              iletişime geçecek. Durumu panelinden takip edebilirsin.
-            </p>
-            <Link
-              href="/muvekkil/panel"
-              className="rounded-full bg-turkuaz px-5 py-2.5 text-sm font-semibold text-gece"
-            >
-              Panelime Git
-            </Link>
-          </div>
-        </AuthShell>
-      );
-    }
-
     return (
       <AuthShell
         baslik="Acil Avukat Ara"
@@ -190,7 +175,8 @@ export default function AcilAvukat() {
       >
         <AcilTalepFormu
           muvekkilProfil={profil}
-          onBasarili={() => setGonderildi(true)}
+          ilkGorusmeMi={ilkGorusmeMi}
+          onBasarili={(talepId) => router.push(`/muvekkil/panel?talep=${talepId}`)}
         />
       </AuthShell>
     );

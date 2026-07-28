@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
+import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 import PanelHeader from "@/components/PanelHeader";
 import Avatar from "@/components/Avatar";
 import Spinner from "@/components/Spinner";
@@ -46,7 +47,6 @@ export default function AvukatPanel() {
   const [acikHata, setAcikHata] = useState(null);
   const [fotografYukleniyor, setFotografYukleniyor] = useState(false);
   const [fotografHata, setFotografHata] = useState(null);
-  const [dakikaGirisleri, setDakikaGirisleri] = useState({});
   const [tamamlaYukleniyor, setTamamlaYukleniyor] = useState(null);
   const [degerlendirmeler, setDegerlendirmeler] = useState([]);
   const [kapaliGunler, setKapaliGunler] = useState([]);
@@ -93,9 +93,6 @@ export default function AvukatPanel() {
   }
 
   async function mesajGorusmesiniTamamla(talepId) {
-    const dakika = dakikaGirisleri[talepId];
-    if (!dakika || Number(dakika) <= 0) return;
-
     setHata(null);
     setTamamlaYukleniyor(talepId);
 
@@ -103,13 +100,13 @@ export default function AvukatPanel() {
       data: { session },
     } = await supabase.auth.getSession();
 
-    const yanit = await fetch("/api/bakiye/mesaj-tamamla", {
+    const yanit = await fetch("/api/talep/tamamla", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ randevuTalepId: talepId, dakika }),
+      body: JSON.stringify({ randevuTalepId: talepId }),
     });
     const sonuc = await yanit.json();
 
@@ -120,11 +117,7 @@ export default function AvukatPanel() {
     }
 
     setTalepler((oncekiler) =>
-      oncekiler.map((t) =>
-        t.id === talepId
-          ? { ...t, gorusme_suresi_dakika: Number(dakika), odeme_tutari: sonuc.tutar, durum: "tamamlandi" }
-          : t
-      )
+      oncekiler.map((t) => (t.id === talepId ? { ...t, durum: "tamamlandi" } : t))
     );
     setTamamlaYukleniyor(null);
   }
@@ -174,6 +167,7 @@ export default function AvukatPanel() {
       .select("*")
       .eq("tur", "genel")
       .is("avukat_id", null)
+      .eq("odeme_durumu", "odendi")
       .order("created_at", { ascending: false });
 
     const uygunAlanlar = avukatProfili.uzmanlik_alanlari ?? [];
@@ -513,6 +507,14 @@ export default function AvukatPanel() {
                       <IconTakvim className="h-4 w-4 text-white/40" />
                       {tarihFormatla(talep.tarih)}
                     </span>
+                    {talep.paket_dakika && (
+                      <span className="font-semibold text-turkuaz">
+                        {talep.paket_dakika} dk
+                        {talep.odeme_tutari > 0
+                          ? ` · Kazancın: ${avukatPayiHesapla(talep.odeme_tutari)} TL`
+                          : " · Ücretsiz (ilk görüşme)"}
+                      </span>
+                    )}
                   </div>
 
                   {talep.aciklama && (
@@ -625,31 +627,17 @@ export default function AvukatPanel() {
                     </div>
                   )}
 
-                  {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && !talep.gorusme_suresi_dakika && (
+                  {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
                     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <VideoGorusmeButonu randevuTalepId={talep.id} rol="avukat" />
+                      <VideoGorusmeButonu randevuTalepId={talep.id} paketDakika={talep.paket_dakika} />
                       <span className="text-xs text-white/40">
-                        Ücret, görüşme sırasında müvekkilin bakiyesinden otomatik düşülür.
+                        {talep.paket_dakika} dk paket · görüşme bitince otomatik tamamlanır.
                       </span>
                     </div>
                   )}
 
-                  {talep.durum === "kabul" && talep.gorusme_sekli !== "goruntulu" && !talep.gorusme_suresi_dakika && (
+                  {talep.durum === "kabul" && talep.gorusme_sekli !== "goruntulu" && (
                     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <label className="text-sm font-semibold text-white/70" htmlFor={`dakika-${talep.id}`}>
-                        Görüşme kaç dakika sürdü?
-                      </label>
-                      <input
-                        id={`dakika-${talep.id}`}
-                        type="number"
-                        min="1"
-                        placeholder="Ör. 12"
-                        value={dakikaGirisleri[talep.id] ?? ""}
-                        onChange={(e) =>
-                          setDakikaGirisleri((oncekiler) => ({ ...oncekiler, [talep.id]: e.target.value }))
-                        }
-                        className="w-24 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-turkuaz"
-                      />
                       <button
                         onClick={() => mesajGorusmesiniTamamla(talep.id)}
                         disabled={tamamlaYukleniyor === talep.id}
@@ -658,13 +646,15 @@ export default function AvukatPanel() {
                         {tamamlaYukleniyor === talep.id && <Spinner className="h-4 w-4" />}
                         Görüşmeyi Tamamla
                       </button>
+                      <span className="text-xs text-white/40">{talep.paket_dakika} dk paket</span>
                     </div>
                   )}
 
-                  {talep.gorusme_suresi_dakika && (
+                  {talep.durum === "tamamlandi" && (
                     <p className="mt-3 text-xs text-white/40">
-                      Görüşme süresi: {talep.gorusme_suresi_dakika} dk
+                      {talep.paket_dakika} dk paket
                       {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
+                      {talep.gorusme_suresi_dakika > 0 && ` · gerçek süre ${talep.gorusme_suresi_dakika} dk`}
                     </p>
                   )}
                 </div>

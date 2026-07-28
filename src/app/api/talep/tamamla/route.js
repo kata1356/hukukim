@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { avukatPayiHesapla } from "@/lib/odemeYardimci";
 
+// Paket sistemi: fiyat talep olusturulurken zaten sabitlenmis oldugu icin
+// gorusme bitince yapilacak tek is, kazanci avukat_kazanclari tablosuna
+// islemek ve talebi tamamlandi olarak isaretlemektir. Hem avukat hem
+// muvekkil tarafi cagirabilir (kim once cagirirsa o tamamlar), idempotenttir.
 export async function POST(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
   const token = yetkiBasligi.replace(/^Bearer\s+/i, "");
@@ -16,7 +20,7 @@ export async function POST(request) {
   }
 
   const kullanici = kullaniciVerisi.user;
-  const { randevuTalepId } = await request.json();
+  const { randevuTalepId, gorusmeSuresiSaniye } = await request.json();
 
   if (!randevuTalepId) {
     return NextResponse.json({ hata: "Randevu talebi belirtilmedi." }, { status: 400 });
@@ -32,12 +36,26 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Randevu talebi bulunamadı." }, { status: 404 });
   }
 
-  if (talep.muvekkil_id !== kullanici.id) {
+  if (kullanici.id !== talep.avukat_id && kullanici.id !== talep.muvekkil_id) {
     return NextResponse.json({ hata: "Bu randevu sana ait değil." }, { status: 403 });
   }
 
   if (talep.durum === "tamamlandi") {
     return NextResponse.json({ basarili: true });
+  }
+
+  const dakika = gorusmeSuresiSaniye ? Math.max(1, Math.ceil(Number(gorusmeSuresiSaniye) / 60)) : null;
+
+  const { error: guncelleHatasi } = await supabaseAdmin
+    .from("randevu_talepleri")
+    .update({
+      durum: "tamamlandi",
+      ...(dakika ? { gorusme_suresi_dakika: dakika } : {}),
+    })
+    .eq("id", randevuTalepId);
+
+  if (guncelleHatasi) {
+    return NextResponse.json({ hata: "Görüşme tamamlanamadı." }, { status: 500 });
   }
 
   if (Number(talep.odeme_tutari || 0) > 0 && talep.avukat_id) {
@@ -47,15 +65,6 @@ export async function POST(request) {
       muvekkil_ad_soyad: talep.muvekkil_ad_soyad,
       kazanilan_miktar: avukatPayiHesapla(talep.odeme_tutari),
     });
-  }
-
-  const { error: guncelleHatasi } = await supabaseAdmin
-    .from("randevu_talepleri")
-    .update({ durum: "tamamlandi" })
-    .eq("id", randevuTalepId);
-
-  if (guncelleHatasi) {
-    return NextResponse.json({ hata: "Görüşme tamamlanamadı." }, { status: 500 });
   }
 
   return NextResponse.json({ basarili: true });
