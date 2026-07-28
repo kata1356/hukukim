@@ -96,7 +96,7 @@ export default function AvukatBakiye() {
 
         <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
           <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Görüşme ücretinin %80&apos;i sana ait. Hakedişlerin, Ayarlar sayfasına
+          Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına
           gireceğin IBAN&apos;a periyodik olarak havale ile gönderilir. Aşağıdaki
           listede her görüşmenin havalesinin yapılıp yapılmadığını görebilirsin.
         </p>

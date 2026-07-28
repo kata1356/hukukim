@@ -1,4 +1,4 @@
-export const AVUKAT_KOMISYON_ORANI = 0.8;
+export const AVUKAT_KOMISYON_ORANI = 0.6;
 
 export const GORUSME_PAKETLERI = [
   { dakika: 5, tutar: 200 },
