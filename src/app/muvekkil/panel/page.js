@@ -98,6 +98,7 @@ export default function MuvekkilPanel() {
   });
   const [beklemeSaniye, setBeklemeSaniye] = useState(0);
   const [eslesmeTalep, setEslesmeTalep] = useState(null);
+  const [iptalEdiliyor, setIptalEdiliyor] = useState(false);
 
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
   const eslesmeGosterilenlerRef = useRef(new Set());
@@ -220,6 +221,29 @@ export default function MuvekkilPanel() {
     if (profil?.id) await gonderilenTalepleriGetir(profil.id);
   }
 
+  async function talebiIptalEt(talepId) {
+    setIptalEdiliyor(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const yanit = await fetch("/api/talep/iptal-et", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ randevuTalepId: talepId }),
+      });
+      if (yanit.ok) {
+        setAktifBeklemeTalepId(null);
+        if (profil?.id) await gonderilenTalepleriGetir(profil.id);
+      }
+    } finally {
+      setIptalEdiliyor(false);
+    }
+  }
+
   function eslesmeyiGorusmeyeBaslat() {
     if (eslesmeTalep?.gorusme_sekli === "goruntulu") {
       setVideoTalepId(eslesmeTalep.id);
@@ -319,6 +343,18 @@ export default function MuvekkilPanel() {
                     {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
                   </div>
                 )}
+
+                <button
+                  onClick={() => talebiIptalEt(beklenenTalep.id)}
+                  disabled={iptalEdiliyor}
+                  className="mt-2 text-xs font-semibold text-white/40 underline transition hover:text-white/70 disabled:opacity-50"
+                >
+                  {iptalEdiliyor
+                    ? "İptal ediliyor..."
+                    : beklenenTalep.odeme_tutari > 0
+                    ? "Talebi İptal Et ve Ücreti İade Al"
+                    : "Talebi İptal Et"}
+                </button>
               </div>
 
               <BeklemeIpuclari />

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/bekleyen-talepleri-iptal-et",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
