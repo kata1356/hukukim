@@ -161,7 +161,7 @@ export default async function AnaSayfa() {
             className="absolute -top-24 right-0 -z-10 h-96 w-96 translate-x-1/3 rounded-full bg-turkuaz/10 blur-3xl"
           />
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs font-bold text-white ring-1 ring-white/10">
                 <IconKalkan className="h-4 w-4 text-turkuaz" />
@@ -179,13 +179,13 @@ export default async function AnaSayfa() {
               </p>
 
               <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <a
-                  href="#basla"
-                  className="flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-6 py-3.5 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-lg hover:shadow-turkuaz/20"
+                <Link
+                  href="/muvekkil/kayit"
+                  className="flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-turkuaz px-6 py-3.5 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-lg hover:shadow-turkuaz/20"
                 >
-                  Ücretsiz Başla
+                  Ücretsiz Görüşmemi Başlat
                   <IconOk className="h-4 w-4" />
-                </a>
+                </Link>
                 <a
                   href="#nasil-calisir"
                   className="flex items-center justify-center gap-1.5 rounded-full border-2 border-white/15 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-white/40"
@@ -193,6 +193,15 @@ export default async function AnaSayfa() {
                   Nasıl Çalışır?
                 </a>
               </div>
+
+              <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold text-white/70 lg:justify-start">
+                {KANIT_SERIDI.slice(0, 3).map(({ deger, etiket }) => (
+                  <span key={etiket} className="inline-flex items-center gap-1">
+                    <IconOnay className="h-3.5 w-3.5 text-turkuaz" />
+                    {deger} {etiket}
+                  </span>
+                ))}
+              </p>
 
               <Link
                 href="/acil-avukat"
@@ -322,7 +331,7 @@ export default async function AnaSayfa() {
                 href="#basla"
                 className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-5 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
               >
-                Hemen Dene
+                Eşleşmemi Dene
                 <IconOk className="h-4 w-4" />
               </a>
             </div>
@@ -452,7 +461,7 @@ export default async function AnaSayfa() {
                 href="/muvekkil/kayit"
                 className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
               >
-                Ücretsiz Başla
+                Ücretsiz Görüşmemi Başlat
                 <IconOk className="h-4 w-4" />
               </Link>
             </div>

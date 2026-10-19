@@ -9,7 +9,7 @@ export default function Button({
   ...rest
 }) {
   const temel =
-    "flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100";
+    "flex w-full items-center justify-center gap-2 min-h-11 rounded-full px-5 py-3 text-sm font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100";
   const varyant =
     variant === "dolu"
       ? "bg-turkuaz text-gece shadow-sm hover:bg-turkuaz-parlak hover:shadow-md hover:-translate-y-0.5"

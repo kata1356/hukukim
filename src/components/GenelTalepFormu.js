@@ -15,6 +15,7 @@ import AIKonuAsistani from "./AIKonuAsistani";
 export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
+    telefon: muvekkilProfil.telefon ?? "",
     uzmanlikAlani: "",
     konu: "",
     aciklama: "",
@@ -46,6 +47,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
       },
       body: JSON.stringify({
         hedefSehir: form.sehir,
+        telefon: form.telefon,
         hedefUzmanlikAlani: form.uzmanlikAlani,
         konu: form.konu,
         aciklama: form.aciklama,
@@ -152,6 +154,20 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
           </TextField>
         </div>
 
+        {!muvekkilProfil.telefon && (
+          <TextField
+            label="Telefon"
+            id="genelTelefon"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            required
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XX XXX XX XX"
+          />
+        )}
+
         <TextField
           label="Görüşme Şekli"
           id="genelGorusmeSekli"
@@ -201,7 +217,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
             Vazgeç
           </Button>
           <Button type="submit" yukleniyor={yukleniyor} className="w-auto flex-1">
-            {ilkGorusmeMi ? "Ücretsiz Talebi Gönder" : "Öde ve Talebi Gönder"}
+            {ilkGorusmeMi ? "Ücretsiz Görüşmemi Başlat" : "Ödeyip Talebimi Gönder"}
           </Button>
         </div>
       </form>

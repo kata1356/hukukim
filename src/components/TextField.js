@@ -6,7 +6,7 @@ export default function TextField({
   ...rest
 }) {
   const inputClasses =
-    "w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30";
+    "w-full rounded-lg border border-white/15 bg-white/5 min-h-11 px-4 py-2.5 text-base text-white sm:text-sm placeholder:text-white/30 outline-none transition focus:border-turkuaz focus:ring-2 focus:ring-turkuaz/30";
 
   return (
     <div className="flex flex-col gap-1.5">

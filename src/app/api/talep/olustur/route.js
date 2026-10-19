@@ -27,7 +27,7 @@ export async function POST(request) {
   }
 
   const kullanici = kullaniciVerisi.user;
-  const { hedefSehir, hedefUzmanlikAlani, konu, aciklama, gorusmeSekli, paketDakika, acil } =
+  const { hedefSehir, hedefUzmanlikAlani, konu, aciklama, gorusmeSekli, paketDakika, acil, telefon } =
     await request.json();
 
   const paket = paketBul(paketDakika);
@@ -43,6 +43,16 @@ export async function POST(request) {
 
   if (!muvekkilProfili) {
     return NextResponse.json({ hata: "Müvekkil profili bulunamadı." }, { status: 404 });
+  }
+
+  // Kayıtta telefon ve şehir istenmiyor; ilk talepte alınıp profile yazılır.
+  const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
+  if (!muvekkilProfili.telefon && yeniTelefon) {
+    await supabaseAdmin
+      .from("muvekkiller")
+      .update({ telefon: yeniTelefon, sehir: hedefSehir })
+      .eq("id", kullanici.id);
+    muvekkilProfili.telefon = yeniTelefon;
   }
 
   const ucretsizMi = await ilkGorusmeMi(supabaseAdmin, kullanici.id);

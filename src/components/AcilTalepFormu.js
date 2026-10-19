@@ -13,6 +13,7 @@ import { IconYildirim } from "./icons";
 export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasarili }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
+    telefon: muvekkilProfil.telefon ?? "",
     uzmanlikAlani: "",
     aciklama: "",
     paketDakika: GORUSME_PAKETLERI[0].dakika,
@@ -42,6 +43,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
       },
       body: JSON.stringify({
         hedefSehir: form.sehir,
+        telefon: form.telefon,
         hedefUzmanlikAlani: form.uzmanlikAlani,
         konu: `Acil: ${form.uzmanlikAlani}`,
         aciklama: form.aciklama,
@@ -121,6 +123,20 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           </TextField>
         </div>
 
+        {!muvekkilProfil.telefon && (
+          <TextField
+            label="Telefon"
+            id="acilTelefon"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            required
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XX XXX XX XX"
+          />
+        )}
+
         <TextField
           label="Ne oldu? Kısaca anlat"
           id="acilAciklama"
@@ -163,7 +179,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
 
         <Button type="submit" variant="acil" yukleniyor={yukleniyor}>
           <IconYildirim className="h-4 w-4" />
-          {ilkGorusmeMi ? "Ücretsiz Acil Talebi Gönder" : "Öde ve Acil Talebi Gönder"}
+          {ilkGorusmeMi ? "Acil Avukatımı Çağır (Ücretsiz)" : "Ödeyip Acil Avukatımı Çağır"}
         </Button>
       </form>
 
