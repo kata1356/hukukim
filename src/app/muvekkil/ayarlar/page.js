@@ -8,6 +8,8 @@ import Spinner from "@/components/Spinner";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
 import HesapSilButonu from "@/components/HesapSilButonu";
+import AltMenu from "@/components/AltMenu";
+import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import { SEHIRLER } from "@/lib/sehirler";
 
 export default function MuvekkilAyarlar() {
@@ -100,7 +102,7 @@ export default function MuvekkilAyarlar() {
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" panelYolu="/muvekkil" />
 
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
           <h1 className="text-xl font-bold text-white">Ayarlar</h1>
           <p className="mt-1 text-sm text-white/60">Profil bilgilerini güncelle.</p>
@@ -167,6 +169,8 @@ export default function MuvekkilAyarlar() {
           <HesapSilButonu />
         </div>
       </main>
+
+      <AltMenu sekmeler={MUVEKKIL_SEKMELER} />
     </div>
   );
 }

@@ -45,7 +45,6 @@ const GUVEN_SERIDI = [
   { Icon: IconBaro, metin: "Baro sicil doğrulamalı" },
   { Icon: IconKvkk, metin: "KVKK uyumlu" },
   { Icon: IconYildirim, metin: "Hızlı avukat eşleşmesi" },
-  { Icon: IconTelefon, metin: "Mobilde de sorunsuz" },
 ];
 
 const ADIMLAR = [
@@ -139,7 +138,10 @@ export default async function AnaSayfa() {
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-hidden bg-gece text-white">
       <div className="bg-gece-yuzey py-2 text-center text-xs font-semibold text-turkuaz sm:text-sm">
-        Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+        <span className="sm:hidden">Kayıt ücretsiz · Baro doğrulamalı avukatlar</span>
+        <span className="hidden sm:inline">
+          Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+        </span>
       </div>
 
       <SiteHeader />
@@ -159,7 +161,7 @@ export default async function AnaSayfa() {
             className="absolute -top-24 right-0 -z-10 h-96 w-96 translate-x-1/3 rounded-full bg-turkuaz/10 blur-3xl"
           />
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 pb-20 pt-16 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs font-bold text-white ring-1 ring-white/10">
                 <IconKalkan className="h-4 w-4 text-turkuaz" />
@@ -206,7 +208,7 @@ export default async function AnaSayfa() {
                 <IconOk className="hidden h-4 w-4 shrink-0 text-white transition group-hover:translate-x-1 sm:block" />
               </Link>
 
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
+              <div className="mt-10 hidden flex-wrap items-center justify-center gap-2.5 sm:flex lg:justify-start">
                 {GUVEN_SERIDI.map(({ Icon, metin }) => (
                   <span
                     key={metin}
@@ -219,7 +221,7 @@ export default async function AnaSayfa() {
               </div>
             </div>
 
-            <div className="relative mx-auto flex w-full max-w-xs items-center justify-center">
+            <div className="relative mx-auto hidden w-full max-w-xs items-center justify-center sm:flex">
               {UCAN_KARTLAR.map(({ metin, Icon, konum, gecikme }) => (
                 <span
                   key={metin}
@@ -267,7 +269,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="basla" className="scroll-mt-24 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section id="basla" className="scroll-mt-24 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Nasıl Başlamak İstersiniz?</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
@@ -314,7 +316,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="nasil-calisir" className="relative scroll-mt-20 border-t border-gece-kenar px-6 py-20">
+        <section id="nasil-calisir" className="relative scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full bg-turkuaz/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
@@ -364,7 +366,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="hukuk-alanlari" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section id="hukuk-alanlari" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Hangi Konuda Desteğe İhtiyacınız Var?
@@ -411,7 +413,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="akilli-eslesme" className="relative scroll-mt-20 overflow-hidden border-t border-gece-kenar px-6 py-20">
+        <section id="akilli-eslesme" className="relative scroll-mt-20 overflow-hidden border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div
             aria-hidden="true"
             className="absolute -right-32 top-1/2 -z-10 h-96 w-96 -translate-y-1/2 rounded-full bg-turkuaz/10 blur-3xl"
@@ -465,7 +467,7 @@ export default async function AnaSayfa() {
 
         <OneCikanAvukatlar />
 
-        <section id="guvenlik" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section id="guvenlik" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Görüşmeniz Size Özel
@@ -490,7 +492,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="scroll-mt-20 border-t border-gece-kenar px-6 py-20">
+        <section className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 aspect-[4/3] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-gece-yuzey to-gece shadow-xl lg:order-1">
               <div
@@ -548,7 +550,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-6xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Kullanıcılarımız Ne Diyor?</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
@@ -585,7 +587,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="fiyatlandirma" className="scroll-mt-20 border-t border-gece-kenar px-6 py-20">
+        <section id="fiyatlandirma" className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Avukatlık Ücret Tarifesi
@@ -627,7 +629,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full bg-turkuaz/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
@@ -689,7 +691,7 @@ export default async function AnaSayfa() {
 
         <section
           id="sss"
-          className="scroll-mt-20 border-t border-gece-kenar px-6 py-20"
+          className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20"
         >
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
@@ -705,7 +707,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="px-6 py-20">
+        <section className="px-6 py-14 sm:py-20">
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-gece-yuzey to-gece px-8 py-14 text-center shadow-xl ring-1 ring-white/10">
             <div
               aria-hidden="true"

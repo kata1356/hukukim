@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
@@ -15,13 +16,13 @@ import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
+import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import {
   IconOnay,
-  IconEv,
-  IconListe,
   IconYayin,
   IconYildiz,
   IconArama,
+  IconYildirim,
 } from "@/components/icons";
 
 function sureFormatla(saniye) {
@@ -99,6 +100,7 @@ export default function MuvekkilPanel() {
   const [beklemeSaniye, setBeklemeSaniye] = useState(0);
   const [eslesmeTalep, setEslesmeTalep] = useState(null);
   const [iptalEdiliyor, setIptalEdiliyor] = useState(false);
+  const [talepSekmesi, setTalepSekmesi] = useState("aktif");
 
   const otomatikDegerlendirmeGosterilenlerRef = useRef(new Set());
   const eslesmeGosterilenlerRef = useRef(new Set());
@@ -274,6 +276,10 @@ export default function MuvekkilPanel() {
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
   const ilkGorusmeMi = gonderilenTalepler.length === 0;
+  const aktifDurumlar = ["bekliyor", "kabul"];
+  const aktifTalepler = gonderilenTalepler.filter((t) => aktifDurumlar.includes(t.durum));
+  const gecmisTalepler = gonderilenTalepler.filter((t) => !aktifDurumlar.includes(t.durum));
+  const gosterilenTalepler = talepSekmesi === "aktif" ? aktifTalepler : gecmisTalepler;
   const beklenenTalep = gonderilenTalepler.find(
     (t) => t.id === aktifBeklemeTalepId && t.durum === "bekliyor" && t.odeme_durumu === "odendi"
   );
@@ -285,11 +291,8 @@ export default function MuvekkilPanel() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
           <h1 className="text-xl font-bold text-white">
-            Merhaba, {profil.ad_soyad}
+            Merhaba, {profil.ad_soyad.split(" ")[0]}
           </h1>
-          <p className="mt-1 text-sm text-white/60">
-            İhtiyacını anlat, uygun bir avukat sana bağlansın.
-          </p>
         </div>
 
         {beklenenTalep && (
@@ -398,30 +401,38 @@ export default function MuvekkilPanel() {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
-          <StatKarti deger={bekleyenSayisi} etiket="Bekleyen" />
-          <StatKarti deger={onaylananSayisi} etiket="Onaylanan" />
+        <div className="rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 shadow-md">
+          <h2 className="text-lg font-bold text-white">
+            {ilkGorusmeMi ? "İlk görüşmen ücretsiz" : "Avukata mı ihtiyacın var?"}
+          </h2>
+          <p className="mt-1 text-sm text-white/60">
+            Şehrini ve konunu seç, ilk kabul eden avukatla görüşmen hemen başlasın.
+          </p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <button
+              onClick={() => setGenelTalepAcik(true)}
+              className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
+            >
+              <IconYayin className="h-4 w-4" />
+              Avukatla Görüş
+            </button>
+            <Link
+              href="/acil-avukat"
+              className="flex items-center justify-center gap-2 rounded-full border border-red-500/40 px-6 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/10"
+            >
+              <IconYildirim className="h-4 w-4" />
+              Acil Avukat
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 text-center shadow-md sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <h2 className="text-lg font-bold text-white">
-              {ilkGorusmeMi ? "İlk görüşmen ücretsiz!" : "İhtiyacını anlat, avukatlar sana ulaşsın"}
-            </h2>
-            <p className="mt-1 text-sm text-white/60">
-              Şehrini ve uzmanlık alanını seç, talebin uygun tüm avukatlara anında
-              gösterilsin. İlk kabul eden avukatla görüşmen hemen başlar.
-            </p>
+        {gonderilenTalepler.length > 0 && (
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
+            <StatKarti deger={bekleyenSayisi} etiket="Bekleyen" />
+            <StatKarti deger={onaylananSayisi} etiket="Onaylanan" />
           </div>
-          <button
-            onClick={() => setGenelTalepAcik(true)}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
-          >
-            <IconYayin className="h-4 w-4" />
-            Avukatla Görüş
-          </button>
-        </div>
+        )}
 
         {basariMesaji && (
           <p className="flex items-start gap-2 rounded-lg bg-green-500/10 px-4 py-2.5 text-sm text-green-400 ring-1 ring-green-500/20">
@@ -437,17 +448,37 @@ export default function MuvekkilPanel() {
         )}
 
         <section id="taleplerim" className="scroll-mt-20">
-          <h2 className="mb-4 text-lg font-bold text-white">
-            Gönderdiğim Talepler
-          </h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-white">Taleplerim</h2>
+            <div className="flex rounded-full bg-white/5 p-1 text-xs font-semibold">
+              {[
+                { anahtar: "aktif", etiket: "Aktif", sayi: aktifTalepler.length },
+                { anahtar: "gecmis", etiket: "Geçmiş", sayi: gecmisTalepler.length },
+              ].map(({ anahtar, etiket, sayi }) => (
+                <button
+                  key={anahtar}
+                  onClick={() => setTalepSekmesi(anahtar)}
+                  className={`rounded-full px-4 py-1.5 transition ${
+                    talepSekmesi === anahtar ? "bg-turkuaz text-gece" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {etiket} ({sayi})
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {gonderilenTalepler.length === 0 ? (
+          {gosterilenTalepler.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
-              Henüz bir talep göndermedin.
+              {gonderilenTalepler.length === 0
+                ? "Henüz bir talep göndermedin."
+                : talepSekmesi === "aktif"
+                ? "Şu an aktif talebin yok."
+                : "Geçmiş talebin yok."}
             </p>
           ) : (
             <div className="flex flex-col gap-4">
-              {gonderilenTalepler.map((talep) => {
+              {gosterilenTalepler.map((talep) => {
                 const havuzdaBekliyor = talep.durum === "bekliyor" && !talep.avukatlar;
                 return (
                   <div
@@ -542,12 +573,7 @@ export default function MuvekkilPanel() {
         </Modal>
       )}
 
-      <AltMenu
-        sekmeler={[
-          { etiket: "Panel", href: "#taleplerim", Icon: IconEv },
-          { etiket: "Taleplerim", href: "#taleplerim", Icon: IconListe },
-        ]}
-      />
+      <AltMenu sekmeler={MUVEKKIL_SEKMELER} />
     </div>
   );
 }
