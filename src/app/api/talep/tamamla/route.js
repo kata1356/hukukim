@@ -46,19 +46,26 @@ export async function POST(request) {
 
   const dakika = gorusmeSuresiSaniye ? Math.max(1, Math.ceil(Number(gorusmeSuresiSaniye) / 60)) : null;
 
-  const { error: guncelleHatasi } = await supabaseAdmin
+  // Atomik kosullu guncelleme: ayni gorusmeyi avukat ve muvekkil neredeyse
+  // ayni anda tamamlamaya calisirsa (ör. Daily.co "call ended" olayi her iki
+  // tarafta da ayri ayri tetiklenir), sadece durumu FIILEN "bekliyor/kabul"den
+  // "tamamlandi"ya cevirebilen istek kazanc satirini ekler; digeri bos sonuc alir.
+  const { data: guncellenen, error: guncelleHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
     .update({
       durum: "tamamlandi",
       ...(dakika ? { gorusme_suresi_dakika: dakika } : {}),
     })
-    .eq("id", randevuTalepId);
+    .eq("id", randevuTalepId)
+    .neq("durum", "tamamlandi")
+    .select("id")
+    .maybeSingle();
 
   if (guncelleHatasi) {
     return NextResponse.json({ hata: "Görüşme tamamlanamadı." }, { status: 500 });
   }
 
-  if (Number(talep.odeme_tutari || 0) > 0 && talep.avukat_id) {
+  if (guncellenen && Number(talep.odeme_tutari || 0) > 0 && talep.avukat_id) {
     await supabaseAdmin.from("avukat_kazanclari").insert({
       avukat_id: talep.avukat_id,
       randevu_talep_id: talep.id,

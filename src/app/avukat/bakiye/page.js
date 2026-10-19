@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import PanelHeader from "@/components/PanelHeader";
+import AltMenu from "@/components/AltMenu";
+import { AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 import Spinner from "@/components/Spinner";
 import { IconOnay } from "@/components/icons";
 
@@ -84,7 +86,7 @@ export default function AvukatBakiye() {
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" panelYolu="/avukat" />
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
           <h1 className="text-xl font-bold text-white">Bakiye</h1>
           <p className="mt-1 text-sm text-white/60">Tamamlanmış görüşmelerden kazandığın tutarların özeti.</p>
@@ -155,6 +157,8 @@ export default function AvukatBakiye() {
           )}
         </section>
       </main>
+
+      <AltMenu sekmeler={AVUKAT_SEKMELER} />
     </div>
   );
 }

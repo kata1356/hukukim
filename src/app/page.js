@@ -6,24 +6,19 @@ import {
   IconOk,
   IconBaro,
   IconKvkk,
-  IconTelefon,
   IconArama,
   IconTakvim,
   IconYildirim,
-  IconEtiket,
-  IconKonum,
   IconOnay,
   IconMikrofon,
   IconTelefonKapat,
   IconKamera,
-  IconOynat,
   IconVideo,
   IconTerazi,
   IconMesaj,
   IconInstagram,
   IconTwitter,
   IconLinkedin,
-  IconYildiz,
   IconApple,
   IconGooglePlay,
 } from "@/components/icons";
@@ -41,11 +36,21 @@ const UCAN_KARTLAR = [
   { metin: "Baro doğrulandı", Icon: IconBaro, konum: "left-[-1.5rem] bottom-10 sm:left-[-4rem]", gecikme: "1.2s" },
 ];
 
-const GUVEN_SERIDI = [
-  { Icon: IconBaro, metin: "Baro sicil doğrulamalı" },
-  { Icon: IconKvkk, metin: "KVKK uyumlu" },
-  { Icon: IconYildirim, metin: "Hızlı avukat eşleşmesi" },
-  { Icon: IconTelefon, metin: "Mobilde de sorunsuz" },
+const SORUNLAR = [
+  {
+    baslik: "10 avukat, 10 ayrı telefon",
+    aciklama: "Her büroyu tek tek aramak, her birinde derdini baştan anlatmak demek.",
+  },
+  {
+    baslik: "Ücreti görüşmeden önce bilemezsin",
+    aciklama:
+      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz, sonrası dakikada 40 TL.",
+  },
+  {
+    baslik: "Karşındaki gerçekten avukat mı?",
+    aciklama:
+      "Hukukim'de her avukat baro sicil numarasıyla kayıt olur. Ekibimiz kontrol etmeden doğrulama rozeti verilmez.",
+  },
 ];
 
 const ADIMLAR = [
@@ -102,27 +107,6 @@ const OZELLIK_LISTESI = [
   },
 ];
 
-const YORUMLAR = [
-  {
-    isim: "Elif Y.",
-    sehir: "İstanbul",
-    yorum:
-      "İhtiyacım olan hukuk alanını seçtim, kısa sürede doğrulanmış bir avukatla eşleştim. Süreç çok pratikti.",
-  },
-  {
-    isim: "Mehmet K.",
-    sehir: "Ankara",
-    yorum:
-      "Randevu talebimi gönderdikten sonra avukatım hızlıca dönüş yaptı, panelden süreci takip edebilmek işimi kolaylaştırdı.",
-  },
-  {
-    isim: "Ayşe D.",
-    sehir: "İzmir",
-    yorum:
-      "Baro sicil doğrulama rozeti güven verdi. Arayüz sade ve anlaşılır, mobilde de sorunsuz kullanıyorum.",
-  },
-];
-
 const AVUKAT_FAYDALARI = [
   "Yeni müvekkillere kolayca ulaş",
   "Kendi çalışma saatlerini sen belirle",
@@ -136,10 +120,28 @@ export default async function AnaSayfa() {
     .select("*")
     .order("sira", { ascending: true });
 
+  const { count: dogrulanmisSayisi } = await supabase
+    .from("avukatlar")
+    .select("id", { count: "exact", head: true })
+    .eq("dogrulanmis", true);
+
+  const sayiGosterilebilir = (dogrulanmisSayisi ?? 0) >= 10;
+  const KANIT_SERIDI = [
+    sayiGosterilebilir
+      ? { deger: `${dogrulanmisSayisi}`, etiket: "Doğrulanmış avukat" }
+      : { deger: "Baro", etiket: "Sicil doğrulaması" },
+    { deger: "5 dk", etiket: "İlk görüşme ücretsiz" },
+    { deger: "40 TL", etiket: "Sonraki her dakika" },
+    { deger: "KVKK", etiket: "Uyumlu süreç" },
+  ];
+
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-hidden bg-gece text-white">
       <div className="bg-gece-yuzey py-2 text-center text-xs font-semibold text-turkuaz sm:text-sm">
-        Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+        <span className="sm:hidden">Kayıt ücretsiz · Baro doğrulamalı avukatlar</span>
+        <span className="hidden sm:inline">
+          Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+        </span>
       </div>
 
       <SiteHeader />
@@ -159,7 +161,7 @@ export default async function AnaSayfa() {
             className="absolute -top-24 right-0 -z-10 h-96 w-96 translate-x-1/3 rounded-full bg-turkuaz/10 blur-3xl"
           />
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 pb-20 pt-16 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs font-bold text-white ring-1 ring-white/10">
                 <IconKalkan className="h-4 w-4 text-turkuaz" />
@@ -172,8 +174,8 @@ export default async function AnaSayfa() {
               </h1>
 
               <p className="mt-6 max-w-lg text-base text-white/60 sm:text-lg">
-                Hukuki sorununuzu seçin, doğrulanmış avukatlarla eşleşin, güvenli
-                görüşmenizi hemen başlatın.
+                Hukuki sorununuzu seçin, baro sicili doğrulanmış avukatlarla eşleşin.
+                Tek tek avukat aramadan, ücret sürprizi yaşamadan.
               </p>
 
               <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -206,20 +208,9 @@ export default async function AnaSayfa() {
                 <IconOk className="hidden h-4 w-4 shrink-0 text-white transition group-hover:translate-x-1 sm:block" />
               </Link>
 
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-2.5 lg:justify-start">
-                {GUVEN_SERIDI.map(({ Icon, metin }) => (
-                  <span
-                    key={metin}
-                    className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-2 text-xs font-semibold text-white/70 ring-1 ring-white/10"
-                  >
-                    <Icon className="h-3.5 w-3.5 text-turkuaz" />
-                    {metin}
-                  </span>
-                ))}
-              </div>
             </div>
 
-            <div className="relative mx-auto flex w-full max-w-xs items-center justify-center">
+            <div className="relative mx-auto hidden w-full max-w-xs items-center justify-center sm:flex">
               {UCAN_KARTLAR.map(({ metin, Icon, konum, gecikme }) => (
                 <span
                   key={metin}
@@ -267,151 +258,50 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section id="basla" className="scroll-mt-24 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
-          <div className="mx-auto max-w-5xl text-center">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Nasıl Başlamak İstersiniz?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Avukat ya da müvekkil olarak birkaç saniyede hesabını oluştur.
-            </p>
-
-            <div className="mt-10 grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
-              <Link
-                href="/avukat/kayit"
-                className="group relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gece-yuzey p-8 shadow-lg transition duration-300 hover:-translate-y-1.5 hover:border-turkuaz/40"
-              >
-                <span className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-turkuaz/10 transition group-hover:scale-125" />
-                <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-turkuaz to-turkuaz-koyu text-gece shadow-md transition group-hover:scale-110 group-hover:rotate-3">
-                  <IconKalkan className="h-7 w-7" />
-                </span>
-                <span className="relative text-xl font-bold text-white">Avukatım</span>
-                <span className="relative text-sm text-white/60">
-                  Profilini oluştur, müvekkillerden randevu talebi al.
-                </span>
-                <span className="relative mt-2 flex items-center gap-1.5 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-semibold text-gece transition group-hover:bg-turkuaz-parlak">
-                  Avukat Olarak Devam Et
-                  <IconOk className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
-
-              <Link
-                href="/muvekkil/kayit"
-                className="group relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gece-yuzey p-8 shadow-lg transition duration-300 hover:-translate-y-1.5 hover:border-turkuaz/40"
-              >
-                <span className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-turkuaz/10 transition group-hover:scale-125" />
-                <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-white/20 to-white/5 text-turkuaz shadow-md ring-1 ring-white/10 transition group-hover:scale-110 group-hover:rotate-3">
-                  <IconKullanici className="h-7 w-7" />
-                </span>
-                <span className="relative text-xl font-bold text-white">Müvekkilim</span>
-                <span className="relative text-sm text-white/60">
-                  Uzman avukatları bul, kolayca randevu talebi gönder.
-                </span>
-                <span className="relative mt-2 flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/10 transition group-hover:bg-turkuaz group-hover:text-gece">
-                  Müvekkil Olarak Devam Et
-                  <IconOk className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section id="nasil-calisir" className="relative scroll-mt-20 border-t border-gece-kenar px-6 py-20">
-          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-turkuaz/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
-                Nasıl Çalışır
-              </span>
-              <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">
-                Basit 3 Adımda Hukuki Çözüm
-              </h2>
-              <p className="mt-3 max-w-md text-sm text-white/60">
-                Karmaşık süreçlere gerek yok. Üç adımda ihtiyacın olan avukatla görüşmeye başla.
-              </p>
-
-              <div className="mt-10 flex flex-col gap-8">
-                {ADIMLAR.map((adim, i) => (
-                  <div key={adim.baslik} className="flex items-start gap-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-turkuaz to-turkuaz-koyu text-gece font-bold shadow-sm">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <h3 className="flex items-center gap-2 text-base font-bold text-white">
-                        <adim.Icon className="h-4 w-4 text-turkuaz" />
-                        {adim.baslik}
-                      </h3>
-                      <p className="mt-1 text-sm text-white/60">{adim.aciklama}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative aspect-video w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-gece-yuzey to-gece shadow-xl">
+        <section className="border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-10">
+          <dl className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {KANIT_SERIDI.map(({ deger, etiket }) => (
               <div
-                aria-hidden="true"
-                className="absolute inset-0 opacity-[0.08]"
-                style={{
-                  backgroundImage: "radial-gradient(circle, #22D3EE 1px, transparent 1px)",
-                  backgroundSize: "18px 18px",
-                }}
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-turkuaz text-gece shadow-lg shadow-turkuaz/30 transition hover:scale-105">
-                  <IconOynat className="ml-1 h-6 w-6" />
-                </span>
-                <p className="text-sm font-semibold text-white/70">Nasıl çalıştığını izle</p>
+                key={etiket}
+                className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gece px-3 py-5 text-center"
+              >
+                <dt className="font-heading text-2xl font-bold text-turkuaz sm:text-3xl">{deger}</dt>
+                <dd className="mt-1 text-xs font-medium text-white/60">{etiket}</dd>
               </div>
-            </div>
-          </div>
+            ))}
+          </dl>
         </section>
 
-        <section id="hukuk-alanlari" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <OneCikanAvukatlar />
+
+        <section id="sorun" className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-5xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
-              Hangi Konuda Desteğe İhtiyacınız Var?
+              Doğru Avukatı Bulmak Neden Bu Kadar Yorucu?
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Alanını seç ya da hukuki sorununu yaz, o konuda kayıtlı avukatlarla hemen eşleş.
+              Hukuki bir sorun zaten yeterince stresli. Avukat aramak bunun üstüne ek yük olmamalı.
             </p>
 
-            <Link
-              href="/avukatlar"
-              className="group mx-auto mt-8 flex max-w-xl items-center gap-3 rounded-full border border-white/10 bg-gece px-5 py-4 text-left shadow-sm transition hover:border-turkuaz/40"
-            >
-              <IconArama className="h-4 w-4 shrink-0 text-white/40" />
-              <span className="flex-1 truncate text-sm text-white/40">
-                Hukuki sorununuzu yazın (örn. kira anlaşmazlığı, boşanma...)
-              </span>
-              <span className="hidden shrink-0 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition group-hover:bg-turkuaz-parlak sm:block">
-                Avukat Bul
-              </span>
-            </Link>
-
-            <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {HUKUK_ALANLARI_KATEGORILERI.map(({ ad, Icon }) => (
-                <Link
-                  key={ad}
-                  href="/muvekkil/kayit"
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-gece p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-turkuaz/40"
+            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+              {SORUNLAR.map(({ baslik, aciklama }) => (
+                <div
+                  key={baslik}
+                  className="rounded-2xl border border-white/10 bg-gece-yuzey p-6 text-left shadow-sm"
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-turkuaz/10 text-turkuaz transition group-hover:bg-turkuaz group-hover:text-gece">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <p className="text-sm font-bold text-white">{ad}</p>
-                </Link>
+                  <p className="font-bold text-white">{baslik}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/60">{aciklama}</p>
+                </div>
               ))}
-
-              <Link
-                href="/avukatlar"
-                className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-turkuaz p-5 text-center text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
-              >
-                <IconArama className="h-6 w-6" />
-                <p className="text-sm font-bold">Tümünü Gör</p>
-              </Link>
             </div>
+
+            <p className="mt-10 text-base font-bold text-turkuaz">
+              Hukukim bunların üçünü de tek yerde çözer.
+            </p>
           </div>
         </section>
 
-        <section id="akilli-eslesme" className="relative scroll-mt-20 overflow-hidden border-t border-gece-kenar px-6 py-20">
+        <section id="akilli-eslesme" className="relative scroll-mt-20 overflow-hidden border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div
             aria-hidden="true"
             className="absolute -right-32 top-1/2 -z-10 h-96 w-96 -translate-y-1/2 rounded-full bg-turkuaz/10 blur-3xl"
@@ -444,7 +334,7 @@ export default async function AnaSayfa() {
               </div>
 
               <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-white/40">
-                Önerilen Eşleşme
+                Önerilen Eşleşme · Örnek gösterim
               </p>
 
               <div className="mt-3 flex items-center gap-4 rounded-2xl bg-gece p-4 ring-1 ring-turkuaz/30">
@@ -463,34 +353,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <OneCikanAvukatlar />
-
-        <section id="guvenlik" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
-          <div className="mx-auto max-w-5xl text-center">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">
-              Görüşmeniz Size Özel
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Kullanıcı bilgilerinin korunması ve şeffaf süreçler Hukukim&apos;in
-              temel önceliklerindendir.
-            </p>
-
-            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-              {GUVENLIK_ADIMLARI.map(({ no, baslik, aciklama }) => (
-                <div
-                  key={no}
-                  className="rounded-2xl border border-white/10 bg-gece p-6 text-left shadow-sm"
-                >
-                  <span className="text-3xl font-extrabold text-turkuaz/40">{no}</span>
-                  <p className="mt-3 font-bold text-white">{baslik}</p>
-                  <p className="mt-2 text-sm text-white/60">{aciklama}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="scroll-mt-20 border-t border-gece-kenar px-6 py-20">
+        <section className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 aspect-[4/3] w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-gece-yuzey to-gece shadow-xl lg:order-1">
               <div
@@ -548,44 +411,102 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
-          <div className="mx-auto max-w-6xl text-center">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Kullanıcılarımız Ne Diyor?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Hukukim&apos;i deneyen kullanıcıların paylaştığı örnek geri bildirimler.
-            </p>
+        <section id="nasil-calisir" className="relative scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-turkuaz/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
+                Nasıl Çalışır
+              </span>
+              <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">
+                Basit 3 Adımda Hukuki Çözüm
+              </h2>
+              <p className="mt-3 max-w-md text-sm text-white/60">
+                Karmaşık süreçlere gerek yok. Üç adımda ihtiyacın olan avukatla görüşmeye başla.
+              </p>
 
-            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-              {YORUMLAR.map(({ isim, sehir, yorum }) => (
-                <div
-                  key={isim}
-                  className="flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-gece p-6 text-left shadow-sm"
-                >
-                  <div className="flex items-center gap-1 text-turkuaz">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <IconYildiz key={i} className="h-4 w-4" />
-                    ))}
-                  </div>
-                  <p className="text-sm leading-relaxed text-white/70">&quot;{yorum}&quot;</p>
-                  <div className="mt-auto flex items-center gap-3 pt-2">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-turkuaz to-turkuaz-koyu text-xs font-bold text-gece">
-                      {isim
-                        .split(" ")
-                        .map((p) => p[0])
-                        .join("")}
+              <div className="mt-10 flex flex-col gap-8">
+                {ADIMLAR.map((adim, i) => (
+                  <div key={adim.baslik} className="flex items-start gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-turkuaz to-turkuaz-koyu text-gece font-bold shadow-sm">
+                      {i + 1}
                     </span>
                     <div>
-                      <p className="text-sm font-bold text-white">{isim}</p>
-                      <p className="text-xs text-white/40">{sehir}</p>
+                      <h3 className="flex items-center gap-2 text-base font-bold text-white">
+                        <adim.Icon className="h-4 w-4 text-turkuaz" />
+                        {adim.baslik}
+                      </h3>
+                      <p className="mt-1 text-sm text-white/60">{adim.aciklama}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-gece-yuzey to-gece p-8 text-center shadow-xl">
+              <p className="text-sm font-semibold text-white/70">Toplam süre</p>
+              <p className="mt-2 font-heading text-5xl font-extrabold text-turkuaz">3 adım</p>
+              <p className="mt-3 text-sm text-white/60">
+                Kaydol, avukatı bul, talebini gönder. Kayıt ücretsiz, ilk 5 dakika ücretsiz.
+              </p>
+              <Link
+                href="/muvekkil/kayit"
+                className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
+              >
+                Ücretsiz Başla
+                <IconOk className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
 
-        <section id="fiyatlandirma" className="scroll-mt-20 border-t border-gece-kenar px-6 py-20">
+        <section id="basla" className="scroll-mt-24 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl text-center">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">Nasıl Başlamak İstersiniz?</h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
+              Avukat ya da müvekkil olarak birkaç saniyede hesabını oluştur.
+            </p>
+
+            <div className="mt-10 grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
+              <Link
+                href="/avukat/kayit"
+                className="group relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gece-yuzey p-8 shadow-lg transition duration-300 hover:-translate-y-1.5 hover:border-turkuaz/40"
+              >
+                <span className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-turkuaz/10 transition group-hover:scale-125" />
+                <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-turkuaz to-turkuaz-koyu text-gece shadow-md transition group-hover:scale-110 group-hover:rotate-3">
+                  <IconKalkan className="h-7 w-7" />
+                </span>
+                <span className="relative text-xl font-bold text-white">Avukatım</span>
+                <span className="relative text-sm text-white/60">
+                  Profilini oluştur, müvekkillerden randevu talebi al.
+                </span>
+                <span className="relative mt-2 flex items-center gap-1.5 rounded-full bg-turkuaz px-5 py-2.5 text-sm font-semibold text-gece transition group-hover:bg-turkuaz-parlak">
+                  Avukat Olarak Devam Et
+                  <IconOk className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+
+              <Link
+                href="/muvekkil/kayit"
+                className="group relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gece-yuzey p-8 shadow-lg transition duration-300 hover:-translate-y-1.5 hover:border-turkuaz/40"
+              >
+                <span className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-turkuaz/10 transition group-hover:scale-125" />
+                <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-white/20 to-white/5 text-turkuaz shadow-md ring-1 ring-white/10 transition group-hover:scale-110 group-hover:rotate-3">
+                  <IconKullanici className="h-7 w-7" />
+                </span>
+                <span className="relative text-xl font-bold text-white">Müvekkilim</span>
+                <span className="relative text-sm text-white/60">
+                  Uzman avukatları bul, kolayca randevu talebi gönder.
+                </span>
+                <span className="relative mt-2 flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/10 transition group-hover:bg-turkuaz group-hover:text-gece">
+                  Müvekkil Olarak Devam Et
+                  <IconOk className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="fiyatlandirma" className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
               Avukatlık Ücret Tarifesi
@@ -627,7 +548,79 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+        <section id="hukuk-alanlari" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl text-center">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
+              Hangi Konuda Desteğe İhtiyacınız Var?
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
+              Alanını seç ya da hukuki sorununu yaz, o konuda kayıtlı avukatlarla hemen eşleş.
+            </p>
+
+            <Link
+              href="/avukatlar"
+              className="group mx-auto mt-8 flex max-w-xl items-center gap-3 rounded-full border border-white/10 bg-gece px-5 py-4 text-left shadow-sm transition hover:border-turkuaz/40"
+            >
+              <IconArama className="h-4 w-4 shrink-0 text-white/40" />
+              <span className="flex-1 truncate text-sm text-white/40">
+                Hukuki sorununuzu yazın (örn. kira anlaşmazlığı, boşanma...)
+              </span>
+              <span className="hidden shrink-0 rounded-full bg-turkuaz px-4 py-2 text-xs font-bold text-gece transition group-hover:bg-turkuaz-parlak sm:block">
+                Avukat Bul
+              </span>
+            </Link>
+
+            <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+              {HUKUK_ALANLARI_KATEGORILERI.map(({ ad, Icon }) => (
+                <Link
+                  key={ad}
+                  href="/muvekkil/kayit"
+                  className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-gece p-5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-turkuaz/40"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-turkuaz/10 text-turkuaz transition group-hover:bg-turkuaz group-hover:text-gece">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <p className="text-sm font-bold text-white">{ad}</p>
+                </Link>
+              ))}
+
+              <Link
+                href="/avukatlar"
+                className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-turkuaz p-5 text-center text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
+              >
+                <IconArama className="h-6 w-6" />
+                <p className="text-sm font-bold">Tümünü Gör</p>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="guvenlik" className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl text-center">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
+              Görüşmeniz Size Özel
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
+              Kullanıcı bilgilerinin korunması ve şeffaf süreçler Hukukim&apos;in
+              temel önceliklerindendir.
+            </p>
+
+            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {GUVENLIK_ADIMLARI.map(({ no, baslik, aciklama }) => (
+                <div
+                  key={no}
+                  className="rounded-2xl border border-white/10 bg-gece p-6 text-left shadow-sm"
+                >
+                  <span className="text-3xl font-extrabold text-turkuaz/40">{no}</span>
+                  <p className="mt-3 font-bold text-white">{baslik}</p>
+                  <p className="mt-2 text-sm text-white/60">{aciklama}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="scroll-mt-20 border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full bg-turkuaz/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
@@ -689,7 +682,7 @@ export default async function AnaSayfa() {
 
         <section
           id="sss"
-          className="scroll-mt-20 border-t border-gece-kenar px-6 py-20"
+          className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20"
         >
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
@@ -705,7 +698,7 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
-        <section className="px-6 py-20">
+        <section className="px-6 py-14 sm:py-20">
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-gece-yuzey to-gece px-8 py-14 text-center shadow-xl ring-1 ring-white/10">
             <div
               aria-hidden="true"
@@ -724,7 +717,7 @@ export default async function AnaSayfa() {
               Hukuki Sorunlarınızı Bugün Çözün
             </h2>
             <p className="relative mx-auto mt-3 max-w-md text-sm text-white/60">
-              Kayıt olmak tamamen ücretsiz, dakikalar içinde tamamlanır.
+              Kayıt olmak tamamen ücretsiz.
             </p>
 
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -741,6 +734,10 @@ export default async function AnaSayfa() {
                 Müvekkil Olarak Kaydol
               </Link>
             </div>
+
+            <p className="relative mt-4 text-xs text-white/50">
+              Kayıt ücretsiz · İlk görüşmenin ilk 5 dakikası ücretsiz · Hesabını istediğin an silebilirsin
+            </p>
 
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <span className="flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/70">

@@ -12,6 +12,7 @@ import DurumRozeti from "@/components/DurumRozeti";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
+import { AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 import StatKarti from "@/components/StatKarti";
 import YildizGosterge from "@/components/YildizGosterge";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
@@ -340,6 +341,26 @@ export default function AvukatPanel() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" panelYolu="/avukat" />
+
+      <nav className="sticky top-[65px] z-[9] border-b border-white/10 bg-gece/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 py-2.5 sm:px-6">
+          {[
+            { etiket: "Profil", href: "#profil-bilgileri" },
+            { etiket: "Açık Havuz", href: "#acik-talepler" },
+            { etiket: "Talepler", href: "#talepler" },
+            { etiket: "Müsaitlik", href: "#musaitlik" },
+            { etiket: "Değerlendirmeler", href: "#degerlendirmeler" },
+          ].map(({ etiket, href }) => (
+            <a
+              key={href}
+              href={href}
+              className="shrink-0 rounded-full bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              {etiket}
+            </a>
+          ))}
+        </div>
+      </nav>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <section id="profil-bilgileri" className="scroll-mt-20 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm">
@@ -755,13 +776,7 @@ export default function AvukatPanel() {
         </section>
       </main>
 
-      <AltMenu
-        sekmeler={[
-          { etiket: "Profil", href: "#profil-bilgileri", Icon: IconEv },
-          { etiket: "Açık Havuz", href: "#acik-talepler", Icon: IconYayin },
-          { etiket: "Talepler", href: "#talepler", Icon: IconListe },
-        ]}
-      />
+      <AltMenu sekmeler={AVUKAT_SEKMELER} />
     </div>
   );
 }

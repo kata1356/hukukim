@@ -19,6 +19,11 @@ export async function POST(request) {
     return new Response("PAYTR notification failed: bad hash", { status: 400 });
   }
 
+  // Atomik kosullu guncelleme: PayTR ayni bildirimi birden fazla kez
+  // gonderebilir (ag gecikmesi/timeout nedeniyle tekrar dener). "basarili"
+  // durumundan tekrar "basarili"ya gecisi WHERE kosuluyla engelleyerek,
+  // asagidaki ek sure kredisi/kart token gibi yan etkilerin sadece ILK
+  // basarili bildirimde bir kez calismasini garanti ediyoruz.
   const { data: odeme } = await supabaseAdmin
     .from("odemeler")
     .update({
@@ -27,6 +32,7 @@ export async function POST(request) {
       guncellendi_at: new Date().toISOString(),
     })
     .eq("merchant_oid", merchantOid)
+    .neq("durum", "basarili")
     .select("muvekkil_id, randevu_talep_id")
     .maybeSingle();
 

@@ -5,6 +5,7 @@ const DURUM_AYARLARI = {
   kabul: { metin: "Kabul Edildi", sinif: "bg-green-500/10 text-green-400 ring-1 ring-green-500/20", Icon: IconOnay },
   red: { metin: "Reddedildi", sinif: "bg-red-500/10 text-red-400 ring-1 ring-red-500/20", Icon: IconRed },
   tamamlandi: { metin: "Tamamlandı", sinif: "bg-turkuaz/15 text-turkuaz ring-1 ring-turkuaz/20", Icon: IconOnay },
+  iptal: { metin: "İptal Edildi", sinif: "bg-white/10 text-white/60 ring-1 ring-white/15", Icon: IconRed },
 };
 
 export default function DurumRozeti({ durum }) {
