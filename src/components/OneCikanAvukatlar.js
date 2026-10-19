@@ -37,7 +37,7 @@ export default function OneCikanAvukatlar() {
   if (!yuklendi || avukatlar.length === 0) return null;
 
   return (
-    <section className="border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-20">
+    <section className="border-t border-gece-kenar bg-gece-yuzey/40 px-6 py-14 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col items-center gap-2 text-center">
           <span className="rounded-full bg-turkuaz/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-turkuaz">
