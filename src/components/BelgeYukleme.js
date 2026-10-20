@@ -76,10 +76,14 @@ export default function BelgeYukleme({ profil, onGuncel }) {
   }
 
   return (
-    <form onSubmit={gonder} className="mt-4 flex flex-col gap-3 rounded-lg border border-white/10 p-4">
+    <form
+      id="kimlik-dogrulama"
+      onSubmit={gonder}
+      className="mt-4 flex scroll-mt-24 flex-col gap-3 rounded-lg border-2 border-amber-500/60 bg-amber-500/5 p-4 sm:p-5"
+    >
       <div>
-        <p className="text-sm font-semibold text-white">Kimlik doğrulaması</p>
-        <p className="mt-0.5 text-xs text-white/50">
+        <p className="text-base font-bold text-amber-400">Kimlik doğrulaması gerekli</p>
+        <p className="mt-0.5 text-sm text-white/70">
           Profilinin &quot;Doğrulanmış&quot; olması için kimliğini ve baro kartını yükle. Belgelerin yalnızca
           doğrulama ekibimiz tarafından görülür.
         </p>

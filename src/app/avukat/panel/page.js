@@ -373,6 +373,33 @@ export default function AvukatPanel() {
       </nav>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
+        {!profil.dogrulanmis && (
+          <section className="rounded-lg border-2 border-amber-500 bg-amber-500/10 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-lg font-bold text-amber-400">
+                  {profil.belge_durumu === "incelemede"
+                    ? "Belgelerin inceleniyor"
+                    : "Hesabın henüz doğrulanmadı"}
+                </p>
+                <p className="mt-1 text-sm text-white/80">
+                  {profil.belge_durumu === "incelemede"
+                    ? "Ekibimiz kimlik ve baro kartını kontrol ediyor. Onaylanınca talepler otomatik olarak açılır."
+                    : "Doğrulanana kadar talepleri göremez, randevu alamaz ve müvekkillerle iletişime geçemezsin. Kimlik ve baro kartını yükleyerek başla."}
+                </p>
+              </div>
+              {profil.belge_durumu !== "incelemede" && (
+                <a
+                  href="#kimlik-dogrulama"
+                  className="shrink-0 rounded-md bg-amber-500 px-5 py-2.5 text-center text-sm font-bold text-gece transition hover:bg-amber-400"
+                >
+                  Belgelerimi Yükle
+                </a>
+              )}
+            </div>
+          </section>
+        )}
+
         <section id="profil-bilgileri" className="scroll-mt-20 rounded-lg border border-white/10 bg-gece-yuzey p-6 ">
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <label className="group relative cursor-pointer">
@@ -463,17 +490,6 @@ export default function AvukatPanel() {
           <StatKarti deger={kabulSayisi} etiket="Kabul Edilen" />
           <StatKarti deger={acikTalepler.length} etiket="Açık Havuz" />
         </section>
-
-        {!profil.dogrulanmis && (
-          <section id="acik-talepler" className="scroll-mt-20 rounded-lg border border-white/10 border-l-4 border-l-amber-500 bg-gece-yuzey p-5">
-            <h2 className="text-base font-semibold text-white">Talepler hesabın doğrulanınca açılır</h2>
-            <p className="mt-1 text-sm text-white/60">
-              Kimlik ve baro kartın onaylanana kadar açık talepleri göremez, randevu alamaz ve müvekkillerle
-              iletişime geçemezsin. Profil kartındaki alandan belgelerini yükle; incelemeden sonra
-              hesabın otomatik olarak açılır.
-            </p>
-          </section>
-        )}
 
         {profil.dogrulanmis && (<>
         <section id="acik-talepler" className="scroll-mt-20">
