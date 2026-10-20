@@ -33,6 +33,15 @@ export async function POST(request) {
     return NextResponse.json({ hata: { message: "Kayıt bilgileri eksik." } }, { status: 400 });
   }
 
+  if (profil.telefon && !/^0\d{10}$/.test(profil.telefon)) {
+    return NextResponse.json({ hata: { message: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." } }, { status: 400 });
+  }
+
+  // Doğrulama alanları yalnızca sunucu tarafından (SMS / admin onayı) değiştirilebilir.
+  delete profil.telefon_dogrulandi;
+  delete profil.dogrulanmis;
+  delete profil.belge_durumu;
+
   const tabloAdi = rol === "avukat" ? "avukatlar" : "muvekkiller";
 
   const { data: mevcutProfil } = await supabaseAdmin

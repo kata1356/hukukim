@@ -7,16 +7,14 @@ import ProfilMenusu from "./ProfilMenusu";
 
 export default function PanelHeader({ adSoyad, panelAdi, panelYolu }) {
   return (
-    <header className="sticky top-0 z-10 border-b border-white/10 bg-gece/90 shadow-sm backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Link href="/">
+    <header className="sticky top-0 z-10 h-14 border-b border-white/10 bg-gece">
+      <div className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-4">
+          <Link href={`${panelYolu}/panel`}>
             <Logo className="h-7" />
           </Link>
-          <span className="hidden text-sm text-white/30 sm:inline">|</span>
-          <span className="hidden rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-white/70 sm:inline">
-            {panelAdi}
-          </span>
+          <span className="hidden h-5 w-px bg-white/15 sm:inline-block" />
+          <span className="hidden text-sm font-medium text-white/60 sm:inline">{panelAdi}</span>
         </div>
         <div className="flex items-center gap-3">
           <BildirimZili />

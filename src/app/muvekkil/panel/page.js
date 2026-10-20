@@ -12,6 +12,7 @@ import GenelTalepFormu from "@/components/GenelTalepFormu";
 import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
+import TelefonDogrulama from "@/components/TelefonDogrulama";
 import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
@@ -21,7 +22,6 @@ import {
   IconOnay,
   IconYayin,
   IconYildiz,
-  IconArama,
   IconYildirim,
 } from "@/components/icons";
 
@@ -273,6 +273,15 @@ export default function MuvekkilPanel() {
     );
   }
 
+  if (process.env.NEXT_PUBLIC_SMS_DOGRULAMA === "1" && !profil.telefon_dogrulandi) {
+    return (
+      <TelefonDogrulama
+        baslangicTelefon={profil.telefon ?? ""}
+        onTamam={(telefon) => setProfil((onceki) => ({ ...onceki, telefon, telefon_dogrulandi: true }))}
+      />
+    );
+  }
+
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
   const ilkGorusmeMi = gonderilenTalepler.length === 0;
@@ -290,19 +299,13 @@ export default function MuvekkilPanel() {
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
-          <h1 className="text-xl font-bold text-white">
+          <h1 className="text-xl font-semibold text-white">
             Merhaba, {profil.ad_soyad.split(" ")[0]}
           </h1>
         </div>
 
         {beklenenTalep && (
-          <div
-            className="relative overflow-hidden rounded-3xl border border-turkuaz/20 p-8 shadow-lg sm:p-10"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 0%, rgba(45,212,191,0.14), transparent 60%), #0d1520",
-            }}
-          >
+          <div className="relative overflow-hidden rounded-lg border border-white/10 bg-gece-yuzey p-6 sm:p-8">
             <button
               onClick={() => setAktifBeklemeTalepId(null)}
               aria-label="Kapat"
@@ -313,23 +316,10 @@ export default function MuvekkilPanel() {
 
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center">
               <div className="flex flex-col items-center gap-4 text-center">
-                <div className="relative flex h-24 w-24 items-center justify-center">
-                  <span className="absolute h-full w-full animate-ping rounded-full bg-turkuaz/20" />
-                  <span
-                    className="absolute h-[72%] w-[72%] animate-ping rounded-full bg-turkuaz/25"
-                    style={{ animationDelay: "0.4s" }}
-                  />
-                  <span
-                    className="absolute h-[48%] w-[48%] animate-ping rounded-full bg-turkuaz/30"
-                    style={{ animationDelay: "0.8s" }}
-                  />
-                  <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-turkuaz text-gece shadow-lg shadow-turkuaz/30">
-                    <IconArama className="h-5 w-5" />
-                  </span>
-                </div>
+                <Spinner className="h-8 w-8 text-turkuaz" />
 
                 <div>
-                  <p className="text-xl font-bold text-white">Avukat aranıyor</p>
+                  <p className="text-xl font-semibold text-white">Avukat aranıyor</p>
                   <p className="mt-1 font-mono text-sm text-turkuaz">{sureFormatla(beklemeSaniye)}</p>
                 </div>
 
@@ -340,7 +330,7 @@ export default function MuvekkilPanel() {
                 </p>
 
                 {beklenenTalep.paket_dakika && (
-                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
+                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
                     <IconYayin className="h-3.5 w-3.5 text-turkuaz" />
                     {beklenenTalep.paket_dakika} dk paket
                     {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
@@ -366,7 +356,7 @@ export default function MuvekkilPanel() {
         )}
 
         {eslesmeTalep && (
-          <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-green-500/30 bg-green-500/[0.06] p-8 text-center shadow-lg sm:p-10">
+          <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-lg border border-white/10 border-l-4 border-l-green-500 bg-gece-yuzey p-6 text-center sm:p-8">
             <button
               onClick={() => {
                 setAktifBeklemeTalepId(null);
@@ -385,7 +375,7 @@ export default function MuvekkilPanel() {
             />
 
             <div>
-              <p className="text-xl font-bold text-white">Eşleşme Bulundu!</p>
+              <p className="text-xl font-semibold text-white">Eşleşme Bulundu!</p>
               <p className="mt-1 text-sm text-white/70">
                 <strong className="text-green-400">{eslesmeTalep.avukatlar?.ad_soyad ?? "Bir avukat"}</strong>{" "}
                 talebini kabul etti.
@@ -394,15 +384,15 @@ export default function MuvekkilPanel() {
 
             <button
               onClick={eslesmeyiGorusmeyeBaslat}
-              className="flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-green-400 hover:shadow-md"
+              className="flex items-center gap-2 rounded-md bg-green-500 px-6 py-3 text-sm font-bold text-gece transition hover:bg-green-400 "
             >
               {eslesmeTalep.gorusme_sekli === "goruntulu" ? "Görüşmeye Başla" : "Tamam"}
             </button>
           </div>
         )}
 
-        <div className="rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 shadow-md">
-          <h2 className="text-lg font-bold text-white">
+        <div className="rounded-lg border border-white/10 bg-gece-yuzey p-6">
+          <h2 className="text-base font-semibold text-white">
             {ilkGorusmeMi ? "İlk görüşmen ücretsiz" : "Avukata mı ihtiyacın var?"}
           </h2>
           <p className="mt-1 text-sm text-white/60">
@@ -411,16 +401,15 @@ export default function MuvekkilPanel() {
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => setGenelTalepAcik(true)}
-              className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md"
+              className="flex items-center justify-center gap-2 rounded-md bg-turkuaz px-5 py-2.5 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak"
             >
-              <IconYayin className="h-4 w-4" />
               Avukatla Görüş
             </button>
             <Link
               href="/acil-avukat"
-              className="flex items-center justify-center gap-2 rounded-full border border-red-500/40 px-6 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/10"
+              className="flex items-center justify-center gap-2 rounded-md border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/5"
             >
-              <IconYildirim className="h-4 w-4" />
+              <IconYildirim className="h-4 w-4 text-red-400" />
               Acil Avukat
             </Link>
           </div>
@@ -449,7 +438,7 @@ export default function MuvekkilPanel() {
 
         <section id="taleplerim" className="scroll-mt-20">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-white">Taleplerim</h2>
+            <h2 className="text-base font-semibold text-white">Taleplerim</h2>
             <div className="flex rounded-full bg-white/5 p-1 text-xs font-semibold">
               {[
                 { anahtar: "aktif", etiket: "Aktif", sayi: aktifTalepler.length },
@@ -459,7 +448,7 @@ export default function MuvekkilPanel() {
                   key={anahtar}
                   onClick={() => setTalepSekmesi(anahtar)}
                   className={`rounded-full px-4 py-1.5 transition ${
-                    talepSekmesi === anahtar ? "bg-turkuaz text-gece" : "text-white/60 hover:text-white"
+                    talepSekmesi === anahtar ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
                   }`}
                 >
                   {etiket} ({sayi})
@@ -469,7 +458,7 @@ export default function MuvekkilPanel() {
           </div>
 
           {gosterilenTalepler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               {gonderilenTalepler.length === 0
                 ? "Henüz bir talep göndermedin."
                 : talepSekmesi === "aktif"
@@ -483,7 +472,7 @@ export default function MuvekkilPanel() {
                 return (
                   <div
                     key={talep.id}
-                    className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm"
+                    className="rounded-lg border border-white/10 bg-gece-yuzey p-5 "
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3">
@@ -535,7 +524,7 @@ export default function MuvekkilPanel() {
                           ) : (
                             <button
                               onClick={() => setDegerlendirilecekTalep(talep)}
-                              className="flex items-center gap-1.5 rounded-full border-2 border-turkuaz/30 px-4 py-2 text-xs font-bold text-turkuaz transition hover:bg-turkuaz/10"
+                              className="flex items-center gap-1.5 rounded-md border border-turkuaz/30 px-4 py-2 text-xs font-bold text-turkuaz transition hover:bg-turkuaz/10"
                             >
                               <IconYildiz className="h-3.5 w-3.5" />
                               Avukatı Değerlendir

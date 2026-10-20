@@ -75,7 +75,7 @@ export default function MuvekkilOdemelerim() {
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
-          <h1 className="text-xl font-bold text-white">Ödemelerim</h1>
+          <h1 className="text-xl font-semibold text-white">Ödemelerim</h1>
           <p className="mt-1 text-sm text-white/60">Geçmiş görüşme paketlerinin özeti.</p>
         </div>
 
@@ -87,7 +87,7 @@ export default function MuvekkilOdemelerim() {
         <section>
           <h2 className="mb-3 text-sm font-bold text-white">Görüşme Geçmişi</h2>
           {odemeler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz tamamlanan bir görüşmen yok.
             </p>
           ) : (

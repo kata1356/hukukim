@@ -29,7 +29,7 @@ export default function ProfilMenusu({ adSoyad, panelYolu }) {
     <div className="relative" ref={kutuRef}>
       <button
         onClick={() => setAcik((onceki) => !onceki)}
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition hover:bg-white/5"
+        className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2.5 transition hover:bg-white/5"
       >
         <Avatar adSoyad={adSoyad} boyut="sm" />
         <span className="hidden text-sm font-medium text-white sm:inline">{adSoyad}</span>
@@ -37,7 +37,7 @@ export default function ProfilMenusu({ adSoyad, panelYolu }) {
       </button>
 
       {acik && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-gece-yuzey shadow-xl">
+        <div className="absolute right-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-lg border border-white/10 bg-gece-yuzey ">
           <Link
             href={`${panelYolu}/bakiye`}
             onClick={() => setAcik(false)}

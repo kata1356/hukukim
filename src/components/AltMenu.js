@@ -7,7 +7,7 @@ export default function AltMenu({ sekmeler }) {
   const yol = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-gece/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-gece pb-[env(safe-area-inset-bottom)] sm:hidden">
       <div className="flex items-stretch justify-around">
         {sekmeler.map(({ etiket, href, Icon }) => {
           const sayfaIciBaglanti = href.startsWith("#");

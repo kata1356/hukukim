@@ -235,7 +235,7 @@ export default function AcilAvukat() {
           required
           value={form.telefon}
           onChange={(e) => alanGuncelle("telefon", e.target.value)}
-          placeholder="05XX XXX XX XX"
+          placeholder="05XXXXXXXXX"
         />
         <TextField
           label="Şehir"

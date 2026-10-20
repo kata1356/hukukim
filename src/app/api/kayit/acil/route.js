@@ -17,6 +17,11 @@ export async function POST(request) {
     return NextResponse.json({ hata: { message: "Eksik bilgi gönderildi." } }, { status: 400 });
   }
 
+  if (profil.telefon && !/^0\d{10}$/.test(profil.telefon)) {
+    return NextResponse.json({ hata: { message: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." } }, { status: 400 });
+  }
+  delete profil.telefon_dogrulandi;
+
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password: sifre,

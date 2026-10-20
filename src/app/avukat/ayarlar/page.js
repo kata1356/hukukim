@@ -124,11 +124,11 @@ export default function AvukatAyarlar() {
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
-          <h1 className="text-xl font-bold text-white">Ayarlar</h1>
+          <h1 className="text-xl font-semibold text-white">Ayarlar</h1>
           <p className="mt-1 text-sm text-white/60">Profil bilgilerini güncelle.</p>
         </div>
 
-        <form onSubmit={kaydet} className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-gece-yuzey p-6">
+        <form onSubmit={kaydet} className="flex flex-col gap-5 rounded-lg border border-white/10 bg-gece-yuzey p-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <TextField
               label="Ad Soyad"
@@ -146,7 +146,7 @@ export default function AvukatAyarlar() {
               required
               value={form.telefon}
               onChange={(e) => alanGuncelle("telefon", e.target.value)}
-              placeholder="05XX XXX XX XX"
+              placeholder="05XXXXXXXXX"
             />
             <TextField
               label="Baro Sicil Numarası"

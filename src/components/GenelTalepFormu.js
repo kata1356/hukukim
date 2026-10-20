@@ -164,7 +164,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
             required
             value={form.telefon}
             onChange={(e) => alanGuncelle("telefon", e.target.value)}
-            placeholder="05XX XXX XX XX"
+            placeholder="05XXXXXXXXX"
           />
         )}
 

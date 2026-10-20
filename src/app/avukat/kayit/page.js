@@ -288,7 +288,7 @@ export default function AvukatKayit() {
               required
               value={form.telefon}
               onChange={(e) => alanGuncelle("telefon", e.target.value)}
-              placeholder="05XX XXX XX XX"
+              placeholder="05XXXXXXXXX"
             />
             <TextField
               label="Baro Sicil Numarası"
@@ -459,7 +459,7 @@ export default function AvukatKayit() {
             required
             value={form.telefon}
             onChange={(e) => alanGuncelle("telefon", e.target.value)}
-            placeholder="05XX XXX XX XX"
+            placeholder="05XXXXXXXXX"
           />
           <TextField
             label="E-posta"

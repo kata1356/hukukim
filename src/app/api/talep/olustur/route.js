@@ -47,6 +47,9 @@ export async function POST(request) {
 
   // Kayıtta telefon ve şehir istenmiyor; ilk talepte alınıp profile yazılır.
   const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
+  if (yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
+    return NextResponse.json({ hata: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." }, { status: 400 });
+  }
   if (!muvekkilProfili.telefon && yeniTelefon) {
     await supabaseAdmin
       .from("muvekkiller")
