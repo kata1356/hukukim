@@ -464,6 +464,18 @@ export default function AvukatPanel() {
           <StatKarti deger={acikTalepler.length} etiket="Açık Havuz" />
         </section>
 
+        {!profil.dogrulanmis && (
+          <section id="acik-talepler" className="scroll-mt-20 rounded-lg border border-white/10 border-l-4 border-l-amber-500 bg-gece-yuzey p-5">
+            <h2 className="text-base font-semibold text-white">Talepler hesabın doğrulanınca açılır</h2>
+            <p className="mt-1 text-sm text-white/60">
+              Kimlik ve baro kartın onaylanana kadar açık talepleri göremez, randevu alamaz ve müvekkillerle
+              iletişime geçemezsin. Profil kartındaki alandan belgelerini yükle; incelemeden sonra
+              hesabın otomatik olarak açılır.
+            </p>
+          </section>
+        )}
+
+        {profil.dogrulanmis && (<>
         <section id="acik-talepler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
             <h2 className="flex items-center gap-2 text-base font-semibold text-white">
@@ -692,6 +704,8 @@ export default function AvukatPanel() {
             </div>
           )}
         </section>
+
+        </>)}
 
         <section id="musaitlik" className="scroll-mt-20">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
