@@ -177,9 +177,7 @@ export default function AdminAvukatDetay() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-white">Kimlik Belgeleri</h2>
           <span className="text-xs font-semibold text-white/60">
-            Durum: {{ yok: "Yüklenmedi", incelemede: "İncelemede", onaylandi: "Onaylandı", reddedildi: "Reddedildi" }[avukat.belge_durumu ?? "yok"]}
-            {" · "}Telefon: {avukat.telefon_dogrulandi ? "doğrulandı" : "doğrulanmadı"}
-          </span>
+            Durum: {{ yok: "Yüklenmedi", incelemede: "İncelemede", onaylandi: "Onaylandı", reddedildi: "Reddedildi" }[avukat.belge_durumu ?? "yok"]}          </span>
         </div>
 
         {avukat.kimlik_belge_yolu || avukat.baro_karti_yolu ? (

@@ -12,7 +12,6 @@ import GenelTalepFormu from "@/components/GenelTalepFormu";
 import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
-import TelefonDogrulama from "@/components/TelefonDogrulama";
 import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
@@ -270,15 +269,6 @@ export default function MuvekkilPanel() {
       <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
         <Spinner className="h-8 w-8 text-white" />
       </div>
-    );
-  }
-
-  if (process.env.NEXT_PUBLIC_SMS_DOGRULAMA === "1" && !profil.telefon_dogrulandi) {
-    return (
-      <TelefonDogrulama
-        baslangicTelefon={profil.telefon ?? ""}
-        onTamam={(telefon) => setProfil((onceki) => ({ ...onceki, telefon, telefon_dogrulandi: true }))}
-      />
     );
   }
 

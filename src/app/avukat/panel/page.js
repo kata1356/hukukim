@@ -12,7 +12,6 @@ import DurumRozeti from "@/components/DurumRozeti";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
-import TelefonDogrulama from "@/components/TelefonDogrulama";
 import BelgeYukleme from "@/components/BelgeYukleme";
 import { AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 import StatKarti from "@/components/StatKarti";
@@ -329,15 +328,6 @@ export default function AvukatPanel() {
       <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
         <Spinner className="h-8 w-8 text-white" />
       </div>
-    );
-  }
-
-  if (process.env.NEXT_PUBLIC_SMS_DOGRULAMA === "1" && !profil.telefon_dogrulandi) {
-    return (
-      <TelefonDogrulama
-        baslangicTelefon={profil.telefon ?? ""}
-        onTamam={(telefon) => setProfil((onceki) => ({ ...onceki, telefon, telefon_dogrulandi: true }))}
-      />
     );
   }
 
