@@ -11,13 +11,13 @@ import Button from "./Button";
 import Modal from "./Modal";
 import { IconYildirim } from "./icons";
 
-export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi }) {
+export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasarili }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
     telefon: muvekkilProfil.telefon ?? "",
     uzmanlikAlani: "",
     aciklama: "",
-    paketDakika: GORUSME_PAKETLERI[0].dakika,
+    paketDakika: ilkGorusmeMi ? "deneme" : GORUSME_PAKETLERI[0].dakika,
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -62,6 +62,11 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi }) {
     }
 
     setYukleniyor(false);
+
+    if (sonuc.ucretsiz) {
+      onBasarili(sonuc.talepId);
+      return;
+    }
 
     setOdemeToken(sonuc.token);
   }
@@ -141,7 +146,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi }) {
         <PaketSecici
           dakika={form.paketDakika}
           onDegis={(dakika) => alanGuncelle("paketDakika", dakika)}
-          hediye={ilkGorusmeMi}
+          deneme={ilkGorusmeMi}
         />
 
         {hata && (
@@ -152,7 +157,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi }) {
 
         <Button type="submit" variant="acil" yukleniyor={yukleniyor}>
           <IconYildirim className="h-4 w-4" />
-          Ödeyip Acil Avukatımı Çağır
+          {form.paketDakika === "deneme" ? "Acil Avukatımı Çağır (Ücretsiz Deneme)" : "Ödeyip Acil Avukatımı Çağır"}
         </Button>
       </form>
 

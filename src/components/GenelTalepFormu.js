@@ -13,7 +13,7 @@ import Spinner from "./Spinner";
 import Modal from "./Modal";
 import AIKonuAsistani from "./AIKonuAsistani";
 
-export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat }) {
+export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
     telefon: muvekkilProfil.telefon ?? "",
@@ -21,7 +21,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat 
     konu: "",
     aciklama: "",
     gorusmeSekli: "goruntulu",
-    paketDakika: GORUSME_PAKETLERI[0].dakika,
+    paketDakika: ilkGorusmeMi ? "deneme" : GORUSME_PAKETLERI[0].dakika,
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -65,6 +65,11 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat 
     }
 
     setYukleniyor(false);
+
+    if (sonuc.ucretsiz) {
+      onBasarili(sonuc.talepId);
+      return;
+    }
 
     setOdemeToken(sonuc.token);
   }
@@ -176,7 +181,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat 
         <PaketSecici
           dakika={form.paketDakika}
           onDegis={(dakika) => alanGuncelle("paketDakika", dakika)}
-          hediye={ilkGorusmeMi}
+          deneme={ilkGorusmeMi}
         />
 
         {hata && (
@@ -190,7 +195,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat 
             Vazgeç
           </Button>
           <Button type="submit" yukleniyor={yukleniyor} className="w-auto flex-1">
-            Ödeyip Talebimi Gönder
+            {form.paketDakika === "deneme" ? "Ücretsiz Denemeyi Başlat" : "Ödeyip Talebimi Gönder"}
           </Button>
         </div>
       </form>

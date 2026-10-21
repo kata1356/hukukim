@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ilkOdemeyiIadeEt } from "@/lib/iade";
+import { denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 
 // Muvekkil, henuz kimse ustlenmemis (bekliyor) odenmis bir talebi iptal edip
 // anlik iade alabilir. Ucretsiz (odeme_tutari 0) talepler icin iade cagirilmaz,
@@ -60,6 +61,10 @@ export async function POST(request) {
 
   if (!guncellenen) {
     return NextResponse.json({ hata: "Talep iptal edilemedi, az önce bir avukat üstlenmiş olabilir." }, { status: 409 });
+  }
+
+  if (talep.odeme_durumu === "muaf") {
+    await denemeHakkiniGeriVer(supabaseAdmin, talep.muvekkil_id);
   }
 
   if (Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {

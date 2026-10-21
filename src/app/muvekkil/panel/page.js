@@ -216,6 +216,12 @@ export default function MuvekkilPanel() {
     }
   }, []);
 
+  async function genelTalepBasarili(talepId) {
+    setGenelTalepAcik(false);
+    setAktifBeklemeTalepId(talepId);
+    if (profil?.id) await gonderilenTalepleriGetir(profil.id);
+  }
+
   async function talebiIptalEt(talepId) {
     setIptalEdiliyor(true);
     try {
@@ -268,13 +274,16 @@ export default function MuvekkilPanel() {
 
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
-  const ilkGorusmeMi = !gonderilenTalepler.some((t) => t.odeme_durumu === "odendi");
+  const odemeTamamMi = (t) => t.odeme_durumu === "odendi" || t.odeme_durumu === "muaf";
+  const ilkGorusmeMi = !gonderilenTalepler.some(
+    (t) => t.odeme_durumu === "odendi" || (t.odeme_durumu === "muaf" && t.durum !== "iptal")
+  );
   const aktifDurumlar = ["bekliyor", "kabul"];
   const aktifTalepler = gonderilenTalepler.filter((t) => aktifDurumlar.includes(t.durum));
   const gecmisTalepler = gonderilenTalepler.filter((t) => !aktifDurumlar.includes(t.durum));
   const gosterilenTalepler = talepSekmesi === "aktif" ? aktifTalepler : gecmisTalepler;
   const beklenenTalep = gonderilenTalepler.find(
-    (t) => t.id === aktifBeklemeTalepId && t.durum === "bekliyor" && t.odeme_durumu === "odendi"
+    (t) => t.id === aktifBeklemeTalepId && t.durum === "bekliyor" && odemeTamamMi(t)
   );
 
   return (
@@ -377,7 +386,7 @@ export default function MuvekkilPanel() {
 
         <div className="rounded-lg border border-white/10 bg-gece-yuzey p-6">
           <h2 className="text-base font-semibold text-white">
-            {ilkGorusmeMi ? "İlk görüşmene 5 dk hediye" : "Avukata mı ihtiyacın var?"}
+            {ilkGorusmeMi ? "İlk 5 dakika ücretsiz deneme" : "Avukata mı ihtiyacın var?"}
           </h2>
           <p className="mt-1 text-sm text-white/60">
             Şehrini ve konunu seç, ilk kabul eden avukatla görüşmen hemen başlasın.
@@ -530,6 +539,7 @@ export default function MuvekkilPanel() {
             muvekkilProfil={profil}
             ilkGorusmeMi={ilkGorusmeMi}
             onKapat={() => setGenelTalepAcik(false)}
+            onBasarili={genelTalepBasarili}
           />
         </Modal>
       )}

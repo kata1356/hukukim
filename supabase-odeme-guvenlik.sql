@@ -73,4 +73,18 @@ alter table odemeler
   add constraint odemeler_durum_check
   check (durum in ('basladi', 'basarili', 'basarisiz', 'iade_edildi'));
 
+-- 5) Bir telefon numarası yalnızca bir hesapta kullanılabilir.
+-- (Aynı numaralı kayıtlar zaten varsa bu iki satır hata verir; önce mükerrerleri düzelt.)
+create unique index if not exists muvekkiller_telefon_tekil on muvekkiller (telefon) where telefon is not null and telefon <> '';
+create unique index if not exists avukatlar_telefon_tekil on avukatlar (telefon) where telefon is not null and telefon <> '';
+
+-- 6) Ücretsiz deneme hakkı numaraya bağlıdır: hesap silinip aynı numarayla yeniden
+-- açılsa bile tekrar verilmez. Yalnızca sunucu (service role) erişir.
+create table if not exists deneme_kullanimlari (
+  telefon text primary key,
+  muvekkil_id uuid,
+  created_at timestamptz not null default now()
+);
+alter table deneme_kullanimlari enable row level security;
+
 NOTIFY pgrst, 'reload schema';

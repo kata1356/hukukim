@@ -313,7 +313,7 @@ export default function MuvekkilKayit() {
   return (
     <AuthShell
       baslik="Müvekkil Kaydı"
-      altBaslik="Üç alan, bir dakika. İlk görüşmende 5 dakika hediye."
+      altBaslik="Üç alan, bir dakika. İlk 5 dakikalık deneme görüşmen ücretsiz."
     >
       <div className="flex flex-col gap-4">
         <GoogleGirisButonu redirectYolu="/muvekkil/kayit" />

@@ -168,7 +168,7 @@ export default function AvukatPanel() {
       .select("*")
       .eq("tur", "genel")
       .is("avukat_id", null)
-      .eq("odeme_durumu", "odendi")
+      .in("odeme_durumu", ["odendi", "muaf"])
       .order("created_at", { ascending: false });
 
     const uygunAlanlar = avukatProfili.uzmanlik_alanlari ?? [];
@@ -560,7 +560,7 @@ export default function AvukatPanel() {
                         {talep.paket_dakika} dk
                         {talep.odeme_tutari > 0
                           ? ` · Kazancın: ${avukatPayiHesapla(talep.odeme_tutari)} TL`
-                          : " · Ücretsiz (ilk görüşme)"}
+                          : " · Ücretsiz deneme (ek süre alınırsa kazanırsın)"}
                       </span>
                     )}
                   </div>

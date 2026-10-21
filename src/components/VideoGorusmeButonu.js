@@ -33,6 +33,8 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
   const [ekSureYukleniyor, setEkSureYukleniyor] = useState(false);
   const [ekSureMesaji, setEkSureMesaji] = useState(null);
   const [ekSureToken, setEkSureToken] = useState(null);
+  const [ayrilmaUyarisi, setAyrilmaUyarisi] = useState(false);
+  const ayrilmaZamaniRef = useRef(null);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -80,6 +82,27 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [odaUrl, gorusmeBasladi, sonlandiriliyor, paketSaniye]);
 
+  // Tarayıcı başka uygulamaya/sekmeye geçişi engelleyemez; ama görüşme sırasında
+  // sayfadan ayrılan taraf geri döndüğünde uyarılır (görüşmeyi platform dışına
+  // taşımayı caydırmak için).
+  useEffect(() => {
+    if (!odaUrl || !gorusmeBasladi) return;
+
+    function gorunurlukDegisti() {
+      if (document.hidden) {
+        ayrilmaZamaniRef.current = Date.now();
+        return;
+      }
+      if (ayrilmaZamaniRef.current && Date.now() - ayrilmaZamaniRef.current > 5000) {
+        setAyrilmaUyarisi(true);
+      }
+      ayrilmaZamaniRef.current = null;
+    }
+
+    document.addEventListener("visibilitychange", gorunurlukDegisti);
+    return () => document.removeEventListener("visibilitychange", gorunurlukDegisti);
+  }, [odaUrl, gorusmeBasladi]);
+
   useEffect(() => {
     if (!odaUrl || !iframeRef.current) return;
 
@@ -94,6 +117,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     setSureDoldu(false);
     setEkSaniye(0);
     setEkSureMesaji(null);
+    setAyrilmaUyarisi(false);
 
     const callFrame = DailyIframe.wrap(iframeRef.current);
     callFrameRef.current = callFrame;
@@ -398,6 +422,21 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               </div>
             )}
           </div>
+
+          {ayrilmaUyarisi && (
+            <div className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">
+              <p>
+                Görüşme sırasında uygulamadan ayrıldın. Lütfen görüşmeyi bu ekranda sürdür; süre işlemeye devam ediyor.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAyrilmaUyarisi(false)}
+                className="shrink-0 rounded-md bg-white/10 px-3 py-1 text-xs font-semibold text-white"
+              >
+                Tamam
+              </button>
+            </div>
+          )}
 
           {paketSaniye > 0 && (
             <div

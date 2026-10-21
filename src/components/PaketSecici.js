@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import {
+  DENEME_DAKIKA,
   GORUSME_PAKETLERI,
-  ILK_GORUSME_HEDIYE_DAKIKA,
   OZEL_DAKIKA_EN_AZ,
   OZEL_DAKIKA_EN_FAZLA,
   paketHesapla,
@@ -15,11 +15,14 @@ function kutuRengi(secili) {
   return secili ? "border-turkuaz bg-turkuaz/10" : "border-white/15 bg-white/5 hover:border-white/30";
 }
 
-export default function PaketSecici({ dakika, onDegis, hediye }) {
+// dakika: seçili paketin dakikası, ücretsiz deneme için "deneme".
+// deneme: müvekkilin deneme hakkı varsa ilk seçenek olarak gösterilir.
+export default function PaketSecici({ dakika, onDegis, deneme }) {
   const [ozelAcik, setOzelAcik] = useState(false);
   const [ozelMetin, setOzelMetin] = useState("");
 
   const ozelPaket = ozelAcik ? paketHesapla(ozelMetin) : null;
+  const denemeSecili = deneme && dakika === "deneme";
 
   function ozelDegisti(metin) {
     const temiz = metin.replace(/\D/g, "").slice(0, 2);
@@ -30,7 +33,20 @@ export default function PaketSecici({ dakika, onDegis, hediye }) {
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-sm font-semibold text-white">Görüşme Süresi</span>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {deneme && (
+          <button
+            type="button"
+            onClick={() => {
+              setOzelAcik(false);
+              onDegis("deneme");
+            }}
+            className={`${KUTU} ${kutuRengi(denemeSecili)}`}
+          >
+            <span className="text-sm font-bold text-white">{DENEME_DAKIKA} dk</span>
+            <span className="text-xs font-semibold text-turkuaz">Ücretsiz deneme</span>
+          </button>
+        )}
         {GORUSME_PAKETLERI.map((paket) => (
           <button
             key={paket.dakika}
@@ -39,7 +55,7 @@ export default function PaketSecici({ dakika, onDegis, hediye }) {
               setOzelAcik(false);
               onDegis(paket.dakika);
             }}
-            className={`${KUTU} ${kutuRengi(!ozelAcik && dakika === paket.dakika)}`}
+            className={`${KUTU} ${kutuRengi(!denemeSecili && !ozelAcik && dakika === paket.dakika)}`}
           >
             <span className="text-sm font-bold text-white">{paket.dakika} dk</span>
             <span className="text-xs text-white/60">{paket.tutar} TL</span>
@@ -76,9 +92,9 @@ export default function PaketSecici({ dakika, onDegis, hediye }) {
         </div>
       )}
 
-      {hediye && (
-        <p className="rounded-lg bg-turkuaz/10 px-3 py-2 text-sm font-semibold text-turkuaz">
-          İlk görüşmene +{ILK_GORUSME_HEDIYE_DAKIKA} dakika hediye: seçtiğin süreye otomatik eklenir.
+      {denemeSecili && (
+        <p className="rounded-lg bg-turkuaz/10 px-3 py-2 text-sm text-turkuaz">
+          Deneme için ödeme gerekmez. Süre dolmadan devam etmek istersen görüşme sırasında ek süre alabilirsin.
         </p>
       )}
     </div>

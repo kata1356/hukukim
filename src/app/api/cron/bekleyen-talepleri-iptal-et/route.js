@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ilkOdemeyiIadeEt } from "@/lib/iade";
+import { denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 
 // Odenip 15 dakika icinde hicbir avukat tarafindan ustlenilmeyen talepleri
 // otomatik iptal edip, ucretli olanlar icin PayTR uzerinden iade baslatir.
@@ -17,7 +18,7 @@ export async function GET(request) {
 
   const { data: bekleyenler, error } = await supabaseAdmin
     .from("randevu_talepleri")
-    .select("id, odeme_tutari, odeme_durumu")
+    .select("id, muvekkil_id, odeme_tutari, odeme_durumu")
     .eq("durum", "bekliyor")
     .is("avukat_id", null)
     .lt("created_at", esikZaman);
@@ -42,6 +43,10 @@ export async function GET(request) {
 
     const durumGuncellendi = !guncelleHatasi && Boolean(iptalEdilen);
     let iadeBasarili = true;
+
+    if (durumGuncellendi && talep.odeme_durumu === "muaf") {
+      await denemeHakkiniGeriVer(supabaseAdmin, talep.muvekkil_id);
+    }
 
     if (durumGuncellendi && Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {
       iadeBasarili = (await ilkOdemeyiIadeEt(talep.id)).basarili;

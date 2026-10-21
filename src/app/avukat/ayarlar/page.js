@@ -101,7 +101,11 @@ export default function AvukatAyarlar() {
       .eq("id", profil.id);
 
     if (error) {
-      setHata("Kaydedilirken bir hata oluştu, lütfen tekrar dene.");
+      setHata(
+        error.code === "23505"
+          ? "Bu telefon numarası başka bir hesapta kayıtlı."
+          : "Kaydedilirken bir hata oluştu, lütfen tekrar dene."
+      );
       setKaydediliyor(false);
       return;
     }

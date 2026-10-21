@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji, emailZatenKayitliMi } from "@/lib/hataMesajlari";
 import { SEHIRLER } from "@/lib/sehirler";
@@ -15,6 +16,7 @@ import Honeypot from "@/components/Honeypot";
 import { IconYildirim } from "@/components/icons";
 
 export default function AcilAvukat() {
+  const router = useRouter();
   const [durum, setDurum] = useState("yukleniyor");
   const [profil, setProfil] = useState(null);
   const [ilkGorusmeMi, setIlkGorusmeMi] = useState(true);
@@ -58,7 +60,7 @@ export default function AcilAvukat() {
           .from("randevu_talepleri")
           .select("id", { count: "exact", head: true })
           .eq("muvekkil_id", user.id)
-          .eq("odeme_durumu", "odendi");
+          .or("odeme_durumu.eq.odendi,and(odeme_durumu.eq.muaf,durum.neq.iptal)");
         if (!iptalEdildi) setIlkGorusmeMi(!count);
         setProfil(muvekkilProfili);
         setDurum("form");
@@ -175,6 +177,7 @@ export default function AcilAvukat() {
         <AcilTalepFormu
           muvekkilProfil={profil}
           ilkGorusmeMi={ilkGorusmeMi}
+          onBasarili={(talepId) => router.push(`/muvekkil/panel?talep=${talepId}`)}
         />
       </AuthShell>
     );

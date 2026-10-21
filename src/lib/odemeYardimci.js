@@ -10,8 +10,8 @@ export function avukatPayiHesapla(tutar) {
   return Math.round(Number(tutar || 0) * AVUKAT_KOMISYON_ORANI);
 }
 
-// İlk görüşmede satın alınan pakete eklenen hediye süre (ödeme yine alınır).
-export const ILK_GORUSME_HEDIYE_DAKIKA = 5;
+// Her müvekkile (telefon numarası başına bir kez) tanınan ücretsiz deneme süresi.
+export const DENEME_DAKIKA = 5;
 
 // "Kendi süreni seç" seçeneği: hazır paketlerin dışındaki dakikalar bu oranla
 // ücretlendirilir (en küçük paketle aynı oran, hazır paketler hep daha ucuz kalır).
