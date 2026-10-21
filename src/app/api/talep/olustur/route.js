@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
-import { paketBul } from "@/lib/odemeYardimci";
+import { paketHesapla } from "@/lib/odemeYardimci";
 import { ilkGorusmeMi } from "@/lib/talepYardimci";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
@@ -30,7 +30,7 @@ export async function POST(request) {
   const { hedefSehir, hedefUzmanlikAlani, konu, aciklama, gorusmeSekli, paketDakika, acil, telefon } =
     await request.json();
 
-  const paket = paketBul(paketDakika);
+  const paket = paketHesapla(paketDakika);
   if (!paket || !hedefSehir || !hedefUzmanlikAlani || !konu || !gorusmeSekli) {
     return NextResponse.json({ hata: "Eksik veya geçersiz bilgi." }, { status: 400 });
   }

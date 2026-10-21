@@ -32,6 +32,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
   const [ekSaniye, setEkSaniye] = useState(0);
   const [ekSureYukleniyor, setEkSureYukleniyor] = useState(false);
   const [ekSureMesaji, setEkSureMesaji] = useState(null);
+  const [ekSureToken, setEkSureToken] = useState(null);
   const baslangicRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
@@ -187,14 +188,15 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
       return;
     }
 
-    window.open(`https://www.paytr.com/odeme/guvenli/${sonuc.token}`, "_blank");
-    setEkSureMesaji("Açılan sekmede ödemeni tamamla, onaylanınca süre otomatik eklenecek.");
+    setEkSureToken(sonuc.token);
+    setEkSureMesaji(null);
 
     const baslangicZamani = Date.now();
     ekSurePollRef.current = setInterval(async () => {
       if (Date.now() - baslangicZamani > EK_SURE_POLL_SURE_MS) {
         clearInterval(ekSurePollRef.current);
         ekSureYukleniyorAyarla(false);
+        setEkSureToken(null);
         setEkSureMesaji("Ödeme onayı gelmedi. Tamamladıysan birazdan otomatik yansıyacaktır.");
         return;
       }
@@ -211,6 +213,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
         bilinenPaketDakikaRef.current = yeniDakika;
         setEkSaniye((onceki) => onceki + farkDakika * 60);
         setEkSureMesaji(`+${farkDakika} dakika eklendi!`);
+        setEkSureToken(null);
         ekSureYukleniyorAyarla(false);
         clearInterval(ekSurePollRef.current);
       }
@@ -336,6 +339,27 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               style={{ width: "100%", height: "70vh", border: "none" }}
             />
 
+            {ekSureToken && (
+              <div className="absolute inset-0 z-20 flex flex-col bg-white">
+                <iframe
+                  src={`https://www.paytr.com/odeme/guvenli/${ekSureToken}`}
+                  title="Ek Süre Ödemesi"
+                  className="w-full flex-1 border-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearInterval(ekSurePollRef.current);
+                    ekSureYukleniyorAyarla(false);
+                    setEkSureToken(null);
+                  }}
+                  className="bg-gece px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  Vazgeç, görüşmeye dön
+                </button>
+              </div>
+            )}
+
             {(sonlandirmaOnayAcik || sonlandiriliyor) && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 bg-black/85 p-6 text-center">
                 {sonlandiriliyor ? (
@@ -378,7 +402,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
           {paketSaniye > 0 && (
             <div
               className={`mt-4 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
-                sureUyari ? "bg-red-500/10 text-red-400" : "bg-white/5 text-white/70"
+                sureUyari ? "bg-amber-500/10 text-amber-400" : "bg-white/5 text-white/70"
               }`}
             >
               <span>Kalan Süre</span>
@@ -387,9 +411,9 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
           )}
 
           {ekSureGosterilsin && (
-            <div className="mt-3 flex flex-col gap-2 rounded-xl border border-red-500/30 bg-red-500/[0.06] p-4">
-              <p className="text-center text-sm font-semibold text-red-400">
-                Süren doluyor! Görüşmeye devam etmek için ek süre alabilirsin.
+            <div className="mt-3 flex flex-col gap-2 rounded-xl border border-turkuaz/30 bg-turkuaz/[0.06] p-4">
+              <p className="text-center text-sm font-semibold text-white">
+                Süre bitmek üzere. Devam etmek için ek süre alabilirsin.
               </p>
               <button
                 onClick={ekSureSatinAl}
@@ -397,7 +421,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
                 className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
               >
                 {ekSureYukleniyor ? <Spinner className="h-4 w-4" /> : <IconEtiket className="h-4 w-4" />}
-                +{EK_SURE_PAKETI.dakika} Dakika Al ({EK_SURE_PAKETI.tutar} TL)
+                +{EK_SURE_PAKETI.dakika} dk ekle · {EK_SURE_PAKETI.tutar} TL
               </button>
               {ekSureMesaji && <p className="text-center text-xs text-white/60">{ekSureMesaji}</p>}
             </div>
