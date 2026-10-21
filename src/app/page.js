@@ -27,6 +27,12 @@ import { supabase } from "@/lib/supabaseClient";
 import SssAkordeon from "@/components/SssAkordeon";
 import OneCikanAvukatlar from "@/components/OneCikanAvukatlar";
 import Logo from "@/components/Logo";
+import {
+  GORUSME_PAKETLERI,
+  OZEL_DAKIKA_EN_AZ,
+  OZEL_DAKIKA_EN_FAZLA,
+  OZEL_DAKIKA_UCRETI,
+} from "@/lib/odemeYardimci";
 
 export const revalidate = 60;
 
@@ -137,12 +143,15 @@ export default async function AnaSayfa() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-hidden bg-gece text-white">
-      <div className="bg-gece-yuzey py-2 text-center text-xs font-semibold text-turkuaz sm:text-sm">
-        <span className="sm:hidden">Kayıt ücretsiz · Baro doğrulamalı avukatlar</span>
+      <a
+        href="#fiyatlandirma"
+        className="block bg-gece-yuzey px-4 py-2 text-center text-xs font-semibold text-turkuaz transition hover:text-turkuaz-parlak sm:text-sm"
+      >
+        <span className="sm:hidden">İlk 5 dk ücretsiz · Paketler 200 TL&apos;den · Fiyatlar →</span>
         <span className="hidden sm:inline">
-          Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Paketler 200 TL&apos;den başlar · Fiyatları gör →
         </span>
-      </div>
+      </a>
 
       <SiteHeader />
 
@@ -524,35 +533,52 @@ export default async function AnaSayfa() {
               Şeffaf, önceden bilinen bir görüşme ücretlendirmesi.
             </p>
 
-            <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col items-center gap-2 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-8 shadow-md">
-                <span className="rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
-                  Yeni Üyelere Özel
-                </span>
-                <p className="mt-2 text-4xl font-extrabold text-white">
-                  İlk 5 Dakika
-                </p>
-                <p className="text-sm text-white/60">Ücretsiz deneme</p>
-              </div>
+            <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-1 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-6 shadow-md">
+              <span className="rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
+                Yeni Üyelere Özel
+              </span>
+              <p className="mt-2 text-3xl font-extrabold text-white">İlk 5 Dakika Ücretsiz</p>
+              <p className="text-sm text-white/60">Paket almadan dene, kart gerekmez</p>
+            </div>
 
-              <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-gece-yuzey p-8 shadow-sm">
-                <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                  Sonraki Her Dakika
-                </span>
-                <p className="mt-2 text-4xl font-extrabold text-white">
-                  40 TL
-                  <span className="text-base font-semibold text-white/50"> / dakika</span>
+            <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+              {GORUSME_PAKETLERI.map(({ dakika, tutar }) => (
+                <div
+                  key={dakika}
+                  className="flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm"
+                >
+                  <p className="text-sm font-bold text-white/60">{dakika} dakika</p>
+                  <p className="text-4xl font-extrabold text-white">
+                    {tutar}
+                    <span className="text-base font-semibold text-white/50"> TL</span>
+                  </p>
+                  <p className="text-xs text-white/50">
+                    Dakikası {(tutar / dakika).toFixed(1).replace(/\.0$/, "").replace(".", ",")} TL
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mx-auto mt-4 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 text-left">
+                <p className="font-bold text-white">Kendi süreni seç</p>
+                <p className="mt-1 text-sm text-white/60">
+                  {OZEL_DAKIKA_EN_AZ} ile {OZEL_DAKIKA_EN_FAZLA} dakika arası istediğin süreyi gir,
+                  dakikası {OZEL_DAKIKA_UCRETI} TL.
                 </p>
-                <p className="text-sm text-white/60">Sadece konuştuğun kadar öde</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 text-left">
+                <p className="font-bold text-white">Süre yetmezse ek süre</p>
+                <p className="mt-1 text-sm text-white/60">
+                  Görüşme bitmeden +5 dakika 200 TL ile devam edersin. Görüşmeden ayrılmana gerek kalmaz.
+                </p>
               </div>
             </div>
 
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
               İlk 5 dakika deneme amaçlı ücretsizdir (telefon numarası başına
-              bir kez). Sonrası için süreni hazır paketlerden seçer ya da
-              dakikasını kendin girersin (dakika başı 40 TL). Ödeme, güvenli
-              ödeme altyapımız (PayTR) üzerinden alınır.
+              bir kez). Ödeme, güvenli ödeme altyapımız (PayTR) üzerinden alınır.
             </p>
           </div>
         </section>

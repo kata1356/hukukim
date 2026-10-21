@@ -6,6 +6,9 @@
 --     süre, müvekkil vb. alanları değiştiremez (kazancı şişiremez).
 -- Sunucu (service role) ve yöneticiler bu kısıttan muaftır.
 
+-- 0) Aynı numaralı iki test avukatından yenisinin telefonunu boşalt (tekil kısıt için).
+update avukatlar set telefon = null where id = '043bc413-26de-41eb-9686-9d583721de86';
+
 -- 1) Müvekkil doğrudan talep ekleyemesin (sunucu service role ile ekler).
 drop policy if exists "randevu_insert_muvekkil" on randevu_talepleri;
 

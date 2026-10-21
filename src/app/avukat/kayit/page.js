@@ -14,6 +14,7 @@ import Button from "@/components/Button";
 import Honeypot from "@/components/Honeypot";
 import GoogleGirisButonu from "@/components/GoogleGirisButonu";
 import Spinner from "@/components/Spinner";
+import BelgeYukleme from "@/components/BelgeYukleme";
 import { IconOnay } from "@/components/icons";
 
 export default function AvukatKayit() {
@@ -80,6 +81,7 @@ export default function AvukatKayit() {
     };
   }, [router]);
 
+  const [belgeProfili, setBelgeProfili] = useState(null);
   const [kod, setKod] = useState("");
   const [dogrulaniyor, setDogrulaniyor] = useState(false);
   const [dogrulamaHatasi, setDogrulamaHatasi] = useState(null);
@@ -112,7 +114,8 @@ export default function AvukatKayit() {
       return { basarili: false, hata: turkceHataMesaji(tamamlaSonucu.hata) };
     }
 
-    router.push("/avukat/panel");
+    // Profil oluştu; kimlik ve baro kartı kayıt akışında zorunlu bir adımdır.
+    setBelgeProfili({ id: session.user.id, belge_durumu: "yok" });
     return { basarili: true };
   }
 
@@ -253,6 +256,25 @@ export default function AvukatKayit() {
 
     setYukleniyor(false);
     setGonderildi(true);
+  }
+
+  if (belgeProfili) {
+    return (
+      <AuthShell
+        baslik="Kimliğini Doğrula"
+        altBaslik="Son adım: kimlik ön yüzünü ve baro kartını yükle. Onaylanınca profilin müvekkillere açılır."
+        genis
+      >
+        <BelgeYukleme
+          profil={belgeProfili}
+          onGuncel={() => router.push("/avukat/panel")}
+        />
+        <p className="mt-4 text-xs leading-relaxed text-white/40">
+          Belgeler yalnızca doğrulama ekibimiz tarafından görülür, özel bir klasörde saklanır
+          ve kimlik doğrulaması dışında kullanılmaz. Doğrulama tamamlanana kadar talepleri göremezsin.
+        </p>
+      </AuthShell>
+    );
   }
 
   if (oauthKontrolEdiliyor) {
