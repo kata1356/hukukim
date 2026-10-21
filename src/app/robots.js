@@ -5,7 +5,7 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/admin", "/avukat/panel", "/muvekkil/panel", "/sifre-sifirla"],
+      disallow: ["/api/", "/admin", "/avukat/panel", "/avukat/talepler", "/avukat/takvim", "/avukat/profil", "/avukat/bakiye", "/avukat/ayarlar","/muvekkil/panel", "/sifre-sifirla"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PanelHeader from "@/components/PanelHeader";
-import AltMenu from "@/components/AltMenu";
-import { AVUKAT_SEKMELER } from "@/lib/avukatMenu";
+import { useAvukatProfili } from "@/lib/useAvukatProfili";
+import AvukatShell from "@/components/AvukatShell";
 import Spinner from "@/components/Spinner";
 import { IconOnay } from "@/components/icons";
 
@@ -19,55 +17,30 @@ function tarihSaatFormatla(tarih) {
   });
 }
 
+function ayAdi(anahtar) {
+  const [yil, ay] = anahtar.split("-");
+  return new Date(Number(yil), Number(ay) - 1, 1).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
+}
+
 export default function AvukatBakiye() {
-  const router = useRouter();
-  const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
-  const [profil, setProfil] = useState(null);
+  const { profil, yukleniyor } = useAvukatProfili();
   const [kazanclar, setKazanclar] = useState([]);
+  const [kazancYukleniyor, setKazancYukleniyor] = useState(true);
 
   useEffect(() => {
-    let iptalEdildi = false;
+    if (!profil?.id) return;
+    supabase
+      .from("avukat_kazanclari")
+      .select("*")
+      .eq("avukat_id", profil.id)
+      .order("tarih", { ascending: false })
+      .then(({ data }) => {
+        setKazanclar(data ?? []);
+        setKazancYukleniyor(false);
+      });
+  }, [profil?.id]);
 
-    async function veriGetir() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/giris");
-        return;
-      }
-
-      const { data: avukatProfili } = await supabase
-        .from("avukatlar")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!avukatProfili) {
-        router.push("/giris");
-        return;
-      }
-
-      const { data: kazanclarListesi } = await supabase
-        .from("avukat_kazanclari")
-        .select("*")
-        .eq("avukat_id", user.id)
-        .order("tarih", { ascending: false });
-
-      if (iptalEdildi) return;
-      setProfil(avukatProfili);
-      setKazanclar(kazanclarListesi ?? []);
-      setSayfaYukleniyor(false);
-    }
-
-    veriGetir();
-    return () => {
-      iptalEdildi = true;
-    };
-  }, [router]);
-
-  if (sayfaYukleniyor) {
+  if (yukleniyor || kazancYukleniyor) {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-gece">
         <Spinner className="h-8 w-8 text-white" />
@@ -75,57 +48,48 @@ export default function AvukatBakiye() {
     );
   }
 
-  const toplamKazanc = kazanclar.reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
-  const odenenKazanc = kazanclar
-    .filter((k) => k.avukata_odendi)
-    .reduce((t, k) => t + Number(k.kazanilan_miktar || 0), 0);
+  const tutar = (k) => Number(k.kazanilan_miktar || 0);
+  const toplamKazanc = kazanclar.reduce((t, k) => t + tutar(k), 0);
+  const odenenKazanc = kazanclar.filter((k) => k.avukata_odendi).reduce((t, k) => t + tutar(k), 0);
   const odenmemisKazanc = toplamKazanc - odenenKazanc;
   const odenenYuzde = toplamKazanc > 0 ? Math.round((odenenKazanc / toplamKazanc) * 100) : 0;
 
+  const aylikToplam = {};
+  for (const k of kazanclar) {
+    const anahtar = String(k.tarih).slice(0, 7);
+    aylikToplam[anahtar] = (aylikToplam[anahtar] ?? 0) + tutar(k);
+  }
+  const aylar = Object.entries(aylikToplam).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 6);
+  const enYuksekAy = Math.max(1, ...aylar.map(([, deger]) => deger));
+
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" panelYolu="/avukat" />
-
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-white">Bakiye</h1>
-          <p className="mt-1 text-sm text-white/60">Tamamlanmış görüşmelerden kazandığın tutarların özeti.</p>
+    <AvukatShell profil={profil} baslik="Kazançlar" aciklama="Tamamlanmış görüşmelerden kazandığın tutarların özeti.">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-turkuaz/20 bg-gece-yuzey p-5 sm:col-span-1">
+          <p className="text-sm text-white/50">Toplam kazanç</p>
+          <p className="mt-1 font-heading text-4xl font-bold text-white">{toplamKazanc} TL</p>
         </div>
-
-        <div className="rounded-lg border border-turkuaz/20 bg-gece-yuzey p-6 ">
-          <p className="text-sm text-white/50">Toplam Kazanç</p>
-          <p className="mt-1 text-4xl font-bold text-white">{toplamKazanc} TL</p>
-
-          <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/5">
-            <div
-              className="h-full rounded-full bg-green-400 transition-all"
-              style={{ width: `${odenenYuzde}%` }}
-            />
-          </div>
-
-          <div className="mt-4 flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-white/70">
-              <span className="h-2 w-2 rounded-full bg-green-400" />
-              Ödendi: <strong className="text-white">{odenenKazanc} TL</strong>
-            </span>
-            <span className="flex items-center gap-2 text-white/70">
-              <span className="h-2 w-2 rounded-full bg-white/20" />
-              Bekliyor: <strong className="text-white">{odenmemisKazanc} TL</strong>
-            </span>
-          </div>
+        <div className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
+          <p className="text-sm text-white/50">Havale edildi</p>
+          <p className="mt-1 font-heading text-3xl font-bold text-green-400">{odenenKazanc} TL</p>
         </div>
+        <div className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
+          <p className="text-sm text-white/50">Havale bekliyor</p>
+          <p className="mt-1 font-heading text-3xl font-bold text-white">{odenmemisKazanc} TL</p>
+        </div>
+      </section>
 
-        <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
-          <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-          Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına
-          gireceğin IBAN&apos;a periyodik olarak havale ile gönderilir. Aşağıdaki
-          listede her görüşmenin havalesinin yapılıp yapılmadığını görebilirsin.
-        </p>
+      {toplamKazanc > 0 && (
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+          <div className="h-full rounded-full bg-green-400 transition-all" style={{ width: `${odenenYuzde}%` }} />
+        </div>
+      )}
 
-        <section>
-          <h2 className="mb-3 text-sm font-bold text-white">Görüşme Geçmişi</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <section className="lg:col-span-3">
+          <h2 className="mb-3 text-sm font-bold text-white">Görüşme geçmişi</h2>
           {kazanclar.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz ücretli bir görüşmen yok.
             </p>
           ) : (
@@ -143,9 +107,7 @@ export default function AvukatBakiye() {
                     <span className="font-bold text-turkuaz">{k.kazanilan_miktar} TL</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        k.avukata_odendi
-                          ? "bg-green-500/10 text-green-400"
-                          : "bg-white/5 text-white/40"
+                        k.avukata_odendi ? "bg-green-500/10 text-green-400" : "bg-white/5 text-white/40"
                       }`}
                     >
                       {k.avukata_odendi ? "Havale edildi" : "Havale bekliyor"}
@@ -156,9 +118,39 @@ export default function AvukatBakiye() {
             </div>
           )}
         </section>
-      </main>
 
-      <AltMenu sekmeler={AVUKAT_SEKMELER} />
-    </div>
+        <aside className="flex flex-col gap-4 lg:col-span-2">
+          <div className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
+            <h2 className="text-sm font-bold text-white">Aylık kazanç</h2>
+            {aylar.length === 0 ? (
+              <p className="mt-3 text-sm text-white/50">Henüz veri yok.</p>
+            ) : (
+              <ul className="mt-4 flex flex-col gap-3">
+                {aylar.map(([anahtar, deger]) => (
+                  <li key={anahtar}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="capitalize text-white/60">{ayAdi(anahtar)}</span>
+                      <span className="font-semibold text-white">{deger} TL</span>
+                    </div>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                      <div
+                        className="h-full rounded-full bg-turkuaz"
+                        style={{ width: `${Math.round((deger / enYuksekAy) * 100)}%` }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
+            <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
+            Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına girdiğin IBAN&apos;a periyodik olarak
+            havale ile gönderilir.
+          </p>
+        </aside>
+      </div>
+    </AvukatShell>
   );
 }
