@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { anthropicJsonIste } from "@/lib/anthropic";
+import { anthropicJsonIste, aiHataNedeni } from "@/lib/anthropic";
 import { avukatiDogrula } from "@/lib/aiYetki";
 
 // Avukatın görüşme sonrası yazdığı kısa notları, müvekkile gönderilebilecek düzenli bir özet mesaja çevirir.
@@ -44,6 +44,6 @@ Kurallar:
     return NextResponse.json({ mesaj });
   } catch (err) {
     console.error("Görüşme özeti hatası:", err);
-    return NextResponse.json({ hata: "Yapay zeka şu an özet üretemedi." }, { status: 500 });
+    return NextResponse.json({ hata: `Yapay zeka şu an özet üretemedi: ${aiHataNedeni(err)}` }, { status: 500 });
   }
 }

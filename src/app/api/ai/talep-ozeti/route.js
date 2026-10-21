@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { anthropicJsonIste } from "@/lib/anthropic";
+import { anthropicJsonIste, aiHataNedeni } from "@/lib/anthropic";
 
 // Avukata, önündeki talebin kısa bir özetini ve ilk görüşmede sorabileceği soruları üretir.
 // Yalnızca doğrulanmış avukat, kendi talebi ya da açık havuzdaki ödenmiş/muaf talep için kullanabilir.
@@ -78,6 +78,6 @@ Aciliyeti süre/zamanaşımı/gözaltı/tahliye/haciz gibi unsurlara bakarak bel
     });
   } catch (err) {
     console.error("Talep özeti hatası:", err);
-    return NextResponse.json({ hata: "Yapay zeka özeti şu an oluşturulamadı." }, { status: 500 });
+    return NextResponse.json({ hata: `Yapay zeka özeti şu an oluşturulamadı: ${aiHataNedeni(err)}` }, { status: 500 });
   }
 }
