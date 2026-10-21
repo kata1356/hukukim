@@ -1,8 +1,17 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrBildirimHashDogrula } from "@/lib/paytr";
+import { paytrBildirimHashDogrula, paytrIadeYap } from "@/lib/paytr";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 
 const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
+
+// PayTR "OK" dışında bir yanıt alırsa bildirimi tekrar gönderir. Yan etkilerden
+// biri başarısız olursa ödeme kaydını geri "basladi"ya çekip 500 dönüyoruz ki
+// bir sonraki deneme işlemi baştan, tek seferlik olarak yeniden yapsın.
+async function yanEtkisiBasarisiz(merchantOid, ayrinti) {
+  console.error("PayTR bildirim yan etkisi başarısız:", merchantOid, ayrinti);
+  await supabaseAdmin.from("odemeler").update({ durum: "basladi" }).eq("merchant_oid", merchantOid);
+  return new Response("PAYTR notification retry", { status: 500 });
+}
 
 export async function POST(request) {
   const formVerisi = await request.formData();
@@ -20,11 +29,10 @@ export async function POST(request) {
   }
 
   // Atomik kosullu guncelleme: PayTR ayni bildirimi birden fazla kez
-  // gonderebilir (ag gecikmesi/timeout nedeniyle tekrar dener). "basarili"
-  // durumundan tekrar "basarili"ya gecisi WHERE kosuluyla engelleyerek,
-  // asagidaki ek sure kredisi/kart token gibi yan etkilerin sadece ILK
-  // basarili bildirimde bir kez calismasini garanti ediyoruz.
-  const { data: odeme } = await supabaseAdmin
+  // gonderebilir. "basarili" durumundan tekrar "basarili"ya gecisi WHERE
+  // kosuluyla engelleyerek, ek sure ve iade gibi tek seferlik yan etkilerin
+  // sadece ILK basarili bildirimde calismasini garanti ediyoruz.
+  const { data: odeme, error: odemeHatasi } = await supabaseAdmin
     .from("odemeler")
     .update({
       durum: status === "success" ? "basarili" : "basarisiz",
@@ -33,47 +41,73 @@ export async function POST(request) {
     })
     .eq("merchant_oid", merchantOid)
     .neq("durum", "basarili")
-    .select("muvekkil_id, randevu_talep_id")
+    .select("muvekkil_id, randevu_talep_id, tutar")
     .maybeSingle();
+
+  if (odemeHatasi) {
+    console.error("PayTR bildirim odeme guncelleme hatasi:", odemeHatasi);
+    return new Response("PAYTR notification retry", { status: 500 });
+  }
+
+  // Bu bildirim daha once islenmis (tekrar gonderim) ya da bilinmeyen siparis.
+  if (!odeme) {
+    return new Response("OK");
+  }
 
   const ekSureMi = String(merchantOid).startsWith("EKS");
 
-  // Gorusme sirasinda satin alinan ek sure: paket dakikasini ve tutarini
-  // mevcut talebin uzerine ekle, gorusme devam ediyor.
-  if (status === "success" && ekSureMi && odeme?.randevu_talep_id) {
-    const { data: talep } = await supabaseAdmin
+  if (status === "success" && odeme.randevu_talep_id) {
+    const { data: talep, error: talepHatasi } = await supabaseAdmin
       .from("randevu_talepleri")
-      .select("paket_dakika, paket_tutari, odeme_tutari")
+      .select("durum, paket_dakika, paket_tutari, odeme_tutari")
       .eq("id", odeme.randevu_talep_id)
       .maybeSingle();
 
-    if (talep) {
-      await supabaseAdmin
+    if (talepHatasi) return yanEtkisiBasarisiz(merchantOid, talepHatasi);
+
+    if (ekSureMi) {
+      // Gorusme sirasinda satin alinan ek sure: paket dakikasini ve tutarini
+      // mevcut talebin uzerine ekle. Gorusme bu arada bittiyse iade et.
+      if (talep?.durum === "kabul") {
+        const { error } = await supabaseAdmin
+          .from("randevu_talepleri")
+          .update({
+            paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
+            paket_tutari: Number(talep.paket_tutari || 0) + EK_SURE_PAKETI.tutar,
+            odeme_tutari: Number(talep.odeme_tutari || 0) + EK_SURE_PAKETI.tutar,
+          })
+          .eq("id", odeme.randevu_talep_id);
+
+        if (error) return yanEtkisiBasarisiz(merchantOid, error);
+      } else {
+        await paytrIadeYap({
+          merchantOid,
+          tutarKurus: Math.round(Number(odeme.tutar) * 100),
+        });
+      }
+    } else if (talep?.durum === "bekliyor") {
+      // Talep on-odemesi: gorusme henuz eslesmedi, sadece odeme_durumu
+      // "odendi" olarak isaretlenir, talep havuzda gorunur hale gelir.
+      // durum ("bekliyor") kasten degistirilmez.
+      const { error } = await supabaseAdmin
         .from("randevu_talepleri")
-        .update({
-          paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
-          paket_tutari: Number(talep.paket_tutari || 0) + EK_SURE_PAKETI.tutar,
-          odeme_tutari: Number(talep.odeme_tutari || 0) + EK_SURE_PAKETI.tutar,
-        })
+        .update({ odeme_durumu: "odendi" })
         .eq("id", odeme.randevu_talep_id);
+
+      if (error) return yanEtkisiBasarisiz(merchantOid, error);
+    } else {
+      // Muvekkil odemeyi talep zaman asimi/iptal sonrasi tamamladi: talep
+      // artik gecersiz, parayi otomatik iade et.
+      const { basarili } = await paytrIadeYap({
+        merchantOid,
+        tutarKurus: Math.round(Number(odeme.tutar) * 100),
+      });
+      if (!basarili) return yanEtkisiBasarisiz(merchantOid, "gec odeme iadesi basarisiz");
     }
   }
 
-  // Talep on-odemesi: gorusme henuz eslesmedi, sadece odeme_durumu
-  // "odendi" olarak isaretlenir, talep havuzda gorunur hale gelir.
-  // durum ("bekliyor") kasten degistirilmez.
-  if (status === "success" && !ekSureMi && odeme?.randevu_talep_id) {
-    await supabaseAdmin
-      .from("randevu_talepleri")
-      .update({ odeme_durumu: "odendi" })
-      .eq("id", odeme.randevu_talep_id);
-  }
-
-  if (status === "success" && utoken && odeme?.muvekkil_id) {
-    await supabaseAdmin
-      .from("muvekkiller")
-      .update({ kart_token: utoken })
-      .eq("id", odeme.muvekkil_id);
+  if (status === "success" && utoken && odeme.muvekkil_id) {
+    await supabaseAdmin.from("muvekkiller").update({ kart_token: utoken }).eq("id", odeme.muvekkil_id);
   }
 
   return new Response("OK");

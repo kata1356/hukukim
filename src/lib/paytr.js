@@ -49,7 +49,7 @@ export async function paytrTokenAl({
     payment_amount: String(tutarKurus),
     paytr_token: paytrToken,
     user_basket: sepet,
-    debug_on: "1",
+    debug_on: testModu,
     no_installment: noTaksit,
     max_installment: maxTaksit,
     user_name: adSoyad,
@@ -124,5 +124,8 @@ export function paytrBildirimHashDogrula({ merchantOid, status, totalAmount, has
     .update(merchantOid + merchantSalt + status + totalAmount)
     .digest("base64");
 
-  return hesaplananHash === hash;
+  if (typeof hash !== "string") return false;
+  const beklenen = Buffer.from(hesaplananHash);
+  const gelen = Buffer.from(hash);
+  return beklenen.length === gelen.length && crypto.timingSafeEqual(beklenen, gelen);
 }

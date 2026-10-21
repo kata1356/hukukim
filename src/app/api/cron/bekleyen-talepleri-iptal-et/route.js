@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrIadeYap } from "@/lib/paytr";
+import { ilkOdemeyiIadeEt } from "@/lib/iade";
 
 // Odenip 15 dakika icinde hicbir avukat tarafindan ustlenilmeyen talepleri
 // otomatik iptal edip, ucretli olanlar icin PayTR uzerinden iade baslatir.
@@ -29,35 +29,31 @@ export async function GET(request) {
   const sonuclar = [];
 
   for (const talep of bekleyenler ?? []) {
+    // Once atomik iptal: arada bir avukat ustlendiyse (satir donmez) iade
+    // baslatilmaz, para ve gorusme birlikte gitmez.
+    const { data: iptalEdilen, error: guncelleHatasi } = await supabaseAdmin
+      .from("randevu_talepleri")
+      .update({ durum: "iptal" })
+      .eq("id", talep.id)
+      .eq("durum", "bekliyor")
+      .is("avukat_id", null)
+      .select("id")
+      .maybeSingle();
+
+    const durumGuncellendi = !guncelleHatasi && Boolean(iptalEdilen);
     let iadeBasarili = true;
 
-    if (Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {
-      const { data: odeme } = await supabaseAdmin
-        .from("odemeler")
-        .select("merchant_oid, tutar")
-        .eq("randevu_talep_id", talep.id)
-        .eq("durum", "basarili")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    if (durumGuncellendi && Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {
+      iadeBasarili = (await ilkOdemeyiIadeEt(talep.id)).basarili;
 
-      if (odeme) {
-        const { basarili } = await paytrIadeYap({
-          merchantOid: odeme.merchant_oid,
-          tutarKurus: Math.round(Number(odeme.tutar) * 100),
-        });
-        iadeBasarili = basarili;
+      if (!iadeBasarili) {
+        // Iade olmadiysa talep tekrar bekliyor olsun, sonraki calismada yeniden denenir.
+        await supabaseAdmin
+          .from("randevu_talepleri")
+          .update({ durum: "bekliyor" })
+          .eq("id", talep.id)
+          .eq("durum", "iptal");
       }
-    }
-
-    let durumGuncellendi = false;
-    if (iadeBasarili) {
-      const { error: guncelleHatasi } = await supabaseAdmin
-        .from("randevu_talepleri")
-        .update({ durum: "iptal" })
-        .eq("id", talep.id)
-        .eq("durum", "bekliyor");
-      durumGuncellendi = !guncelleHatasi;
     }
 
     sonuclar.push({ talepId: talep.id, iadeBasarili, durumGuncellendi });

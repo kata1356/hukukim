@@ -44,6 +44,12 @@ export async function POST(request) {
     return NextResponse.json({ basarili: true });
   }
 
+  // Yalnızca devam eden (kabul edilmiş) görüşme tamamlanabilir; beklemedeki
+  // ya da iptal edilmiş bir talep "tamamlandı" yapılamaz.
+  if (talep.durum !== "kabul") {
+    return NextResponse.json({ hata: "Bu görüşme tamamlanabilir durumda değil." }, { status: 400 });
+  }
+
   const dakika = gorusmeSuresiSaniye ? Math.max(1, Math.ceil(Number(gorusmeSuresiSaniye) / 60)) : null;
 
   // Atomik kosullu guncelleme: ayni gorusmeyi avukat ve muvekkil neredeyse
@@ -57,7 +63,7 @@ export async function POST(request) {
       ...(dakika ? { gorusme_suresi_dakika: dakika } : {}),
     })
     .eq("id", randevuTalepId)
-    .neq("durum", "tamamlandi")
+    .eq("durum", "kabul")
     .select("id")
     .maybeSingle();
 

@@ -57,7 +57,8 @@ export default function AcilAvukat() {
         const { count } = await supabase
           .from("randevu_talepleri")
           .select("id", { count: "exact", head: true })
-          .eq("muvekkil_id", user.id);
+          .eq("muvekkil_id", user.id)
+          .eq("odeme_durumu", "odendi");
         if (!iptalEdildi) setIlkGorusmeMi(!count);
         setProfil(muvekkilProfili);
         setDurum("form");

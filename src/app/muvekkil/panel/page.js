@@ -268,7 +268,7 @@ export default function MuvekkilPanel() {
 
   const bekleyenSayisi = gonderilenTalepler.filter((t) => t.durum === "bekliyor").length;
   const onaylananSayisi = gonderilenTalepler.filter((t) => t.durum === "kabul").length;
-  const ilkGorusmeMi = gonderilenTalepler.length === 0;
+  const ilkGorusmeMi = !gonderilenTalepler.some((t) => t.odeme_durumu === "odendi");
   const aktifDurumlar = ["bekliyor", "kabul"];
   const aktifTalepler = gonderilenTalepler.filter((t) => aktifDurumlar.includes(t.durum));
   const gecmisTalepler = gonderilenTalepler.filter((t) => !aktifDurumlar.includes(t.durum));
