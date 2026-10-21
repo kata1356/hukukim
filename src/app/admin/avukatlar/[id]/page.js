@@ -24,6 +24,8 @@ export default function AdminAvukatDetay() {
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [basari, setBasari] = useState(null);
+  const [belgeLinkleri, setBelgeLinkleri] = useState({});
+  const [redNotu, setRedNotu] = useState("");
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -87,6 +89,43 @@ export default function AdminAvukatDetay() {
     setKaydediliyor(false);
   }
 
+  const kimlikYolu = avukat?.kimlik_belge_yolu;
+  const baroKartiYolu = avukat?.baro_karti_yolu;
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function linkleriGetir() {
+      const yollar = { kimlik: kimlikYolu, baro: baroKartiYolu };
+      const sonuc = {};
+      for (const [anahtar, yol] of Object.entries(yollar)) {
+        if (!yol) continue;
+        const { data } = await supabase.storage.from("avukat-belgeleri").createSignedUrl(yol, 600);
+        if (data) sonuc[anahtar] = data.signedUrl;
+      }
+      if (!iptalEdildi) setBelgeLinkleri(sonuc);
+    }
+
+    linkleriGetir();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, [kimlikYolu, baroKartiYolu]);
+
+  async function belgeKarariVer(onay) {
+    setHata(null);
+    const alanlar = onay
+      ? { belge_durumu: "onaylandi", belge_notu: null, dogrulanmis: true }
+      : { belge_durumu: "reddedildi", belge_notu: redNotu.trim() || null, dogrulanmis: false };
+    const { error } = await supabase.from("avukatlar").update(alanlar).eq("id", id);
+    if (error) {
+      setHata("Belge kararı kaydedilemedi.");
+      return;
+    }
+    setAvukat((onceki) => ({ ...onceki, ...alanlar }));
+    setRedNotu("");
+  }
+
   async function dogrulamaDegistir() {
     setHata(null);
     const { error } = await supabase.from("avukatlar").update({ dogrulanmis: !avukat.dogrulanmis }).eq("id", id);
@@ -133,6 +172,61 @@ export default function AdminAvukatDetay() {
           {avukat.dogrulanmis ? "Doğrulamayı Kaldır" : "Doğrula"}
         </button>
       </div>
+
+      <section className="mb-6 max-w-2xl rounded-xl border border-yonetim-kenar bg-yonetim-kutu p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-white">Kimlik Belgeleri</h2>
+          <span className="text-xs font-semibold text-white/60">
+            Durum: {{ yok: "Yüklenmedi", incelemede: "İncelemede", onaylandi: "Onaylandı", reddedildi: "Reddedildi" }[avukat.belge_durumu ?? "yok"]}          </span>
+        </div>
+
+        {avukat.kimlik_belge_yolu || avukat.baro_karti_yolu ? (
+          <div className="mt-3 flex flex-wrap gap-3 text-sm">
+            {belgeLinkleri.kimlik && (
+              <a href={belgeLinkleri.kimlik} target="_blank" rel="noreferrer" className="font-semibold text-vurgu underline">
+                Kimliği aç
+              </a>
+            )}
+            {belgeLinkleri.baro && (
+              <a href={belgeLinkleri.baro} target="_blank" rel="noreferrer" className="font-semibold text-vurgu underline">
+                Baro kartını aç
+              </a>
+            )}
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-white/50">Henüz belge yüklenmedi.</p>
+        )}
+
+        {avukat.belge_durumu === "incelemede" && (
+          <div className="mt-4 flex flex-col gap-3 border-t border-yonetim-kenar pt-4">
+            <p className="text-xs text-white/50">
+              Kimlikteki ad soyadı, baro kartındaki sicil no ({avukat.baro_sicil_no}) ve profil bilgileriyle eşleştir.
+            </p>
+            <input
+              value={redNotu}
+              onChange={(e) => setRedNotu(e.target.value)}
+              placeholder="Ret gerekçesi (avukata gösterilir)"
+              className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-vurgu"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => belgeKarariVer(true)}
+                className="rounded-md bg-vurgu px-4 py-2 text-sm font-bold text-yonetim hover:opacity-90"
+              >
+                Onayla ve Doğrula
+              </button>
+              <button
+                type="button"
+                onClick={() => belgeKarariVer(false)}
+                className="rounded-md border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/10"
+              >
+                Reddet
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
 
       <form onSubmit={kaydet} className="flex max-w-2xl flex-col gap-5 rounded-xl border border-yonetim-kenar bg-yonetim-kutu p-6">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

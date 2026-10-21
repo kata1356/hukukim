@@ -59,7 +59,8 @@ export default function AcilAvukat() {
         const { count } = await supabase
           .from("randevu_talepleri")
           .select("id", { count: "exact", head: true })
-          .eq("muvekkil_id", user.id);
+          .eq("muvekkil_id", user.id)
+          .or("odeme_durumu.eq.odendi,and(odeme_durumu.eq.muaf,durum.neq.iptal)");
         if (!iptalEdildi) setIlkGorusmeMi(!count);
         setProfil(muvekkilProfili);
         setDurum("form");
@@ -235,7 +236,7 @@ export default function AcilAvukat() {
           required
           value={form.telefon}
           onChange={(e) => alanGuncelle("telefon", e.target.value)}
-          placeholder="05XX XXX XX XX"
+          placeholder="05XXXXXXXXX"
         />
         <TextField
           label="Şehir"

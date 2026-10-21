@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { telefonKullanimda } from "@/lib/talepYardimci";
 
 // "Acil Avukat" akışı hız gerektirdiği için e-posta doğrulama beklemez:
 // hesap anında oluşturulup onaylanmış sayılır. Bu yol yalnızca müvekkil
@@ -15,6 +16,18 @@ export async function POST(request) {
 
   if (!email || !sifre || !profil) {
     return NextResponse.json({ hata: { message: "Eksik bilgi gönderildi." } }, { status: 400 });
+  }
+
+  if (profil.telefon && !/^0\d{10}$/.test(profil.telefon)) {
+    return NextResponse.json({ hata: { message: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." } }, { status: 400 });
+  }
+  delete profil.telefon_dogrulandi;
+
+  if (profil.telefon && (await telefonKullanimda(supabaseAdmin, profil.telefon))) {
+    return NextResponse.json(
+      { hata: { message: "Bu telefon numarası başka bir hesapta kayıtlı." } },
+      { status: 409 }
+    );
   }
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({

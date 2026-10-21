@@ -73,7 +73,7 @@ export default function OdemeTest() {
             required
             value={form.telefon}
             onChange={(e) => alanGuncelle("telefon", e.target.value)}
-            placeholder="05XX XXX XX XX"
+            placeholder="05XXXXXXXXX"
           />
           <TextField
             label="Tutar (TL)"

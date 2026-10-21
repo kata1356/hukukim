@@ -27,6 +27,12 @@ import { supabase } from "@/lib/supabaseClient";
 import SssAkordeon from "@/components/SssAkordeon";
 import OneCikanAvukatlar from "@/components/OneCikanAvukatlar";
 import Logo from "@/components/Logo";
+import {
+  GORUSME_PAKETLERI,
+  OZEL_DAKIKA_EN_AZ,
+  OZEL_DAKIKA_EN_FAZLA,
+  OZEL_DAKIKA_UCRETI,
+} from "@/lib/odemeYardimci";
 
 export const revalidate = 60;
 
@@ -44,7 +50,7 @@ const SORUNLAR = [
   {
     baslik: "Ücreti görüşmeden önce bilemezsin",
     aciklama:
-      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz, sonrası dakikada 40 TL.",
+      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz deneme, sonrası hazır paketler ya da dakikası 40 TL.",
   },
   {
     baslik: "Karşındaki gerçekten avukat mı?",
@@ -130,19 +136,22 @@ export default async function AnaSayfa() {
     sayiGosterilebilir
       ? { deger: `${dogrulanmisSayisi}`, etiket: "Doğrulanmış avukat" }
       : { deger: "Baro", etiket: "Sicil doğrulaması" },
-    { deger: "5 dk", etiket: "İlk görüşme ücretsiz" },
-    { deger: "40 TL", etiket: "Sonraki her dakika" },
+    { deger: "5 dk", etiket: "Ücretsiz deneme" },
+    { deger: "40 TL", etiket: "Dakika başı" },
     { deger: "KVKK", etiket: "Uyumlu süreç" },
   ];
 
   return (
     <div className="flex min-h-full flex-1 flex-col overflow-x-hidden bg-gece text-white">
-      <div className="bg-gece-yuzey py-2 text-center text-xs font-semibold text-turkuaz sm:text-sm">
-        <span className="sm:hidden">Kayıt ücretsiz · Baro doğrulamalı avukatlar</span>
+      <a
+        href="#fiyatlandirma"
+        className="block bg-gece-yuzey px-4 py-2 text-center text-xs font-semibold text-turkuaz transition hover:text-turkuaz-parlak sm:text-sm"
+      >
+        <span className="sm:hidden">İlk 5 dk ücretsiz · Paketler 200 TL&apos;den · Fiyatlar →</span>
         <span className="hidden sm:inline">
-          Kayıt tamamen ücretsiz · Baro sicil doğrulamalı avukatlarla dakikalar içinde tanış
+          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Paketler 200 TL&apos;den başlar · Fiyatları gör →
         </span>
-      </div>
+      </a>
 
       <SiteHeader />
 
@@ -161,7 +170,7 @@ export default async function AnaSayfa() {
             className="absolute -top-24 right-0 -z-10 h-96 w-96 translate-x-1/3 rounded-full bg-turkuaz/10 blur-3xl"
           />
 
-          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 pb-14 pt-12 sm:gap-16 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs font-bold text-white ring-1 ring-white/10">
                 <IconKalkan className="h-4 w-4 text-turkuaz" />
@@ -179,13 +188,13 @@ export default async function AnaSayfa() {
               </p>
 
               <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <a
-                  href="#basla"
-                  className="flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-6 py-3.5 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-lg hover:shadow-turkuaz/20"
+                <Link
+                  href="/muvekkil/kayit"
+                  className="flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-turkuaz px-6 py-3.5 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-lg hover:shadow-turkuaz/20"
                 >
-                  Ücretsiz Başla
+                  Görüşmemi Başlat
                   <IconOk className="h-4 w-4" />
-                </a>
+                </Link>
                 <a
                   href="#nasil-calisir"
                   className="flex items-center justify-center gap-1.5 rounded-full border-2 border-white/15 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-white/40"
@@ -193,6 +202,15 @@ export default async function AnaSayfa() {
                   Nasıl Çalışır?
                 </a>
               </div>
+
+              <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold text-white/70 lg:justify-start">
+                {KANIT_SERIDI.slice(0, 3).map(({ deger, etiket }) => (
+                  <span key={etiket} className="inline-flex items-center gap-1">
+                    <IconOnay className="h-3.5 w-3.5 text-turkuaz" />
+                    {deger} {etiket}
+                  </span>
+                ))}
+              </p>
 
               <Link
                 href="/acil-avukat"
@@ -322,7 +340,7 @@ export default async function AnaSayfa() {
                 href="#basla"
                 className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-5 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
               >
-                Hemen Dene
+                Eşleşmemi Dene
                 <IconOk className="h-4 w-4" />
               </a>
             </div>
@@ -446,13 +464,13 @@ export default async function AnaSayfa() {
               <p className="text-sm font-semibold text-white/70">Toplam süre</p>
               <p className="mt-2 font-heading text-5xl font-extrabold text-turkuaz">3 adım</p>
               <p className="mt-3 text-sm text-white/60">
-                Kaydol, avukatı bul, talebini gönder. Kayıt ücretsiz, ilk 5 dakika ücretsiz.
+                Kaydol, avukatı bul, talebini gönder. Kayıt ücretsiz, ilk 5 dakika ücretsiz deneme.
               </p>
               <Link
                 href="/muvekkil/kayit"
                 className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
               >
-                Ücretsiz Başla
+                Görüşmemi Başlat
                 <IconOk className="h-4 w-4" />
               </Link>
             </div>
@@ -515,35 +533,52 @@ export default async function AnaSayfa() {
               Şeffaf, önceden bilinen bir görüşme ücretlendirmesi.
             </p>
 
-            <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col items-center gap-2 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-8 shadow-md">
-                <span className="rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
-                  Yeni Üyelere Özel
-                </span>
-                <p className="mt-2 text-4xl font-extrabold text-white">
-                  İlk 5 Dakika
-                </p>
-                <p className="text-sm text-white/60">Ücretsiz, ilk randevunda</p>
-              </div>
+            <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-1 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-6 shadow-md">
+              <span className="rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
+                Yeni Üyelere Özel
+              </span>
+              <p className="mt-2 text-3xl font-extrabold text-white">İlk 5 Dakika Ücretsiz</p>
+              <p className="text-sm text-white/60">Paket almadan dene, kart gerekmez</p>
+            </div>
 
-              <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-gece-yuzey p-8 shadow-sm">
-                <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                  Sonraki Her Dakika
-                </span>
-                <p className="mt-2 text-4xl font-extrabold text-white">
-                  40 TL
-                  <span className="text-base font-semibold text-white/50"> / dakika</span>
+            <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+              {GORUSME_PAKETLERI.map(({ dakika, tutar }) => (
+                <div
+                  key={dakika}
+                  className="flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm"
+                >
+                  <p className="text-sm font-bold text-white/60">{dakika} dakika</p>
+                  <p className="text-4xl font-extrabold text-white">
+                    {tutar}
+                    <span className="text-base font-semibold text-white/50"> TL</span>
+                  </p>
+                  <p className="text-xs text-white/50">
+                    Dakikası {(tutar / dakika).toFixed(1).replace(/\.0$/, "").replace(".", ",")} TL
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mx-auto mt-4 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 text-left">
+                <p className="font-bold text-white">Kendi süreni seç</p>
+                <p className="mt-1 text-sm text-white/60">
+                  {OZEL_DAKIKA_EN_AZ} ile {OZEL_DAKIKA_EN_FAZLA} dakika arası istediğin süreyi gir,
+                  dakikası {OZEL_DAKIKA_UCRETI} TL.
                 </p>
-                <p className="text-sm text-white/60">Sadece konuştuğun kadar öde</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 text-left">
+                <p className="font-bold text-white">Süre yetmezse ek süre</p>
+                <p className="mt-1 text-sm text-white/60">
+                  Görüşme bitmeden +5 dakika 200 TL ile devam edersin. Görüşmeden ayrılmana gerek kalmaz.
+                </p>
               </div>
             </div>
 
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-              Ücretlendirme taksimetre mantığıyla dakika bazlı çalışır. İlk
-              randevunda ilk 5 dakika tamamen ücretsizdir, sonrasında yalnızca
-              konuştuğun süre kadar ödersin. Ödeme, görüşme tamamlandıktan
-              sonra güvenli ödeme altyapımız (PayTR) üzerinden otomatik alınır.
+              İlk 5 dakika deneme amaçlı ücretsizdir (telefon numarası başına
+              bir kez). Ödeme, güvenli ödeme altyapımız (PayTR) üzerinden alınır.
             </p>
           </div>
         </section>
@@ -736,7 +771,7 @@ export default async function AnaSayfa() {
             </div>
 
             <p className="relative mt-4 text-xs text-white/50">
-              Kayıt ücretsiz · İlk görüşmenin ilk 5 dakikası ücretsiz · Hesabını istediğin an silebilirsin
+              Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Hesabını istediğin an silebilirsin
             </p>
 
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

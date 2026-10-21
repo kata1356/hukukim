@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Spinner from "./Spinner";
 
@@ -27,8 +27,81 @@ function IconGoogle(props) {
   );
 }
 
+const GOOGLE_ISTEMCI_KIMLIGI = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const GIS_SCRIPT = "https://accounts.google.com/gsi/client";
+
+function gisYukle() {
+  return new Promise((coz, reddet) => {
+    if (window.google?.accounts?.id) return coz();
+    const mevcut = document.querySelector(`script[src="${GIS_SCRIPT}"]`);
+    const script = mevcut ?? Object.assign(document.createElement("script"), { src: GIS_SCRIPT, async: true });
+    script.addEventListener("load", () => coz());
+    script.addEventListener("error", reddet);
+    if (!mevcut) document.head.appendChild(script);
+  });
+}
+
+// Google'ın kendi hesap seçici butonunu kullanır: sayfa yönlendirilmediği için
+// "supabase.co" adresi görünmez; kimlik jetonu doğrudan Supabase'e verilir.
+function GoogleHesapButonu({ redirectYolu, metin }) {
+  const kutuRef = useRef(null);
+  const [hata, setHata] = useState(null);
+
+  useEffect(() => {
+    let iptalEdildi = false;
+
+    async function kur() {
+      try {
+        await gisYukle();
+      } catch {
+        if (!iptalEdildi) setHata("Google yüklenemedi, sayfayı yenile.");
+        return;
+      }
+      if (iptalEdildi || !kutuRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_ISTEMCI_KIMLIGI,
+        callback: async ({ credential }) => {
+          const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token: credential });
+          if (error) {
+            console.error("Google giriş hatası:", error);
+            setHata("Google ile giriş yapılamadı, tekrar dene.");
+            return;
+          }
+          window.location.assign(redirectYolu);
+        },
+      });
+      window.google.accounts.id.renderButton(kutuRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        shape: "rectangular",
+        text: metin.includes("Giriş") ? "signin_with" : "continue_with",
+        locale: "tr",
+        width: Math.min(kutuRef.current.offsetWidth || 320, 400),
+      });
+    }
+
+    kur();
+    return () => {
+      iptalEdildi = true;
+    };
+  }, [redirectYolu, metin]);
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div ref={kutuRef} className="flex min-h-10 w-full justify-center" />
+      {hata && <p className="text-xs text-red-400">{hata}</p>}
+    </div>
+  );
+}
+
 export default function GoogleGirisButonu({ redirectYolu, metin = "Google ile Devam Et" }) {
   const [yukleniyor, setYukleniyor] = useState(false);
+
+  if (GOOGLE_ISTEMCI_KIMLIGI) {
+    return <GoogleHesapButonu redirectYolu={redirectYolu} metin={metin} />;
+  }
 
   async function tikla() {
     setYukleniyor(true);

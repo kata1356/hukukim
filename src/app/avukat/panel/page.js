@@ -12,6 +12,7 @@ import DurumRozeti from "@/components/DurumRozeti";
 import DogrulamaRozeti from "@/components/DogrulamaRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import AltMenu from "@/components/AltMenu";
+import BelgeYukleme from "@/components/BelgeYukleme";
 import { AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 import StatKarti from "@/components/StatKarti";
 import YildizGosterge from "@/components/YildizGosterge";
@@ -26,7 +27,6 @@ import {
   IconTakvim,
   IconEv,
   IconListe,
-  IconYayin,
   IconYildirim,
   IconKamera,
   IconYildiz,
@@ -168,7 +168,7 @@ export default function AvukatPanel() {
       .select("*")
       .eq("tur", "genel")
       .is("avukat_id", null)
-      .eq("odeme_durumu", "odendi")
+      .in("odeme_durumu", ["odendi", "muaf"])
       .order("created_at", { ascending: false });
 
     const uygunAlanlar = avukatProfili.uzmanlik_alanlari ?? [];
@@ -342,8 +342,8 @@ export default function AvukatPanel() {
     <div className="flex min-h-full flex-1 flex-col bg-gece">
       <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Avukat Paneli" panelYolu="/avukat" />
 
-      <nav className="sticky top-[65px] z-[9] border-b border-white/10 bg-gece/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl gap-2 overflow-x-auto px-4 py-2.5 sm:px-6">
+      <nav className="sticky top-14 z-[9] border-b border-white/10 bg-gece">
+        <div className="mx-auto flex max-w-5xl gap-6 overflow-x-auto px-4 sm:px-6">
           {[
             { etiket: "Profil", href: "#profil-bilgileri" },
             { etiket: "Açık Havuz", href: "#acik-talepler" },
@@ -354,7 +354,7 @@ export default function AvukatPanel() {
             <a
               key={href}
               href={href}
-              className="shrink-0 rounded-full bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="shrink-0 border-b-2 border-transparent py-3 text-sm font-medium text-white/60 transition hover:border-white/30 hover:text-white"
             >
               {etiket}
             </a>
@@ -363,7 +363,34 @@ export default function AvukatPanel() {
       </nav>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <section id="profil-bilgileri" className="scroll-mt-20 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm">
+        {!profil.dogrulanmis && (
+          <section className="rounded-lg border-2 border-amber-500 bg-amber-500/10 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-lg font-bold text-amber-400">
+                  {profil.belge_durumu === "incelemede"
+                    ? "Belgelerin inceleniyor"
+                    : "Hesabın henüz doğrulanmadı"}
+                </p>
+                <p className="mt-1 text-sm text-white/80">
+                  {profil.belge_durumu === "incelemede"
+                    ? "Ekibimiz kimlik ve baro kartını kontrol ediyor. Onaylanınca talepler otomatik olarak açılır."
+                    : "Doğrulanana kadar talepleri göremez, randevu alamaz ve müvekkillerle iletişime geçemezsin. Kimlik ve baro kartını yükleyerek başla."}
+                </p>
+              </div>
+              {profil.belge_durumu !== "incelemede" && (
+                <a
+                  href="#kimlik-dogrulama"
+                  className="shrink-0 rounded-md bg-amber-500 px-5 py-2.5 text-center text-sm font-bold text-gece transition hover:bg-amber-400"
+                >
+                  Belgelerimi Yükle
+                </a>
+              )}
+            </div>
+          </section>
+        )}
+
+        <section id="profil-bilgileri" className="scroll-mt-20 rounded-lg border border-white/10 bg-gece-yuzey p-6 ">
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <label className="group relative cursor-pointer">
               <Avatar
@@ -372,7 +399,7 @@ export default function AvukatPanel() {
                 dogrulanmis={profil.dogrulanmis}
                 boyut="lg"
               />
-              <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-turkuaz text-gece shadow-sm ring-2 ring-gece-yuzey transition group-hover:scale-110">
+              <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-turkuaz text-gece ring-2 ring-gece-yuzey transition group-hover:scale-110">
                 {fotografYukleniyor ? (
                   <Spinner className="h-3.5 w-3.5" />
                 ) : (
@@ -388,7 +415,7 @@ export default function AvukatPanel() {
               />
             </label>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-xl font-semibold text-white">
                 {profil.ad_soyad}
               </h1>
               <p className="text-sm text-white/60">{profil.email}</p>
@@ -406,10 +433,10 @@ export default function AvukatPanel() {
           )}
 
           {!profil.dogrulanmis && (
-            <p className="mt-4 rounded-lg bg-white/5 px-4 py-2.5 text-xs text-white/50">
-              Baro sicil numaran ekibimiz tarafından kontrol edildikten sonra
-              profilin &quot;Doğrulanmış&quot; olarak işaretlenecek.
-            </p>
+            <BelgeYukleme
+              profil={profil}
+              onGuncel={(alanlar) => setProfil((onceki) => ({ ...onceki, ...alanlar }))}
+            />
           )}
 
           <div className="mt-6 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
@@ -454,14 +481,14 @@ export default function AvukatPanel() {
           <StatKarti deger={acikTalepler.length} etiket="Açık Havuz" />
         </section>
 
+        {profil.dogrulanmis && (<>
         <section id="acik-talepler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-              <IconYayin className="h-5 w-5 text-turkuaz" />
+            <h2 className="flex items-center gap-2 text-base font-semibold text-white">
               Açık Talepler
             </h2>
             {acikTalepler.length > 0 && (
-              <span className="rounded-full bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
+              <span className="rounded-md bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
                 {acikTalepler.length} uygun talep
               </span>
             )}
@@ -474,7 +501,7 @@ export default function AvukatPanel() {
           )}
 
           {acikTalepler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Şehrine veya uzmanlık alanlarına uygun açık bir talep yok.
             </p>
           ) : (
@@ -484,14 +511,14 @@ export default function AvukatPanel() {
                   key={talep.id}
                   className={
                     talep.acil
-                      ? "rounded-2xl border-2 border-red-500/30 bg-red-500/[0.06] p-5 shadow-sm"
-                      : "rounded-2xl border border-turkuaz/30 bg-turkuaz/[0.05] p-5 shadow-sm"
+                      ? "rounded-lg border border-l-4 border-white/10 border-l-red-500 bg-gece-yuzey p-5"
+                      : "rounded-lg border border-white/10 bg-gece-yuzey p-5"
                   }
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       {talep.acil && (
-                        <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold text-white">
+                        <span className="mb-1.5 inline-flex items-center gap-1 rounded-md bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-400">
                           <IconYildirim className="h-3.5 w-3.5" />
                           ACİL
                         </span>
@@ -513,8 +540,8 @@ export default function AvukatPanel() {
                       disabled={ustlenYukleniyor === talep.id}
                       className={
                         talep.acil
-                          ? "flex shrink-0 items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
-                          : "flex shrink-0 items-center gap-2 rounded-full bg-turkuaz px-4 py-2 text-sm font-bold text-gece shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                          ? "flex shrink-0 items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60 "
+                          : "flex shrink-0 items-center gap-2 rounded-md bg-turkuaz px-4 py-2 text-sm font-bold text-gece transition disabled:opacity-60 "
                       }
                     >
                       {ustlenYukleniyor === talep.id && <Spinner className="h-4 w-4" />}
@@ -533,7 +560,7 @@ export default function AvukatPanel() {
                         {talep.paket_dakika} dk
                         {talep.odeme_tutari > 0
                           ? ` · Kazancın: ${avukatPayiHesapla(talep.odeme_tutari)} TL`
-                          : " · Ücretsiz (ilk görüşme)"}
+                          : " · Ücretsiz deneme (ek süre alınırsa kazanırsın)"}
                       </span>
                     )}
                   </div>
@@ -551,11 +578,11 @@ export default function AvukatPanel() {
 
         <section id="talepler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-base font-semibold text-white">
               Gelen Randevu Talepleri
             </h2>
             {bekleyenSayisi > 0 && (
-              <span className="rounded-full bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
+              <span className="rounded-md bg-turkuaz/15 px-2.5 py-0.5 text-xs font-semibold text-turkuaz">
                 {bekleyenSayisi} bekliyor
               </span>
             )}
@@ -568,7 +595,7 @@ export default function AvukatPanel() {
           )}
 
           {talepler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz bir randevu talebin yok.
             </p>
           ) : (
@@ -576,7 +603,7 @@ export default function AvukatPanel() {
               {talepler.map((talep) => (
                 <div
                   key={talep.id}
-                  className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm transition hover:border-white/20"
+                  className="rounded-lg border border-white/10 bg-gece-yuzey p-5 transition hover:border-white/20"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
@@ -590,7 +617,7 @@ export default function AvukatPanel() {
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <DurumRozeti durum={talep.durum} />
                       {talep.gorusme_suresi_dakika > 0 && (
-                        <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-400 ring-1 ring-green-500/20">
+                        <span className="rounded-md bg-green-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-400 ring-1 ring-green-500/20">
                           Ödendi
                         </span>
                       )}
@@ -624,7 +651,7 @@ export default function AvukatPanel() {
                       <button
                         onClick={() => talebiGuncelle(talep.id, "kabul")}
                         disabled={islemYukleniyor === talep.id}
-                        className="flex items-center gap-2 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0"
+                        className="flex items-center gap-2 rounded-md bg-turkuaz px-4 py-2 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60 "
                       >
                         {islemYukleniyor === talep.id ? (
                           <Spinner className="h-4 w-4" />
@@ -636,7 +663,7 @@ export default function AvukatPanel() {
                       <button
                         onClick={() => talebiGuncelle(talep.id, "red")}
                         disabled={islemYukleniyor === talep.id}
-                        className="flex items-center gap-2 rounded-full border-2 border-red-500/30 px-4 py-2 text-sm font-semibold text-red-400 transition hover:-translate-y-0.5 hover:bg-red-500/10 disabled:opacity-60 disabled:hover:translate-y-0"
+                        className="flex items-center gap-2 rounded-md border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10 disabled:opacity-60 "
                       >
                         {islemYukleniyor === talep.id ? (
                           <Spinner className="h-4 w-4" />
@@ -662,7 +689,7 @@ export default function AvukatPanel() {
                       <button
                         onClick={() => mesajGorusmesiniTamamla(talep.id)}
                         disabled={tamamlaYukleniyor === talep.id}
-                        className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                        className="flex items-center gap-1.5 rounded-md bg-turkuaz px-4 py-2 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
                       >
                         {tamamlaYukleniyor === talep.id && <Spinner className="h-4 w-4" />}
                         Görüşmeyi Tamamla
@@ -684,13 +711,14 @@ export default function AvukatPanel() {
           )}
         </section>
 
+        </>)}
+
         <section id="musaitlik" className="scroll-mt-20">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
-            <IconTakvim className="h-5 w-5 text-turkuaz" />
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-white">
             Müsaitlik Takvimi
           </h2>
 
-          <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm">
+          <div className="rounded-lg border border-white/10 bg-gece-yuzey p-5 ">
             <p className="text-sm text-white/60">
               Müsait olmadığın günleri işaretle, müvekkiller randevu talebi
               gönderirken bu günleri seçemesin.
@@ -713,7 +741,7 @@ export default function AvukatPanel() {
               <button
                 type="submit"
                 disabled={!yeniKapaliTarih || kapatmaYukleniyor}
-                className="flex items-center gap-1.5 rounded-full bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-md bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
               >
                 {kapatmaYukleniyor ? <Spinner className="h-4 w-4" /> : <IconArti className="h-4 w-4" />}
                 Bu Günü Kapat
@@ -731,7 +759,7 @@ export default function AvukatPanel() {
                 {kapaliGunler.map((gun) => (
                   <span
                     key={gun.id}
-                    className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70"
+                    className="flex items-center gap-2 rounded-md bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70"
                   >
                     {tarihFormatla(gun.tarih)}
                     <button
@@ -751,18 +779,18 @@ export default function AvukatPanel() {
 
         <section id="degerlendirmeler" className="scroll-mt-20">
           <div className="mb-4 flex items-center gap-3">
-            <h2 className="text-lg font-bold text-white">Değerlendirmelerim</h2>
+            <h2 className="text-base font-semibold text-white">Değerlendirmelerim</h2>
             <YildizGosterge ortalama={ortalamaPuan} sayi={degerlendirmeler.length} />
           </div>
 
           {degerlendirmeler.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz bir değerlendirme almadın.
             </p>
           ) : (
             <div className="flex flex-col gap-3">
               {degerlendirmeler.map((d) => (
-                <div key={d.id} className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 shadow-sm">
+                <div key={d.id} className="rounded-lg border border-white/10 bg-gece-yuzey p-5 ">
                   <div className="flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <IconYildiz key={i} className={`h-4 w-4 ${i < d.puan ? "text-turkuaz" : "text-white/15"}`} />

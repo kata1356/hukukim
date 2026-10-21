@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
+import PaketSecici from "./PaketSecici";
 import TextField from "./TextField";
 import Button from "./Button";
 import Modal from "./Modal";
@@ -13,9 +14,10 @@ import { IconYildirim } from "./icons";
 export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasarili }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
+    telefon: muvekkilProfil.telefon ?? "",
     uzmanlikAlani: "",
     aciklama: "",
-    paketDakika: GORUSME_PAKETLERI[0].dakika,
+    paketDakika: ilkGorusmeMi ? "deneme" : GORUSME_PAKETLERI[0].dakika,
   });
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -42,6 +44,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
       },
       body: JSON.stringify({
         hedefSehir: form.sehir,
+        telefon: form.telefon,
         hedefUzmanlikAlani: form.uzmanlikAlani,
         konu: `Acil: ${form.uzmanlikAlani}`,
         aciklama: form.aciklama,
@@ -76,12 +79,6 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           Talebin, şehrine ve uzmanlık alanına uygun tüm avukatlara ACİL olarak
           gösterilir. İlk kabul eden avukatla görüşmen hemen başlar.
         </p>
-
-        {ilkGorusmeMi && (
-          <p className="rounded-lg bg-turkuaz/10 px-4 py-2.5 text-sm font-semibold text-turkuaz">
-            İlk görüşmen tamamen ücretsiz!
-          </p>
-        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
@@ -121,6 +118,20 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           </TextField>
         </div>
 
+        {!muvekkilProfil.telefon && (
+          <TextField
+            label="Telefon"
+            id="acilTelefon"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            required
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XXXXXXXXX"
+          />
+        )}
+
         <TextField
           label="Ne oldu? Kısaca anlat"
           id="acilAciklama"
@@ -132,28 +143,11 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           placeholder="Durumunu birkaç cümleyle özetle, avukatlar bunu görecek."
         />
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-white">Görüşme Paketi</span>
-          <div className="grid grid-cols-3 gap-2">
-            {GORUSME_PAKETLERI.map((paket) => (
-              <button
-                key={paket.dakika}
-                type="button"
-                onClick={() => alanGuncelle("paketDakika", paket.dakika)}
-                className={`flex flex-col items-center gap-1 rounded-xl border p-3 transition ${
-                  form.paketDakika === paket.dakika
-                    ? "border-turkuaz bg-turkuaz/10"
-                    : "border-white/15 bg-white/5 hover:border-white/30"
-                }`}
-              >
-                <span className="text-sm font-bold text-white">{paket.dakika} dk</span>
-                <span className="text-xs text-white/60">
-                  {ilkGorusmeMi ? "Ücretsiz" : `${paket.tutar} TL`}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <PaketSecici
+          dakika={form.paketDakika}
+          onDegis={(dakika) => alanGuncelle("paketDakika", dakika)}
+          deneme={ilkGorusmeMi}
+        />
 
         {hata && (
           <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
@@ -163,7 +157,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
 
         <Button type="submit" variant="acil" yukleniyor={yukleniyor}>
           <IconYildirim className="h-4 w-4" />
-          {ilkGorusmeMi ? "Ücretsiz Acil Talebi Gönder" : "Öde ve Acil Talebi Gönder"}
+          {form.paketDakika === "deneme" ? "Acil Avukatımı Çağır (Ücretsiz Deneme)" : "Ödeyip Acil Avukatımı Çağır"}
         </Button>
       </form>
 

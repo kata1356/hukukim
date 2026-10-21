@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { SEHIRLER } from "@/lib/sehirler";
 import { turkceHataMesaji, emailZatenKayitliMi } from "@/lib/hataMesajlari";
 import AuthShell from "@/components/AuthShell";
 import TextField from "@/components/TextField";
@@ -26,8 +25,6 @@ export default function MuvekkilKayit() {
     adSoyad: "",
     email: "",
     sifre: "",
-    telefon: "",
-    sehir: "",
   });
   const [kvkkOnay, setKvkkOnay] = useState(false);
   const [webSitesi, setWebSitesi] = useState("");
@@ -146,8 +143,6 @@ export default function MuvekkilKayit() {
         rol: "muvekkil",
         profil: {
           ad_soyad: form.adSoyad,
-          telefon: form.telefon,
-          sehir: form.sehir,
           kvkk_onay: kvkkOnay,
         },
       },
@@ -185,8 +180,6 @@ export default function MuvekkilKayit() {
           rol: "muvekkil",
           profil: {
             ad_soyad: form.adSoyad,
-            telefon: form.telefon,
-            sehir: form.sehir,
             kvkk_onay: kvkkOnay,
           },
           web_sitesi: webSitesi,
@@ -237,7 +230,7 @@ export default function MuvekkilKayit() {
     return (
       <AuthShell
         baslik="Profilini Tamamla"
-        altBaslik={`${form.email} ile giriş yaptın, devam etmek için birkaç bilgi daha lazım.`}
+        altBaslik={`${form.email} ile giriş yaptın, son bir adım kaldı.`}
       >
         <form onSubmit={profiliTamamla} className="flex flex-col gap-5">
           <TextField
@@ -249,33 +242,6 @@ export default function MuvekkilKayit() {
             onChange={(e) => alanGuncelle("adSoyad", e.target.value)}
             placeholder="Ör. Mehmet Demir"
           />
-          <TextField
-            label="Telefon"
-            id="oauthTelefon"
-            type="tel"
-            required
-            value={form.telefon}
-            onChange={(e) => alanGuncelle("telefon", e.target.value)}
-            placeholder="05XX XXX XX XX"
-          />
-          <TextField
-            label="Şehir"
-            id="oauthSehir"
-            as="select"
-            required
-            value={form.sehir}
-            onChange={(e) => alanGuncelle("sehir", e.target.value)}
-          >
-            <option value="" disabled>
-              Şehir seç
-            </option>
-            {SEHIRLER.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </TextField>
-
           <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
 
           {hata && (
@@ -285,7 +251,7 @@ export default function MuvekkilKayit() {
           )}
 
           <Button type="submit" yukleniyor={oauthYukleniyor}>
-            Kaydı Tamamla
+            Kaydımı Tamamla
           </Button>
         </form>
       </AuthShell>
@@ -347,7 +313,7 @@ export default function MuvekkilKayit() {
   return (
     <AuthShell
       baslik="Müvekkil Kaydı"
-      altBaslik="Uzman avukatları bul, kolayca randevu talebi gönder."
+      altBaslik="Üç alan, bir dakika. İlk 5 dakikalık deneme görüşmen ücretsiz."
     >
       <div className="flex flex-col gap-4">
         <GoogleGirisButonu redirectYolu="/muvekkil/kayit" />
@@ -388,33 +354,6 @@ export default function MuvekkilKayit() {
           onChange={(e) => alanGuncelle("sifre", e.target.value)}
           placeholder="En az 6 karakter"
         />
-        <TextField
-          label="Telefon"
-          id="telefon"
-          type="tel"
-          required
-          value={form.telefon}
-          onChange={(e) => alanGuncelle("telefon", e.target.value)}
-          placeholder="05XX XXX XX XX"
-        />
-        <TextField
-          label="Şehir"
-          id="sehir"
-          as="select"
-          required
-          value={form.sehir}
-          onChange={(e) => alanGuncelle("sehir", e.target.value)}
-        >
-          <option value="" disabled>
-            Şehir seç
-          </option>
-          {SEHIRLER.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </TextField>
-
         <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
 
         {hata && (
@@ -433,7 +372,7 @@ export default function MuvekkilKayit() {
         )}
 
         <Button type="submit" yukleniyor={yukleniyor}>
-          Kayıt Ol
+          Hesabımı Oluştur
         </Button>
 
         <p className="text-center text-sm text-white/60">

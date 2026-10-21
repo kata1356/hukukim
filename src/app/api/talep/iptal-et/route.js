@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrIadeYap } from "@/lib/paytr";
+import { ilkOdemeyiIadeEt } from "@/lib/iade";
+import { denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 
 // Muvekkil, henuz kimse ustlenmemis (bekliyor) odenmis bir talebi iptal edip
 // anlik iade alabilir. Ucretsiz (odeme_tutari 0) talepler icin iade cagirilmaz,
@@ -43,29 +44,8 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu talep artık iptal edilemez." }, { status: 400 });
   }
 
-  if (Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {
-    const { data: odeme } = await supabaseAdmin
-      .from("odemeler")
-      .select("merchant_oid, tutar")
-      .eq("randevu_talep_id", randevuTalepId)
-      .eq("durum", "basarili")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (odeme) {
-      const { basarili, hata } = await paytrIadeYap({
-        merchantOid: odeme.merchant_oid,
-        tutarKurus: Math.round(Number(odeme.tutar) * 100),
-      });
-      if (!basarili) {
-        return NextResponse.json({ hata: hata ?? "İade işlemi başarısız oldu, lütfen tekrar dene." }, { status: 500 });
-      }
-    }
-  }
-
-  // Atomik: baska bir istek (ornegin bir avukatin tam o anda ustlenmesi) araya
-  // girmisse iptal edilmesin.
+  // Once atomik olarak iptal et: bir avukat tam o anda ustlenmisse (409) iade
+  // hic baslatilmaz, boylece hem iade hem aktif gorusme olusamaz.
   const { data: guncellenen, error: guncelleHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
     .update({ durum: "iptal" })
@@ -81,6 +61,24 @@ export async function POST(request) {
 
   if (!guncellenen) {
     return NextResponse.json({ hata: "Talep iptal edilemedi, az önce bir avukat üstlenmiş olabilir." }, { status: 409 });
+  }
+
+  if (talep.odeme_durumu === "muaf") {
+    await denemeHakkiniGeriVer(supabaseAdmin, talep.muvekkil_id);
+  }
+
+  if (Number(talep.odeme_tutari || 0) > 0 && talep.odeme_durumu === "odendi") {
+    const { basarili, hata } = await ilkOdemeyiIadeEt(randevuTalepId);
+
+    if (!basarili) {
+      // Iade olmadiysa talep tekrar aktif hale gelsin, muvekkil yeniden deneyebilsin.
+      await supabaseAdmin
+        .from("randevu_talepleri")
+        .update({ durum: "bekliyor" })
+        .eq("id", randevuTalepId)
+        .eq("durum", "iptal");
+      return NextResponse.json({ hata: hata ?? "İade işlemi başarısız oldu, lütfen tekrar dene." }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ basarili: true });

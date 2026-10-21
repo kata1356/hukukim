@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { telefonKullanimda } from "@/lib/talepYardimci";
 
 // Bu uç nokta, e-posta doğrulama bağlantısına tıklandıktan sonra çağrılır.
 // Kullanıcı zaten Supabase Auth üzerinde doğrulanmış bir oturuma sahiptir;
@@ -33,6 +34,15 @@ export async function POST(request) {
     return NextResponse.json({ hata: { message: "Kayıt bilgileri eksik." } }, { status: 400 });
   }
 
+  if (profil.telefon && !/^0\d{10}$/.test(profil.telefon)) {
+    return NextResponse.json({ hata: { message: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." } }, { status: 400 });
+  }
+
+  // Doğrulama alanları yalnızca sunucu tarafından (SMS / admin onayı) değiştirilebilir.
+  delete profil.telefon_dogrulandi;
+  delete profil.dogrulanmis;
+  delete profil.belge_durumu;
+
   const tabloAdi = rol === "avukat" ? "avukatlar" : "muvekkiller";
 
   const { data: mevcutProfil } = await supabaseAdmin
@@ -43,6 +53,17 @@ export async function POST(request) {
 
   if (mevcutProfil) {
     return NextResponse.json({ basarili: true, rol });
+  }
+
+  // Bir telefon numarası yalnızca bir hesapta kullanılabilir. Profil henüz
+  // oluşmadığı için yarım kalan oturumu silip kullanıcıyı başka numarayla
+  // yeniden kayda yönlendiriyoruz.
+  if (profil.telefon && (await telefonKullanimda(supabaseAdmin, profil.telefon, kullanici.id))) {
+    await supabaseAdmin.auth.admin.deleteUser(kullanici.id);
+    return NextResponse.json(
+      { hata: { message: "Bu telefon numarası başka bir hesapta kayıtlı. Farklı bir numarayla yeniden kaydol." } },
+      { status: 409 }
+    );
   }
 
   const { error: eklemeHatasi } = await supabaseAdmin

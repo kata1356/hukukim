@@ -88,11 +88,11 @@ export default function AvukatBakiye() {
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
         <div>
-          <h1 className="text-xl font-bold text-white">Bakiye</h1>
+          <h1 className="text-xl font-semibold text-white">Bakiye</h1>
           <p className="mt-1 text-sm text-white/60">Tamamlanmış görüşmelerden kazandığın tutarların özeti.</p>
         </div>
 
-        <div className="rounded-2xl border border-turkuaz/20 bg-gece-yuzey p-6 shadow-sm">
+        <div className="rounded-lg border border-turkuaz/20 bg-gece-yuzey p-6 ">
           <p className="text-sm text-white/50">Toplam Kazanç</p>
           <p className="mt-1 text-4xl font-bold text-white">{toplamKazanc} TL</p>
 
@@ -125,7 +125,7 @@ export default function AvukatBakiye() {
         <section>
           <h2 className="mb-3 text-sm font-bold text-white">Görüşme Geçmişi</h2>
           {kazanclar.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
+            <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.02] p-8 text-center text-sm text-white/50">
               Henüz ücretli bir görüşmen yok.
             </p>
           ) : (

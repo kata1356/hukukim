@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
-import { paketBul } from "@/lib/odemeYardimci";
-import { ilkGorusmeMi } from "@/lib/talepYardimci";
+import { paketHesapla, DENEME_DAKIKA } from "@/lib/odemeYardimci";
+import { ilkGorusmeMi, telefonKullanimda, denemeHakkiniAl, denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
@@ -27,10 +27,11 @@ export async function POST(request) {
   }
 
   const kullanici = kullaniciVerisi.user;
-  const { hedefSehir, hedefUzmanlikAlani, konu, aciklama, gorusmeSekli, paketDakika, acil } =
+  const { hedefSehir, hedefUzmanlikAlani, konu, aciklama, gorusmeSekli, paketDakika, acil, telefon } =
     await request.json();
 
-  const paket = paketBul(paketDakika);
+  const denemeMi = paketDakika === "deneme";
+  const paket = denemeMi ? { dakika: DENEME_DAKIKA, tutar: 0 } : paketHesapla(paketDakika);
   if (!paket || !hedefSehir || !hedefUzmanlikAlani || !konu || !gorusmeSekli) {
     return NextResponse.json({ hata: "Eksik veya geçersiz bilgi." }, { status: 400 });
   }
@@ -45,8 +46,45 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Müvekkil profili bulunamadı." }, { status: 404 });
   }
 
-  const ucretsizMi = await ilkGorusmeMi(supabaseAdmin, kullanici.id);
-  const odemeTutari = ucretsizMi ? 0 : paket.tutar;
+  // Kayıtta telefon ve şehir istenmiyor; ilk talepte alınıp profile yazılır.
+  const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
+  if (yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
+    return NextResponse.json({ hata: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." }, { status: 400 });
+  }
+  if (!muvekkilProfili.telefon && yeniTelefon) {
+    if (await telefonKullanimda(supabaseAdmin, yeniTelefon, kullanici.id)) {
+      return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
+    }
+
+    const { error: telefonHatasi } = await supabaseAdmin
+      .from("muvekkiller")
+      .update({ telefon: yeniTelefon, sehir: hedefSehir })
+      .eq("id", kullanici.id);
+
+    if (telefonHatasi) {
+      return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
+    }
+    muvekkilProfili.telefon = yeniTelefon;
+  }
+
+  // Ücretsiz deneme: numara başına bir kez, ödeme alınmaz. Hakkı önce alıyoruz
+  // ki aynı numarayla eşzamanlı iki istek ikisi de deneme kullanamasın.
+  if (denemeMi) {
+    if (!muvekkilProfili.telefon) {
+      return NextResponse.json({ hata: "Deneme için telefon numarası gerekli." }, { status: 400 });
+    }
+
+    const hakVar =
+      (await ilkGorusmeMi(supabaseAdmin, kullanici.id)) &&
+      (await denemeHakkiniAl(supabaseAdmin, kullanici.id, muvekkilProfili.telefon));
+
+    if (!hakVar) {
+      return NextResponse.json(
+        { hata: "Ücretsiz deneme hakkını daha önce kullanmışsın. Bir paket seçerek devam edebilirsin." },
+        { status: 409 }
+      );
+    }
+  }
 
   const { data: yeniTalep, error: eklemeHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
@@ -65,17 +103,18 @@ export async function POST(request) {
       tarih: BUGUN(),
       paket_dakika: paket.dakika,
       paket_tutari: paket.tutar,
-      odeme_tutari: odemeTutari,
-      odeme_durumu: ucretsizMi ? "odendi" : "gerekli",
+      odeme_tutari: paket.tutar,
+      odeme_durumu: denemeMi ? "muaf" : "gerekli",
     })
     .select()
     .single();
 
   if (eklemeHatasi || !yeniTalep) {
+    if (denemeMi) await denemeHakkiniGeriVer(supabaseAdmin, kullanici.id);
     return NextResponse.json({ hata: "Talep oluşturulamadı." }, { status: 500 });
   }
 
-  if (ucretsizMi) {
+  if (denemeMi) {
     return NextResponse.json({ talepId: yeniTalep.id, ucretsiz: true });
   }
 
