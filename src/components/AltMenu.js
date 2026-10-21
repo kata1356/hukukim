@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function AltMenu({ sekmeler }) {
+export default function AltMenu({ sekmeler, gizle = "sm:hidden" }) {
   const yol = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-gece pb-[env(safe-area-inset-bottom)] sm:hidden">
+    <nav className={`fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-gece pb-[env(safe-area-inset-bottom)] ${gizle}`}>
       <div className="flex items-stretch justify-around">
         {sekmeler.map(({ etiket, href, Icon }) => {
           const sayfaIciBaglanti = href.startsWith("#");
