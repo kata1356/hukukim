@@ -44,7 +44,7 @@ const SORUNLAR = [
   {
     baslik: "Ücreti görüşmeden önce bilemezsin",
     aciklama:
-      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz, sonrası dakikada 40 TL.",
+      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: hazır paketler ve dakikası 40 TL, ilk görüşmende 5 dakika hediye.",
   },
   {
     baslik: "Karşındaki gerçekten avukat mı?",
@@ -130,8 +130,8 @@ export default async function AnaSayfa() {
     sayiGosterilebilir
       ? { deger: `${dogrulanmisSayisi}`, etiket: "Doğrulanmış avukat" }
       : { deger: "Baro", etiket: "Sicil doğrulaması" },
-    { deger: "5 dk", etiket: "İlk görüşme ücretsiz" },
-    { deger: "40 TL", etiket: "Sonraki her dakika" },
+    { deger: "+5 dk", etiket: "İlk görüşmede hediye" },
+    { deger: "40 TL", etiket: "Dakika başı" },
     { deger: "KVKK", etiket: "Uyumlu süreç" },
   ];
 
@@ -183,7 +183,7 @@ export default async function AnaSayfa() {
                   href="/muvekkil/kayit"
                   className="flex min-h-12 items-center justify-center gap-1.5 rounded-full bg-turkuaz px-6 py-3.5 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak hover:shadow-lg hover:shadow-turkuaz/20"
                 >
-                  Ücretsiz Görüşmemi Başlat
+                  Görüşmemi Başlat
                   <IconOk className="h-4 w-4" />
                 </Link>
                 <a
@@ -455,13 +455,13 @@ export default async function AnaSayfa() {
               <p className="text-sm font-semibold text-white/70">Toplam süre</p>
               <p className="mt-2 font-heading text-5xl font-extrabold text-turkuaz">3 adım</p>
               <p className="mt-3 text-sm text-white/60">
-                Kaydol, avukatı bul, talebini gönder. Kayıt ücretsiz, ilk 5 dakika ücretsiz.
+                Kaydol, avukatı bul, talebini gönder. Kayıt ücretsiz, ilk görüşmende 5 dakika hediye.
               </p>
               <Link
                 href="/muvekkil/kayit"
                 className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
               >
-                Ücretsiz Görüşmemi Başlat
+                Görüşmemi Başlat
                 <IconOk className="h-4 w-4" />
               </Link>
             </div>
@@ -530,9 +530,9 @@ export default async function AnaSayfa() {
                   Yeni Üyelere Özel
                 </span>
                 <p className="mt-2 text-4xl font-extrabold text-white">
-                  İlk 5 Dakika
+                  +5 Dakika
                 </p>
-                <p className="text-sm text-white/60">Ücretsiz, ilk randevunda</p>
+                <p className="text-sm text-white/60">Hediye, ilk görüşmende</p>
               </div>
 
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-gece-yuzey p-8 shadow-sm">
@@ -549,10 +549,10 @@ export default async function AnaSayfa() {
 
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-              Ücretlendirme taksimetre mantığıyla dakika bazlı çalışır. İlk
-              randevunda ilk 5 dakika tamamen ücretsizdir, sonrasında yalnızca
-              konuştuğun süre kadar ödersin. Ödeme, görüşme tamamlandıktan
-              sonra güvenli ödeme altyapımız (PayTR) üzerinden otomatik alınır.
+              Süreni hazır paketlerden seçer ya da dakikasını kendin girersin
+              (dakika başı 40 TL). İlk görüşmende seçtiğin süreye 5 dakika
+              hediye eklenir. Ödeme, görüşme başlamadan önce güvenli ödeme
+              altyapımız (PayTR) üzerinden alınır.
             </p>
           </div>
         </section>
@@ -745,7 +745,7 @@ export default async function AnaSayfa() {
             </div>
 
             <p className="relative mt-4 text-xs text-white/50">
-              Kayıt ücretsiz · İlk görüşmenin ilk 5 dakikası ücretsiz · Hesabını istediğin an silebilirsin
+              Kayıt ücretsiz · İlk görüşmende 5 dakika hediye · Hesabını istediğin an silebilirsin
             </p>
 
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

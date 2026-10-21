@@ -13,7 +13,7 @@ import Spinner from "./Spinner";
 import Modal from "./Modal";
 import AIKonuAsistani from "./AIKonuAsistani";
 
-export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili }) {
+export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
     telefon: muvekkilProfil.telefon ?? "",
@@ -66,11 +66,6 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
 
     setYukleniyor(false);
 
-    if (sonuc.ucretsiz) {
-      onBasarili(sonuc.talepId);
-      return;
-    }
-
     setOdemeToken(sonuc.token);
   }
 
@@ -81,12 +76,6 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
           Talebin, seçtiğin şehir ve uzmanlık alanına uygun tüm avukatlara
           gösterilir. İlk kabul eden avukatla görüşmen hemen başlar.
         </p>
-
-        {ilkGorusmeMi && (
-          <p className="rounded-lg bg-turkuaz/10 px-4 py-2.5 text-sm font-semibold text-turkuaz">
-            İlk görüşmen tamamen ücretsiz!
-          </p>
-        )}
 
         <TextField
           label="Açıklama"
@@ -187,7 +176,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
         <PaketSecici
           dakika={form.paketDakika}
           onDegis={(dakika) => alanGuncelle("paketDakika", dakika)}
-          ucretsiz={ilkGorusmeMi}
+          hediye={ilkGorusmeMi}
         />
 
         {hata && (
@@ -201,7 +190,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
             Vazgeç
           </Button>
           <Button type="submit" yukleniyor={yukleniyor} className="w-auto flex-1">
-            {ilkGorusmeMi ? "Ücretsiz Görüşmemi Başlat" : "Ödeyip Talebimi Gönder"}
+            Ödeyip Talebimi Gönder
           </Button>
         </div>
       </form>

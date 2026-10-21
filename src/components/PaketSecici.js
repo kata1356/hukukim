@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   GORUSME_PAKETLERI,
+  ILK_GORUSME_HEDIYE_DAKIKA,
   OZEL_DAKIKA_EN_AZ,
   OZEL_DAKIKA_EN_FAZLA,
   paketHesapla,
@@ -14,7 +15,7 @@ function kutuRengi(secili) {
   return secili ? "border-turkuaz bg-turkuaz/10" : "border-white/15 bg-white/5 hover:border-white/30";
 }
 
-export default function PaketSecici({ dakika, onDegis, ucretsiz }) {
+export default function PaketSecici({ dakika, onDegis, hediye }) {
   const [ozelAcik, setOzelAcik] = useState(false);
   const [ozelMetin, setOzelMetin] = useState("");
 
@@ -41,7 +42,7 @@ export default function PaketSecici({ dakika, onDegis, ucretsiz }) {
             className={`${KUTU} ${kutuRengi(!ozelAcik && dakika === paket.dakika)}`}
           >
             <span className="text-sm font-bold text-white">{paket.dakika} dk</span>
-            <span className="text-xs text-white/60">{ucretsiz ? "Ücretsiz" : `${paket.tutar} TL`}</span>
+            <span className="text-xs text-white/60">{paket.tutar} TL</span>
           </button>
         ))}
         <button
@@ -70,13 +71,15 @@ export default function PaketSecici({ dakika, onDegis, ucretsiz }) {
           />
           <span className="text-sm text-white/70">dakika</span>
           <span className="ml-auto text-sm font-semibold text-turkuaz">
-            {ozelPaket
-              ? ucretsiz
-                ? "Ücretsiz"
-                : `${ozelPaket.tutar} TL`
-              : `${OZEL_DAKIKA_EN_AZ}-${OZEL_DAKIKA_EN_FAZLA} dk arası`}
+            {ozelPaket ? `${ozelPaket.tutar} TL` : `${OZEL_DAKIKA_EN_AZ}-${OZEL_DAKIKA_EN_FAZLA} dk arası`}
           </span>
         </div>
+      )}
+
+      {hediye && (
+        <p className="rounded-lg bg-turkuaz/10 px-3 py-2 text-sm font-semibold text-turkuaz">
+          İlk görüşmene +{ILK_GORUSME_HEDIYE_DAKIKA} dakika hediye: seçtiğin süreye otomatik eklenir.
+        </p>
       )}
     </div>
   );

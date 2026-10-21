@@ -11,7 +11,7 @@ import Button from "./Button";
 import Modal from "./Modal";
 import { IconYildirim } from "./icons";
 
-export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasarili }) {
+export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
     telefon: muvekkilProfil.telefon ?? "",
@@ -63,11 +63,6 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
 
     setYukleniyor(false);
 
-    if (sonuc.ucretsiz) {
-      onBasarili(sonuc.talepId);
-      return;
-    }
-
     setOdemeToken(sonuc.token);
   }
 
@@ -79,12 +74,6 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           Talebin, şehrine ve uzmanlık alanına uygun tüm avukatlara ACİL olarak
           gösterilir. İlk kabul eden avukatla görüşmen hemen başlar.
         </p>
-
-        {ilkGorusmeMi && (
-          <p className="rounded-lg bg-turkuaz/10 px-4 py-2.5 text-sm font-semibold text-turkuaz">
-            İlk görüşmen tamamen ücretsiz!
-          </p>
-        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField
@@ -152,7 +141,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
         <PaketSecici
           dakika={form.paketDakika}
           onDegis={(dakika) => alanGuncelle("paketDakika", dakika)}
-          ucretsiz={ilkGorusmeMi}
+          hediye={ilkGorusmeMi}
         />
 
         {hata && (
@@ -163,7 +152,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
 
         <Button type="submit" variant="acil" yukleniyor={yukleniyor}>
           <IconYildirim className="h-4 w-4" />
-          {ilkGorusmeMi ? "Acil Avukatımı Çağır (Ücretsiz)" : "Ödeyip Acil Avukatımı Çağır"}
+          Ödeyip Acil Avukatımı Çağır
         </Button>
       </form>
 

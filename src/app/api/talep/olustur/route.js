@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
-import { paketHesapla } from "@/lib/odemeYardimci";
+import { paketHesapla, ILK_GORUSME_HEDIYE_DAKIKA } from "@/lib/odemeYardimci";
 import { ilkGorusmeMi } from "@/lib/talepYardimci";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
@@ -58,8 +58,8 @@ export async function POST(request) {
     muvekkilProfili.telefon = yeniTelefon;
   }
 
-  const ucretsizMi = await ilkGorusmeMi(supabaseAdmin, kullanici.id);
-  const odemeTutari = ucretsizMi ? 0 : paket.tutar;
+  // İlk görüşmede ödenen pakete HEDİYE_DAKIKA eklenir; ödeme her zaman alınır.
+  const hediyeDakika = (await ilkGorusmeMi(supabaseAdmin, kullanici.id)) ? ILK_GORUSME_HEDIYE_DAKIKA : 0;
 
   const { data: yeniTalep, error: eklemeHatasi } = await supabaseAdmin
     .from("randevu_talepleri")
@@ -76,20 +76,16 @@ export async function POST(request) {
       aciklama,
       gorusme_sekli: gorusmeSekli,
       tarih: BUGUN(),
-      paket_dakika: paket.dakika,
+      paket_dakika: paket.dakika + hediyeDakika,
       paket_tutari: paket.tutar,
-      odeme_tutari: odemeTutari,
-      odeme_durumu: ucretsizMi ? "odendi" : "gerekli",
+      odeme_tutari: paket.tutar,
+      odeme_durumu: "gerekli",
     })
     .select()
     .single();
 
   if (eklemeHatasi || !yeniTalep) {
     return NextResponse.json({ hata: "Talep oluşturulamadı." }, { status: 500 });
-  }
-
-  if (ucretsizMi) {
-    return NextResponse.json({ talepId: yeniTalep.id, ucretsiz: true });
   }
 
   const merchantOid = `TLP${yeniTalep.id.replace(/-/g, "").slice(0, 20)}${Date.now()}`.slice(0, 64);

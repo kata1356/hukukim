@@ -216,12 +216,6 @@ export default function MuvekkilPanel() {
     }
   }, []);
 
-  async function genelTalepBasarili(talepId) {
-    setGenelTalepAcik(false);
-    setAktifBeklemeTalepId(talepId);
-    if (profil?.id) await gonderilenTalepleriGetir(profil.id);
-  }
-
   async function talebiIptalEt(talepId) {
     setIptalEdiliyor(true);
     try {
@@ -383,7 +377,7 @@ export default function MuvekkilPanel() {
 
         <div className="rounded-lg border border-white/10 bg-gece-yuzey p-6">
           <h2 className="text-base font-semibold text-white">
-            {ilkGorusmeMi ? "İlk görüşmen ücretsiz" : "Avukata mı ihtiyacın var?"}
+            {ilkGorusmeMi ? "İlk görüşmene 5 dk hediye" : "Avukata mı ihtiyacın var?"}
           </h2>
           <p className="mt-1 text-sm text-white/60">
             Şehrini ve konunu seç, ilk kabul eden avukatla görüşmen hemen başlasın.
@@ -536,7 +530,6 @@ export default function MuvekkilPanel() {
             muvekkilProfil={profil}
             ilkGorusmeMi={ilkGorusmeMi}
             onKapat={() => setGenelTalepAcik(false)}
-            onBasarili={genelTalepBasarili}
           />
         </Modal>
       )}

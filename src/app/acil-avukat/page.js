@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { turkceHataMesaji, emailZatenKayitliMi } from "@/lib/hataMesajlari";
 import { SEHIRLER } from "@/lib/sehirler";
@@ -16,7 +15,6 @@ import Honeypot from "@/components/Honeypot";
 import { IconYildirim } from "@/components/icons";
 
 export default function AcilAvukat() {
-  const router = useRouter();
   const [durum, setDurum] = useState("yukleniyor");
   const [profil, setProfil] = useState(null);
   const [ilkGorusmeMi, setIlkGorusmeMi] = useState(true);
@@ -176,7 +174,6 @@ export default function AcilAvukat() {
         <AcilTalepFormu
           muvekkilProfil={profil}
           ilkGorusmeMi={ilkGorusmeMi}
-          onBasarili={(talepId) => router.push(`/muvekkil/panel?talep=${talepId}`)}
         />
       </AuthShell>
     );
