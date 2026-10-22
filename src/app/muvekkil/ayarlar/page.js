@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PanelHeader from "@/components/PanelHeader";
+import MuvekkilShell from "@/components/MuvekkilShell";
 import Spinner from "@/components/Spinner";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
 import HesapSilButonu from "@/components/HesapSilButonu";
-import AltMenu from "@/components/AltMenu";
-import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import { SEHIRLER } from "@/lib/sehirler";
 
 export default function MuvekkilAyarlar() {
@@ -103,16 +101,9 @@ export default function MuvekkilAyarlar() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" panelYolu="/muvekkil" />
-
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-white">Ayarlar</h1>
-          <p className="mt-1 text-sm text-white/60">Profil bilgilerini güncelle.</p>
-        </div>
-
-        <form onSubmit={kaydet} className="flex flex-col gap-5 rounded-lg border border-white/10 bg-gece-yuzey p-6">
+    <MuvekkilShell profil={profil} baslik="Ayarlar" aciklama="Profil bilgilerini güncelle.">
+      <div className="flex w-full max-w-xl flex-col gap-6">
+        <form onSubmit={kaydet} className="flex flex-col gap-5 rounded-xl border border-white/10 bg-gece-yuzey p-6">
           <TextField
             label="Ad Soyad"
             id="adSoyad"
@@ -172,9 +163,7 @@ export default function MuvekkilAyarlar() {
         <div className="flex justify-center border-t border-white/5 pt-6">
           <HesapSilButonu />
         </div>
-      </main>
-
-      <AltMenu sekmeler={MUVEKKIL_SEKMELER} />
-    </div>
+      </div>
+    </MuvekkilShell>
   );
 }

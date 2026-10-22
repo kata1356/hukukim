@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PanelHeader from "@/components/PanelHeader";
+import MuvekkilShell from "@/components/MuvekkilShell";
 import Spinner from "@/components/Spinner";
 import StatKarti from "@/components/StatKarti";
-import AltMenu from "@/components/AltMenu";
-import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
 
 export default function MuvekkilOdemelerim() {
@@ -70,15 +68,8 @@ export default function MuvekkilOdemelerim() {
   const toplamHarcanan = odemeler.reduce((t, o) => t + Number(o.odeme_tutari || 0), 0);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" panelYolu="/muvekkil" />
-
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-white">Ödemelerim</h1>
-          <p className="mt-1 text-sm text-white/60">Geçmiş görüşme paketlerinin özeti.</p>
-        </div>
-
+    <MuvekkilShell profil={profil} baslik="Ödemelerim" aciklama="Geçmiş görüşme paketlerinin özeti.">
+      <div className="flex w-full max-w-2xl flex-col gap-6">
         <div className="grid grid-cols-2 gap-4">
           <StatKarti deger={`${toplamHarcanan} TL`} etiket="Toplam Ödenen" />
           <StatKarti deger={odemeler.length} etiket="Tamamlanan Görüşme" />
@@ -111,9 +102,7 @@ export default function MuvekkilOdemelerim() {
             </div>
           )}
         </section>
-      </main>
-
-      <AltMenu sekmeler={MUVEKKIL_SEKMELER} />
-    </div>
+      </div>
+    </MuvekkilShell>
   );
 }

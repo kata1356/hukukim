@@ -16,6 +16,8 @@ import Honeypot from "@/components/Honeypot";
 import GoogleGirisButonu from "@/components/GoogleGirisButonu";
 import Spinner from "@/components/Spinner";
 import BelgeYukleme from "@/components/BelgeYukleme";
+import TelefonDogrulama from "@/components/TelefonDogrulama";
+import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 import { IconOnay } from "@/components/icons";
 
 export default function AvukatKayit() {
@@ -84,6 +86,7 @@ export default function AvukatKayit() {
   }, [router]);
 
   const [belgeProfili, setBelgeProfili] = useState(null);
+  const [telefonAdimi, setTelefonAdimi] = useState(false);
   const [kod, setKod] = useState("");
   const [dogrulaniyor, setDogrulaniyor] = useState(false);
   const [dogrulamaHatasi, setDogrulamaHatasi] = useState(null);
@@ -118,6 +121,7 @@ export default function AvukatKayit() {
 
     // Profil oluştu; kimlik ve baro kartı kayıt akışında zorunlu bir adımdır.
     setBelgeProfili({ id: session.user.id, belge_durumu: "yok" });
+    setTelefonAdimi(SMS_DOGRULAMA);
     return { basarili: true };
   }
 
@@ -260,6 +264,17 @@ export default function AvukatKayit() {
 
     setYukleniyor(false);
     setGonderildi(true);
+  }
+
+  if (belgeProfili && telefonAdimi) {
+    return (
+      <AuthShell
+        baslik="Telefonunu Doğrula"
+        altBaslik="Kaydın tamamlanıyor: önce telefon numaranı SMS koduyla doğrula."
+      >
+        <TelefonDogrulama baslangicTelefon={form.telefon} onTamam={() => setTelefonAdimi(false)} />
+      </AuthShell>
+    );
   }
 
   if (belgeProfili) {
