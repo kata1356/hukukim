@@ -46,9 +46,11 @@ export default function SozlesmeKapisi() {
         </p>
 
         <ul className="mt-4 flex flex-col gap-1.5 text-sm text-white/70">
-          <li>• Görüşme ücretinin %60&apos;ı hakedişindir, IBAN&apos;ına havale edilir.</li>
+          <li>• Yeni müvekkillerin ilk 5 dakikası ücretsiz denemedir; bu süre için hakediş doğmaz.</li>
+          <li>• Ek süre ve paket ücretlerinin %60&apos;ı hakedişindir, IBAN&apos;ına havale edilir.</li>
+          <li>• Görüşme süresi platformun sunucu kayıtlarına göre ölçülür; süre dolunca görüşme sona erer.</li>
           <li>• Platform üzerinden başlayan görüşmeyi platform dışına taşımamayı kabul edersin.</li>
-          <li>• Baro kaydın ve belgelerin doğru ve güncel olmalıdır.</li>
+          <li>• Baro kaydın ve belgelerin doğru ve güncel olmalıdır; değişiklikleri bildirirsin.</li>
           <li>• Müvekkil bilgileri avukatlık sırrı ve KVKK kapsamında gizli tutulur.</li>
         </ul>
 
