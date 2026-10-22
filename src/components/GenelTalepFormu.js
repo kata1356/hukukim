@@ -15,11 +15,11 @@ import AIKonuAsistani from "./AIKonuAsistani";
 import TelefonDogrulama from "./TelefonDogrulama";
 import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 
-export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili }) {
+export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili, baslangicAlan = "" }) {
   const [form, setForm] = useState({
     sehir: muvekkilProfil.sehir ?? "",
     telefon: muvekkilProfil.telefon ?? "",
-    uzmanlikAlani: "",
+    uzmanlikAlani: baslangicAlan,
     konu: "",
     aciklama: "",
     gorusmeSekli: "goruntulu",

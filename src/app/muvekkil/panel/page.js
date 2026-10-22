@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import MuvekkilShell from "@/components/MuvekkilShell";
+import {
+  HizliKonular,
+  SonHareketler,
+  OnerilenAvukatlar,
+  HazirlikRehberi,
+  GuvenSeridi,
+} from "@/components/MuvekkilBilesenleri";
 import Avatar from "@/components/Avatar";
 import Spinner from "@/components/Spinner";
 import Modal from "@/components/Modal";
@@ -73,6 +80,7 @@ export default function MuvekkilPanel() {
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
   const [genelTalepAcik, setGenelTalepAcik] = useState(false);
+  const [baslangicAlan, setBaslangicAlan] = useState("");
   const [basariMesaji, setBasariMesaji] = useState(() => {
     if (typeof window === "undefined") return null;
     const sonuc = new URLSearchParams(window.location.search).get("odeme");
@@ -276,6 +284,7 @@ export default function MuvekkilPanel() {
   const ilkGorusmeMi = !gonderilenTalepler.some(
     (t) => t.odeme_durumu === "odendi" || (t.odeme_durumu === "muaf" && t.durum !== "iptal")
   );
+  const aktifGorusme = gonderilenTalepler.find((t) => t.durum === "kabul" && t.gorusme_sekli === "goruntulu");
   const aktifDurumlar = ["bekliyor", "kabul"];
   const aktifTalepler = gonderilenTalepler.filter((t) => aktifDurumlar.includes(t.durum));
   const gecmisTalepler = gonderilenTalepler.filter((t) => !aktifDurumlar.includes(t.durum));
@@ -412,6 +421,13 @@ export default function MuvekkilPanel() {
           </div>
         </section>
 
+        <HizliKonular
+          onSec={(alan) => {
+            setBaslangicAlan(alan);
+            setGenelTalepAcik(true);
+          }}
+        />
+
         {gonderilenTalepler.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
@@ -452,6 +468,37 @@ export default function MuvekkilPanel() {
             {odemeHatasi}
           </p>
         )}
+
+        {aktifGorusme && (
+          <Link
+            href="#taleplerim"
+            className="flex items-center justify-between gap-4 rounded-xl border border-green-500/30 bg-green-500/10 p-4 transition hover:bg-green-500/15"
+          >
+            <div className="flex items-center gap-3">
+              <Avatar
+                adSoyad={aktifGorusme.avukatlar?.ad_soyad}
+                fotografUrl={aktifGorusme.avukatlar?.profil_fotografi_url}
+                dogrulanmis
+              />
+              <div>
+                <p className="text-sm font-bold text-green-300">Aktif görüşmen var</p>
+                <p className="text-xs text-white/60">
+                  {aktifGorusme.avukatlar?.ad_soyad ?? "Avukatın"} seni bekliyor · {aktifGorusme.konu}
+                </p>
+              </div>
+            </div>
+            <span className="shrink-0 text-xs font-bold text-green-300">Görüşmeye git →</span>
+          </Link>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <SonHareketler talepler={gonderilenTalepler} />
+          </div>
+          <div className="lg:col-span-2">
+            <OnerilenAvukatlar sehir={profil.sehir} />
+          </div>
+        </div>
 
         <section id="taleplerim" className="scroll-mt-20">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -555,14 +602,52 @@ export default function MuvekkilPanel() {
             </div>
           )}
         </section>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <HazirlikRehberi />
+          <section className="flex flex-col justify-between gap-4 rounded-xl border border-white/10 bg-gece-yuzey p-5 sm:p-6">
+            <div>
+              <h2 className="text-base font-semibold text-white">Yardıma mı ihtiyacın var?</h2>
+              <p className="mt-1 text-sm text-white/50">
+                Sıkça sorulan sorulara göz at ya da bize ulaş. Ödeme, iade ve görüşme ile ilgili tüm bilgiler orada.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/muvekkil/yardim"
+                className="rounded-full bg-turkuaz/10 px-4 py-2 text-sm font-semibold text-turkuaz transition hover:bg-turkuaz/20"
+              >
+                Yardım Merkezi
+              </Link>
+              <Link
+                href="/iptal-iade-kosullari"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/70 transition hover:bg-white/5"
+              >
+                İptal ve İade
+              </Link>
+            </div>
+          </section>
+        </div>
+
+        <GuvenSeridi />
       </MuvekkilShell>
 
       {genelTalepAcik && (
-        <Modal baslik="Avukatla Görüş" onKapat={() => setGenelTalepAcik(false)}>
+        <Modal
+          baslik="Avukatla Görüş"
+          onKapat={() => {
+            setGenelTalepAcik(false);
+            setBaslangicAlan("");
+          }}
+        >
           <GenelTalepFormu
             muvekkilProfil={profil}
             ilkGorusmeMi={ilkGorusmeMi}
-            onKapat={() => setGenelTalepAcik(false)}
+            baslangicAlan={baslangicAlan}
+            onKapat={() => {
+              setGenelTalepAcik(false);
+              setBaslangicAlan("");
+            }}
             onBasarili={genelTalepBasarili}
           />
         </Modal>
