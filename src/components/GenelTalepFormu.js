@@ -12,6 +12,8 @@ import Button from "./Button";
 import Spinner from "./Spinner";
 import Modal from "./Modal";
 import AIKonuAsistani from "./AIKonuAsistani";
+import TelefonDogrulama from "./TelefonDogrulama";
+import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 
 export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat, onBasarili }) {
   const [form, setForm] = useState({
@@ -26,6 +28,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [odemeToken, setOdemeToken] = useState(null);
+  const [telefonTamam, setTelefonTamam] = useState(!SMS_DOGRULAMA || Boolean(muvekkilProfil.telefon_dogrulandi));
 
   function alanGuncelle(alan, deger) {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
@@ -72,6 +75,24 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
     }
 
     setOdemeToken(sonuc.token);
+  }
+
+  // Talep açmadan önce telefon numarası SMS koduyla doğrulanır (bir numara, bir hesap).
+  if (!telefonTamam) {
+    return (
+      <div className="flex flex-col gap-4">
+        <TelefonDogrulama
+          baslangicTelefon={form.telefon}
+          onTamam={(telefon) => {
+            alanGuncelle("telefon", telefon);
+            setTelefonTamam(true);
+          }}
+        />
+        <Button type="button" variant="anahat" onClick={onKapat}>
+          Vazgeç
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -149,20 +170,6 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
           </TextField>
         </div>
 
-        {!muvekkilProfil.telefon && (
-          <TextField
-            label="Telefon"
-            id="genelTelefon"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            required
-            value={form.telefon}
-            onChange={(e) => alanGuncelle("telefon", e.target.value)}
-            placeholder="05XXXXXXXXX"
-          />
-        )}
-
         <TextField
           label="Görüşme Şekli"
           id="genelGorusmeSekli"
@@ -177,6 +184,20 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
             </option>
           ))}
         </TextField>
+
+        {!SMS_DOGRULAMA && !muvekkilProfil.telefon && (
+          <TextField
+            label="Telefon"
+            id="genelTelefon"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            required
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XXXXXXXXX"
+          />
+        )}
 
         <PaketSecici
           dakika={form.paketDakika}

@@ -4,19 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import PanelHeader from "@/components/PanelHeader";
+import MuvekkilShell from "@/components/MuvekkilShell";
 import Avatar from "@/components/Avatar";
 import Spinner from "@/components/Spinner";
 import Modal from "@/components/Modal";
 import GenelTalepFormu from "@/components/GenelTalepFormu";
 import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
-import AltMenu from "@/components/AltMenu";
 import StatKarti from "@/components/StatKarti";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
 import { tarihFormatla } from "@/lib/gorusmeSekli";
-import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import {
   IconOnay,
   IconYayin,
@@ -287,16 +285,12 @@ export default function MuvekkilPanel() {
   );
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-gece">
-      <PanelHeader adSoyad={profil.ad_soyad} panelAdi="Müvekkil Paneli" panelYolu="/muvekkil" />
-
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 pb-24 sm:px-6 sm:pb-8">
-        <div>
-          <h1 className="text-xl font-semibold text-white">
-            Merhaba, {profil.ad_soyad.split(" ")[0]}
-          </h1>
-        </div>
-
+    <>
+      <MuvekkilShell
+        profil={profil}
+        baslik={`Merhaba, ${profil.ad_soyad.split(" ")[0]}`}
+        aciklama="Hukuki destek taleplerin ve görüşmelerin burada."
+      >
         {beklenenTalep && (
           <div className="relative overflow-hidden rounded-lg border border-white/10 bg-gece-yuzey p-6 sm:p-8">
             <button
@@ -384,36 +378,66 @@ export default function MuvekkilPanel() {
           </div>
         )}
 
-        <div className="rounded-lg border border-white/10 bg-gece-yuzey p-6">
-          <h2 className="text-base font-semibold text-white">
+        <section className="relative overflow-hidden rounded-2xl border border-turkuaz/20 bg-gradient-to-br from-turkuaz/10 via-gece-yuzey to-gece-yuzey p-6 sm:p-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-turkuaz/10 blur-3xl"
+          />
+          {ilkGorusmeMi && (
+            <span className="relative inline-flex rounded-full bg-turkuaz/15 px-3 py-1 text-xs font-bold text-turkuaz">
+              Yeni üyelere özel
+            </span>
+          )}
+          <h2 className="relative mt-2 text-xl font-bold text-white sm:text-2xl">
             {ilkGorusmeMi ? "İlk 5 dakika ücretsiz deneme" : "Avukata mı ihtiyacın var?"}
           </h2>
-          <p className="mt-1 text-sm text-white/60">
-            Şehrini ve konunu seç, ilk kabul eden avukatla görüşmen hemen başlasın.
+          <p className="relative mt-2 max-w-xl text-sm text-white/60">
+            Şehrini ve konunu seç, baro sicili doğrulanmış avukatlardan ilk kabul edenle görüşmen hemen başlasın.
+            {ilkGorusmeMi && " Paket almadan dene, süre dolunca isteğe bağlı ek süre alabilirsin."}
           </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="relative mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => setGenelTalepAcik(true)}
-              className="flex items-center justify-center gap-2 rounded-md bg-turkuaz px-5 py-2.5 text-sm font-semibold text-gece transition hover:bg-turkuaz-parlak"
+              className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-6 py-3 text-sm font-bold text-gece transition hover:-translate-y-0.5 hover:bg-turkuaz-parlak"
             >
               Avukatla Görüş
             </button>
             <Link
               href="/acil-avukat"
-              className="flex items-center justify-center gap-2 rounded-md border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/5"
+              className="flex items-center justify-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-6 py-3 text-sm font-bold text-red-300 transition hover:bg-red-500/20"
             >
-              <IconYildirim className="h-4 w-4 text-red-400" />
+              <IconYildirim className="h-4 w-4" />
               Acil Avukat
             </Link>
           </div>
-        </div>
+        </section>
 
-        {gonderilenTalepler.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        {gonderilenTalepler.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <StatKarti deger={gonderilenTalepler.length} etiket="Gönderilen" />
             <StatKarti deger={bekleyenSayisi} etiket="Bekleyen" />
-            <StatKarti deger={onaylananSayisi} etiket="Onaylanan" />
+            <StatKarti deger={onaylananSayisi} etiket="Aktif görüşme" />
+            <StatKarti
+              deger={gonderilenTalepler.filter((t) => t.durum === "tamamlandi").length}
+              etiket="Tamamlanan"
+            />
           </div>
+        ) : (
+          <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              { no: "1", baslik: "Talebini gönder", metin: "Şehrini, konunu ve sana uygun süreyi seç." },
+              { no: "2", baslik: "Avukat eşleşsin", metin: "Uygun avukatlardan ilk kabul eden sana atanır." },
+              { no: "3", baslik: "Görüşmeni yap", metin: "Görüntülü görüşme bu ekranda, güvenle başlar." },
+            ].map(({ no, baslik, metin }) => (
+              <div key={no} className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-turkuaz/15 text-sm font-bold text-turkuaz">
+                  {no}
+                </span>
+                <p className="mt-3 font-semibold text-white">{baslik}</p>
+                <p className="mt-1 text-sm text-white/50">{metin}</p>
+              </div>
+            ))}
+          </section>
         )}
 
         {basariMesaji && (
@@ -531,7 +555,7 @@ export default function MuvekkilPanel() {
             </div>
           )}
         </section>
-      </main>
+      </MuvekkilShell>
 
       {genelTalepAcik && (
         <Modal baslik="Avukatla Görüş" onKapat={() => setGenelTalepAcik(false)}>
@@ -555,7 +579,6 @@ export default function MuvekkilPanel() {
         </Modal>
       )}
 
-      <AltMenu sekmeler={MUVEKKIL_SEKMELER} />
-    </div>
+    </>
   );
 }

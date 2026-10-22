@@ -8,6 +8,8 @@ import BildirimZili from "./BildirimZili";
 import Logo from "./Logo";
 import ProfilMenusu from "./ProfilMenusu";
 import SozlesmeKapisi from "./SozlesmeKapisi";
+import TelefonKapisi from "./TelefonKapisi";
+import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 import { SOZLESME_SURUMU } from "@/lib/avukatSozlesmesi";
 import { AVUKAT_MENU, AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 
@@ -108,8 +110,12 @@ export default function AvukatShell({ profil, rozetler = {}, baslik, aciklama, a
 
       <AltMenu sekmeler={AVUKAT_SEKMELER} gizle="lg:hidden" />
 
-      {/* sozlesme_surumu kolonu yoksa (SQL henüz çalıştırılmadıysa) kapı devreye girmez. */}
-      {"sozlesme_surumu" in profil && profil.sozlesme_surumu !== SOZLESME_SURUMU && <SozlesmeKapisi />}
+      {/* Önce telefon doğrulaması, sonra sözleşme onayı. Kolonlar yoksa (SQL çalıştırılmadıysa) kapı devreye girmez. */}
+      {SMS_DOGRULAMA && "telefon_dogrulandi" in profil && !profil.telefon_dogrulandi ? (
+        <TelefonKapisi baslangicTelefon={profil.telefon} />
+      ) : (
+        "sozlesme_surumu" in profil && profil.sozlesme_surumu !== SOZLESME_SURUMU && <SozlesmeKapisi />
+      )}
     </div>
   );
 }

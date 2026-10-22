@@ -10,6 +10,8 @@ import TextField from "./TextField";
 import Button from "./Button";
 import Modal from "./Modal";
 import { IconYildirim } from "./icons";
+import TelefonDogrulama from "./TelefonDogrulama";
+import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 
 export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasarili }) {
   const [form, setForm] = useState({
@@ -22,6 +24,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [odemeToken, setOdemeToken] = useState(null);
+  const [telefonTamam, setTelefonTamam] = useState(!SMS_DOGRULAMA || Boolean(muvekkilProfil.telefon_dogrulandi));
 
   function alanGuncelle(alan, deger) {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
@@ -71,6 +74,19 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
     setOdemeToken(sonuc.token);
   }
 
+  // Acil talepte de telefon numarası önce SMS koduyla doğrulanır (bir numara, bir hesap).
+  if (!telefonTamam) {
+    return (
+      <TelefonDogrulama
+        baslangicTelefon={form.telefon}
+        onTamam={(telefon) => {
+          alanGuncelle("telefon", telefon);
+          setTelefonTamam(true);
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -118,7 +134,7 @@ export default function AcilTalepFormu({ muvekkilProfil, ilkGorusmeMi, onBasaril
           </TextField>
         </div>
 
-        {!muvekkilProfil.telefon && (
+        {!SMS_DOGRULAMA && !muvekkilProfil.telefon && (
           <TextField
             label="Telefon"
             id="acilTelefon"

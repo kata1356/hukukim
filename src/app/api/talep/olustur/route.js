@@ -4,6 +4,7 @@ import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
 import { paketHesapla, DENEME_DAKIKA } from "@/lib/odemeYardimci";
 import { ilkGorusmeMi, telefonKullanimda, denemeHakkiniAl, denemeHakkiniGeriVer } from "@/lib/talepYardimci";
+import { SMS_DOGRULAMA } from "@/lib/smsAyar";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
@@ -38,7 +39,7 @@ export async function POST(request) {
 
   const { data: muvekkilProfili } = await supabaseAdmin
     .from("muvekkiller")
-    .select("ad_soyad, email, telefon, kart_token")
+    .select("ad_soyad, email, telefon, telefon_dogrulandi, sehir, kart_token")
     .eq("id", kullanici.id)
     .maybeSingle();
 
@@ -46,34 +47,45 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Müvekkil profili bulunamadı." }, { status: 404 });
   }
 
-  // Kayıtta telefon ve şehir istenmiyor; ilk talepte alınıp profile yazılır.
-  const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
-  if (yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
-    return NextResponse.json({ hata: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." }, { status: 400 });
+  if (SMS_DOGRULAMA) {
+    // Talep (ve ücretsiz deneme) için telefon numarası SMS koduyla doğrulanmış olmalı.
+    if (!muvekkilProfili.telefon || !muvekkilProfili.telefon_dogrulandi) {
+      return NextResponse.json(
+        { hata: "Talep açmak için önce telefon numaranı doğrulamalısın." },
+        { status: 403 }
+      );
+    }
+  } else {
+    // SMS doğrulaması kapalıyken (acil kapatma anahtarı): telefon eskisi gibi doğrulamasız alınır.
+    const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
+    if (yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
+      return NextResponse.json({ hata: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." }, { status: 400 });
+    }
+    if (!muvekkilProfili.telefon && yeniTelefon) {
+      if (await telefonKullanimda(supabaseAdmin, yeniTelefon, kullanici.id)) {
+        return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
+      }
+      const { error: telefonHatasi } = await supabaseAdmin
+        .from("muvekkiller")
+        .update({ telefon: yeniTelefon })
+        .eq("id", kullanici.id);
+      if (telefonHatasi) {
+        return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
+      }
+      muvekkilProfili.telefon = yeniTelefon;
+    }
+    if (!muvekkilProfili.telefon) {
+      return NextResponse.json({ hata: "Telefon numarası gerekli." }, { status: 400 });
+    }
   }
-  if (!muvekkilProfili.telefon && yeniTelefon) {
-    if (await telefonKullanimda(supabaseAdmin, yeniTelefon, kullanici.id)) {
-      return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
-    }
 
-    const { error: telefonHatasi } = await supabaseAdmin
-      .from("muvekkiller")
-      .update({ telefon: yeniTelefon, sehir: hedefSehir })
-      .eq("id", kullanici.id);
-
-    if (telefonHatasi) {
-      return NextResponse.json({ hata: "Bu telefon numarası başka bir hesapta kayıtlı." }, { status: 409 });
-    }
-    muvekkilProfili.telefon = yeniTelefon;
+  if (!muvekkilProfili.sehir) {
+    await supabaseAdmin.from("muvekkiller").update({ sehir: hedefSehir }).eq("id", kullanici.id);
   }
 
   // Ücretsiz deneme: numara başına bir kez, ödeme alınmaz. Hakkı önce alıyoruz
   // ki aynı numarayla eşzamanlı iki istek ikisi de deneme kullanamasın.
   if (denemeMi) {
-    if (!muvekkilProfili.telefon) {
-      return NextResponse.json({ hata: "Deneme için telefon numarası gerekli." }, { status: 400 });
-    }
-
     const hakVar =
       (await ilkGorusmeMi(supabaseAdmin, kullanici.id)) &&
       (await denemeHakkiniAl(supabaseAdmin, kullanici.id, muvekkilProfili.telefon));
