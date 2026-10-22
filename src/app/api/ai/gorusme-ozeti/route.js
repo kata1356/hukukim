@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { anthropicJsonIste, aiHataNedeni } from "@/lib/anthropic";
+import { anthropicMetinIste, aiHataNedeni } from "@/lib/anthropic";
 import { avukatiDogrula } from "@/lib/aiYetki";
 
 // Avukatın görüşme sonrası yazdığı kısa notları, müvekkile gönderilebilecek düzenli bir özet mesaja çevirir.
@@ -26,9 +26,8 @@ export async function POST(request) {
   }
 
   try {
-    const sonuc = await anthropicJsonIste({
-      sistemMesaji: `Sen bir avukatın yardımcısısın. Avukatın görüşme sonrası aldığı kısa notları, müvekkile gönderilecek düzenli ve anlaşılır bir özet mesaja çevir. SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
-{"mesaj": "müvekkile hitap eden, 4-10 cümlelik, madde işaretleri içerebilen özet mesaj"}
+    const mesaj = await anthropicMetinIste({
+      sistemMesaji: `Sen bir avukatın yardımcısısın. Avukatın görüşme sonrası aldığı kısa notları, müvekkile gönderilecek düzenli ve anlaşılır bir özet mesaja çevir. Yanıt olarak SADECE müvekkile gönderilecek mesaj metnini ver (4-10 cümle, gerekirse madde işaretleri olabilir). Başka açıklama veya başlık ekleme.
 
 Kurallar:
 - Yalnızca avukatın notlarındaki bilgileri kullan; yeni hukuki görüş, süre, tutar veya sonuç tahmini ekleme.
@@ -36,11 +35,9 @@ Kurallar:
 - Notlarda belirtilen sonraki adımları ve müvekkilden istenen belgeleri ayrı bir bölümde listele.
 - Mesaj "${avukat.ad_soyad ?? "Avukatınız"}" adına yazılmış gibi bitsin.`,
       kullaniciMesaji: `Konu: ${talep.konu ?? "-"}\nAvukat notları: ${metin.slice(0, 3000)}`,
-      maxTokens: 700,
+      maxTokens: 1000,
     });
 
-    const mesaj = String(sonuc.mesaj ?? "").trim();
-    if (!mesaj) throw new Error("Boş yanıt");
     return NextResponse.json({ mesaj });
   } catch (err) {
     console.error("Görüşme özeti hatası:", err);

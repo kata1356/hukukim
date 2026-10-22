@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { anthropicJsonIste, aiHataNedeni } from "@/lib/anthropic";
+import { anthropicMetinIste, aiHataNedeni } from "@/lib/anthropic";
 import { avukatiDogrula } from "@/lib/aiYetki";
 
 // Avukatın kendi yazdığı biyografiyi daha net ve profesyonel bir dille yeniden yazar.
@@ -15,21 +15,19 @@ export async function POST(request) {
   }
 
   try {
-    const sonuc = await anthropicJsonIste({
-      sistemMesaji: `Sen Türkiye'de bir hukuk platformunda avukat profili yazan bir editörsün. Avukatın kendi yazdığı biyografiyi, müvekkile güven veren, sade ve profesyonel bir Türkçeyle yeniden yaz. SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
-{"biyografi": "yeniden yazılmış metin (100-600 karakter, birinci tekil şahıs, 2-4 cümle)"}
+    const yeni = await anthropicMetinIste({
+      sistemMesaji: `Sen Türkiye'de bir hukuk platformunda avukat profili yazan bir editörsün. Avukatın kendi yazdığı biyografiyi, müvekkile güven veren, sade ve profesyonel bir Türkçeyle yeniden yaz. Yanıt olarak SADECE yeniden yazılmış biyografi metnini ver (100-600 karakter, birinci tekil şahıs, 2-4 cümle). Başlık, tırnak, açıklama, madde işareti veya markdown ekleme.
 
 Kurallar:
+- Metin büyük harfle, düzensiz veya kısa olsa bile içindeki bilgileri kullanarak düzgün bir biyografi yaz.
 - Yalnızca avukatın yazdığı bilgileri kullan. Yeni unvan, deneyim yılı, başarı, dava sonucu, kurum adı uydurma.
 - "En iyi", "garanti", "kesin sonuç" gibi abartılı veya reklam yasağına aykırı ifadeler kullanma.
 - Avukatın uzmanlık alanları: ${(avukat.uzmanlik_alanlari ?? []).join(", ") || "belirtilmemiş"}.`,
       kullaniciMesaji: metin.slice(0, 2000),
-      maxTokens: 500,
+      maxTokens: 800,
     });
 
-    const yeni = String(sonuc.biyografi ?? "").trim();
-    if (!yeni) throw new Error("Boş yanıt");
-    return NextResponse.json({ biyografi: yeni });
+    return NextResponse.json({ biyografi: yeni.replace(/^["“”]+|["“”]+$/g, "").trim() });
   } catch (err) {
     console.error("Biyografi iyileştirme hatası:", err);
     return NextResponse.json({ hata: `Yapay zeka şu an öneri üretemedi: ${aiHataNedeni(err)}` }, { status: 500 });
