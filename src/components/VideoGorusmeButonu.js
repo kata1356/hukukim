@@ -367,6 +367,15 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               emin ol ve sessiz bir ortamda katıl.
             </p>
 
+            <p className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+              <IconKvkk className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Görüşmenin tamamı bu ekranda yapılmalıdır. Görüşme sırasında WhatsApp veya başka bir
+                uygulamaya geçmeyin, telefon numarası paylaşıp görüşmeyi platform dışına taşımayın.
+                Süre bu ekranda işler ve platform dışı iletişim Kullanım Şartları&apos;na aykırıdır.
+              </span>
+            </p>
+
             <label className="flex items-start gap-2.5 text-sm text-white/70">
               <input
                 type="checkbox"
@@ -483,6 +492,10 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               </button>
             </div>
           )}
+
+          <p className="mt-3 text-center text-xs text-white/40">
+            Lütfen görüşme boyunca bu ekranda kal. Başka uygulamaya geçme, görüşmeyi platform dışına taşıma.
+          </p>
 
           {paketSaniye > 0 && (
             <div

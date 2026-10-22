@@ -7,6 +7,8 @@ import Avatar from "./Avatar";
 import BildirimZili from "./BildirimZili";
 import Logo from "./Logo";
 import ProfilMenusu from "./ProfilMenusu";
+import SozlesmeKapisi from "./SozlesmeKapisi";
+import { SOZLESME_SURUMU } from "@/lib/avukatSozlesmesi";
 import { AVUKAT_MENU, AVUKAT_SEKMELER } from "@/lib/avukatMenu";
 
 // Avukat panelinin ortak çerçevesi: masaüstünde sol menü, telefonda alt menü.
@@ -105,6 +107,9 @@ export default function AvukatShell({ profil, rozetler = {}, baslik, aciklama, a
       </div>
 
       <AltMenu sekmeler={AVUKAT_SEKMELER} gizle="lg:hidden" />
+
+      {/* sozlesme_surumu kolonu yoksa (SQL henüz çalıştırılmadıysa) kapı devreye girmez. */}
+      {"sozlesme_surumu" in profil && profil.sozlesme_surumu !== SOZLESME_SURUMU && <SozlesmeKapisi />}
     </div>
   );
 }
