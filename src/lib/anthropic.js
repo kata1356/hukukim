@@ -17,7 +17,8 @@ export function aiHataNedeni(err) {
   return durum ? `Servis hatası (${durum}).` : "Bağlantı hatası.";
 }
 
-export async function anthropicJsonIste({ sistemMesaji, kullaniciMesaji, maxTokens = 500 }) {
+// Ham metin yanıtı döner. Yanıtta birden çok blok olabilir (ör. düşünme bloğu), yalnızca metin bloklarını birleştirir.
+async function anthropicMetniAl({ sistemMesaji, kullaniciMesaji, maxTokens }) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY ortam değişkeni tanımlı değil.");
 
@@ -42,10 +43,37 @@ export async function anthropicJsonIste({ sistemMesaji, kullaniciMesaji, maxToke
   }
 
   const sonuc = await yanit.json();
-  const metin = sonuc.content?.[0]?.text ?? "";
+  const metin = (sonuc.content ?? [])
+    .filter((blok) => blok.type === "text")
+    .map((blok) => blok.text)
+    .join("\n")
+    .trim();
+
+  if (!metin) {
+    console.error("Anthropic boş metin döndürdü:", sonuc.stop_reason, JSON.stringify(sonuc.content ?? []).slice(0, 300));
+    throw new Error(`Yapay zeka yanıtı boş (${sonuc.stop_reason ?? "bilinmiyor"}).`);
+  }
+  return metin;
+}
+
+// Düz metin yanıt ister (JSON gerektirmeyen, tek parça çıktılar için).
+export async function anthropicMetinIste({ sistemMesaji, kullaniciMesaji, maxTokens = 1500 }) {
+  return anthropicMetniAl({ sistemMesaji, kullaniciMesaji, maxTokens });
+}
+
+export async function anthropicJsonIste({ sistemMesaji, kullaniciMesaji, maxTokens = 1500 }) {
+  const metin = await anthropicMetniAl({ sistemMesaji, kullaniciMesaji, maxTokens });
 
   const jsonEslesme = metin.match(/\{[\s\S]*\}/);
-  if (!jsonEslesme) throw new Error("Yapay zeka yanıtından JSON çıkarılamadı.");
+  if (!jsonEslesme) {
+    console.error("Yapay zeka yanıtında JSON yok:", metin.slice(0, 300));
+    throw new Error("Yapay zeka yanıtından JSON çıkarılamadı.");
+  }
 
-  return JSON.parse(jsonEslesme[0]);
+  try {
+    return JSON.parse(jsonEslesme[0]);
+  } catch {
+    console.error("Yapay zeka JSON'u çözülemedi:", jsonEslesme[0].slice(0, 300));
+    throw new Error("Yapay zeka JSON yanıtı geçersiz.");
+  }
 }

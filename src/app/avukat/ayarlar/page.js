@@ -20,9 +20,6 @@ export default function AvukatAyarlar() {
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [basariMesaji, setBasariMesaji] = useState(null);
-  const [bioYukleniyor, setBioYukleniyor] = useState(false);
-  const [bioOnerisi, setBioOnerisi] = useState(null);
-  const [bioHata, setBioHata] = useState(null);
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -75,28 +72,6 @@ export default function AvukatAyarlar() {
     setUzmanlikSecimi((onceki) =>
       onceki.includes(alan) ? onceki.filter((a) => a !== alan) : [...onceki, alan]
     );
-  }
-
-  async function biyografiyiIyilestir() {
-    setBioHata(null);
-    setBioOnerisi(null);
-    setBioYukleniyor(true);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const yanit = await fetch("/api/ai/biyografi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({ biyografi: form.biyografi }),
-      });
-      const veri = await yanit.json();
-      if (!yanit.ok) throw new Error(veri.hata ?? "Öneri üretilemedi.");
-      setBioOnerisi(veri.biyografi);
-    } catch (err) {
-      setBioHata(err.message || "Öneri üretilemedi.");
-    }
-    setBioYukleniyor(false);
   }
 
   async function kaydet(e) {
@@ -242,44 +217,6 @@ export default function AvukatAyarlar() {
             <p className={`text-xs ${form.biyografi.length < 100 ? "text-white/40" : "text-turkuaz"}`}>
               En az 100 karakter gerekli · şu an {form.biyografi.length}
             </p>
-            <button
-              type="button"
-              onClick={biyografiyiIyilestir}
-              disabled={bioYukleniyor || form.biyografi.trim().length < 30}
-              className="mt-1 inline-flex w-fit items-center gap-2 rounded-md border border-turkuaz/30 bg-turkuaz/5 px-3 py-1.5 text-xs font-semibold text-turkuaz transition hover:bg-turkuaz/10 disabled:opacity-50"
-            >
-              {bioYukleniyor ? <Spinner className="h-3.5 w-3.5" /> : <span aria-hidden="true">✦</span>}
-              Yapay zekâ ile iyileştir
-            </button>
-            {bioHata && <p className="text-xs text-red-400">{bioHata}</p>}
-            {bioOnerisi && (
-              <div className="mt-1 rounded-lg border border-turkuaz/20 bg-turkuaz/5 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-turkuaz">Önerilen biyografi</p>
-                <p className="mt-2 text-sm text-white/80">{bioOnerisi}</p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      alanGuncelle("biyografi", bioOnerisi);
-                      setBioOnerisi(null);
-                    }}
-                    className="rounded-md bg-turkuaz px-3 py-1.5 text-xs font-bold text-gece transition hover:bg-turkuaz-parlak"
-                  >
-                    Bunu kullan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBioOnerisi(null)}
-                    className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:text-white"
-                  >
-                    Vazgeç
-                  </button>
-                </div>
-                <p className="mt-2 text-[11px] text-white/30">
-                  Öneriyi okuyup bilgilerin doğru olduğundan emin ol, sonra Kaydet&apos;e bas.
-                </p>
-              </div>
-            )}
           </div>
 
           {hata && (

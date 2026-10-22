@@ -12,8 +12,6 @@ import Spinner from "@/components/Spinner";
 import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
-import TalepOzetiAI from "@/components/TalepOzetiAI";
-import GorusmeOzetiAI from "@/components/GorusmeOzetiAI";
 import DogrulamaDurumKarti from "@/components/DogrulamaDurumKarti";
 import { IconKonum, IconUzmanlik, IconOnay, IconRed, IconTakvim, IconYildirim } from "@/components/icons";
 
@@ -223,8 +221,6 @@ export default function AvukatTalepler() {
                     {talep.aciklama && (
                       <p className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-white/70">{talep.aciklama}</p>
                     )}
-
-                    <TalepOzetiAI talepId={talep.id} />
                   </div>
                 ))
               )}
@@ -291,8 +287,6 @@ export default function AvukatTalepler() {
                       <p className="mt-3 rounded-lg bg-white/[0.03] p-3 text-sm text-white/70">{talep.aciklama}</p>
                     )}
 
-                    {(talep.durum === "bekliyor" || talep.durum === "kabul") && <TalepOzetiAI talepId={talep.id} />}
-
                     {talep.durum === "bekliyor" && (
                       <div className="mt-4 flex gap-3">
                         <button
@@ -338,14 +332,11 @@ export default function AvukatTalepler() {
                     )}
 
                     {talep.durum === "tamamlandi" && (
-                      <>
-                        <p className="mt-3 text-xs text-white/40">
-                          {talep.paket_dakika} dk paket
-                          {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
-                          {talep.gorusme_suresi_dakika > 0 && ` · gerçek süre ${talep.gorusme_suresi_dakika} dk`}
-                        </p>
-                        <GorusmeOzetiAI talepId={talep.id} />
-                      </>
+                      <p className="mt-3 text-xs text-white/40">
+                        {talep.paket_dakika} dk paket
+                        {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
+                        {talep.gorusme_suresi_dakika > 0 && ` · gerçek süre ${talep.gorusme_suresi_dakika} dk`}
+                      </p>
                     )}
                   </div>
                 ))
