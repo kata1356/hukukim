@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { telefonKullanimda } from "@/lib/talepYardimci";
+import { sozlesmeOnayiniKaydet } from "@/lib/sozlesmeKaydi";
 
 // Bu uç nokta, e-posta doğrulama bağlantısına tıklandıktan sonra çağrılır.
 // Kullanıcı zaten Supabase Auth üzerinde doğrulanmış bir oturuma sahiptir;
@@ -43,6 +44,20 @@ export async function POST(request) {
   delete profil.dogrulanmis;
   delete profil.belge_durumu;
 
+  // Avukat kaydı için Avukat Hizmet Sözleşmesi onayı zorunludur. Onay bilgisi profil
+  // satırına istemciden değil, sunucuda (aşağıda) yazılır.
+  const sozlesmeKabul = profil.sozlesme_kabul === true;
+  delete profil.sozlesme_kabul;
+  delete profil.sozlesme_surumu;
+  delete profil.sozlesme_onay_zamani;
+
+  if (rol === "avukat" && !sozlesmeKabul) {
+    return NextResponse.json(
+      { hata: { message: "Avukat Hizmet Sözleşmesi'ni onaylaman gerekiyor." } },
+      { status: 400 }
+    );
+  }
+
   const tabloAdi = rol === "avukat" ? "avukatlar" : "muvekkiller";
 
   const { data: mevcutProfil } = await supabaseAdmin
@@ -72,6 +87,14 @@ export async function POST(request) {
 
   if (eklemeHatasi) {
     return NextResponse.json({ hata: eklemeHatasi }, { status: 400 });
+  }
+
+  if (rol === "avukat") {
+    const sonuc = await sozlesmeOnayiniKaydet(kullanici.id, request);
+    if (sonuc.hata) {
+      // Profil oluştu; onay kaydı yazılamadıysa avukat panele girişte sözleşmeyi yeniden onaylar.
+      console.error("Kayıtta sözleşme onayı yazılamadı:", sonuc.hata);
+    }
   }
 
   return NextResponse.json({ basarili: true, rol });

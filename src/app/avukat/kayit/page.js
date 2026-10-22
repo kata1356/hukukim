@@ -10,6 +10,7 @@ import { turkceHataMesaji, emailZatenKayitliMi } from "@/lib/hataMesajlari";
 import AuthShell from "@/components/AuthShell";
 import TextField from "@/components/TextField";
 import KvkkOnay from "@/components/KvkkOnay";
+import SozlesmeOnay from "@/components/SozlesmeOnay";
 import Button from "@/components/Button";
 import Honeypot from "@/components/Honeypot";
 import GoogleGirisButonu from "@/components/GoogleGirisButonu";
@@ -35,6 +36,7 @@ export default function AvukatKayit() {
   });
   const [uzmanlikSecimi, setUzmanlikSecimi] = useState([]);
   const [kvkkOnay, setKvkkOnay] = useState(false);
+  const [sozlesmeOnay, setSozlesmeOnay] = useState(false);
   const [webSitesi, setWebSitesi] = useState("");
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState(null);
@@ -173,6 +175,7 @@ export default function AvukatKayit() {
           uzmanlik_alanlari: uzmanlikSecimi,
           biyografi: form.biyografi,
           kvkk_onay: kvkkOnay,
+          sozlesme_kabul: sozlesmeOnay,
         },
       },
     });
@@ -221,6 +224,7 @@ export default function AvukatKayit() {
             uzmanlik_alanlari: uzmanlikSecimi,
             biyografi: form.biyografi,
             kvkk_onay: kvkkOnay,
+          sozlesme_kabul: sozlesmeOnay,
           },
           web_sitesi: webSitesi,
         },
@@ -380,6 +384,7 @@ export default function AvukatKayit() {
           </div>
 
           <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
+          <SozlesmeOnay checked={sozlesmeOnay} onChange={(e) => setSozlesmeOnay(e.target.checked)} />
 
           {hata && (
             <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
@@ -570,6 +575,7 @@ export default function AvukatKayit() {
         </div>
 
         <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
+          <SozlesmeOnay checked={sozlesmeOnay} onChange={(e) => setSozlesmeOnay(e.target.checked)} />
 
         {hata && (
           <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">

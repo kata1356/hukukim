@@ -823,6 +823,7 @@ export default async function AnaSayfa() {
             <ul className="mt-4 flex flex-col gap-2 text-sm text-white/50">
               <li><Link href="/avukat/kayit" className="hover:text-white">Avukat Başvurusu</Link></li>
               <li><Link href="/giris" className="hover:text-white">Avukat Girişi</Link></li>
+              <li><Link href="/avukat-sozlesmesi" className="hover:text-white">Avukat Hizmet Sözleşmesi</Link></li>
             </ul>
           </div>
 
