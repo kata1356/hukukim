@@ -3,6 +3,11 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
+import { dailyOdaSuresiniAyarla } from "@/lib/daily";
+import { gorusmeBitisMs, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
+
+// İstemcinin ödeme onayını beklediği en uzun süre (VideoGorusmeButonu ile aynı: 3 dakika).
+const ODEME_BEKLEME_MS = 3 * 60 * 1000;
 
 // Gorusme sirasinda paket suresi bitmek uzereyken satin alinabilecek
 // sabit bir "ek sure" paketi (en kucuk paket ile ayni).
@@ -52,6 +57,12 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu görüşme aktif değil." }, { status: 400 });
   }
 
+  // Süresi çoktan dolmuş bir görüşmeye ek süre alınamaz.
+  const planlananBitisMs = gorusmeBitisMs(talep);
+  if (planlananBitisMs && Date.now() > planlananBitisMs + SURE_TOLERANSI_MS) {
+    return NextResponse.json({ hata: "Görüşme süresi doldu." }, { status: 410 });
+  }
+
   const { data: muvekkilProfili } = await supabaseAdmin
     .from("muvekkiller")
     .select("ad_soyad, email, telefon, kart_token")
@@ -97,6 +108,18 @@ export async function POST(request) {
 
   if (!basarili) {
     return NextResponse.json({ hata: hata ?? "PayTR token alınamadı." }, { status: 400 });
+  }
+
+  // Ödeme penceresi açıkken görüşme kesilmesin: oda bitişi, ödeme bekleme süresi (istemcinin
+  // ödeme sorgulama süresiyle aynı) kadar geçici olarak uzatılır. Ödeme onaylanırsa bildirim
+  // ucu bitişi yeni süreye göre ayarlar; onaylanmazsa oda bu sürenin sonunda kapanır.
+  const bitisMs = gorusmeBitisMs(talep);
+  if (bitisMs) {
+    try {
+      await dailyOdaSuresiniAyarla(`hukukim-${randevuTalepId}`, bitisMs + ODEME_BEKLEME_MS);
+    } catch (err) {
+      console.error("Ek süre ödeme penceresi için oda uzatılamadı:", err);
+    }
   }
 
   return NextResponse.json({ token: paytrToken, ekDakika: EK_SURE_PAKETI.dakika });

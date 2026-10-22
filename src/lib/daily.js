@@ -2,6 +2,9 @@ import "server-only";
 
 const DAILY_API_URL = "https://api.daily.co/v1";
 
+// Karşı tarafın odaya girmesini beklerken odanın açık kalacağı en uzun süre.
+const BEKLEME_SURESI_SN = 60 * 60 * 2;
+
 async function dailyIstek(yol, govde) {
   const yanit = await fetch(`${DAILY_API_URL}${yol}`, {
     method: "POST",
@@ -32,8 +35,21 @@ export async function dailyOdaGetirYaDaOlustur(odaAdi) {
       enable_chat: true,
       enable_screenshare: true,
       lang: "tr",
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+      exp: Math.floor(Date.now() / 1000) + BEKLEME_SURESI_SN,
+      eject_at_room_exp: true,
     },
+  });
+}
+
+// Odanın bitiş anını ayarlar; süre dolunca Daily.co herkesi odadan çıkarır.
+// bitisMs verilmezse oda yalnızca bekleme süresi kadar açık tutulur.
+export async function dailyOdaSuresiniAyarla(odaAdi, bitisMs) {
+  const exp = bitisMs
+    ? Math.ceil(bitisMs / 1000)
+    : Math.floor(Date.now() / 1000) + BEKLEME_SURESI_SN;
+
+  return dailyIstek(`/rooms/${odaAdi}`, {
+    properties: { exp, eject_at_room_exp: true },
   });
 }
 

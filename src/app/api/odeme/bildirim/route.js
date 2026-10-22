@@ -1,6 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrBildirimHashDogrula, paytrIadeYap } from "@/lib/paytr";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
+import { dailyOdaSuresiniAyarla } from "@/lib/daily";
+import { gorusmeBitisMs, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
 
 const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
 
@@ -59,7 +61,7 @@ export async function POST(request) {
   if (status === "success" && odeme.randevu_talep_id) {
     const { data: talep, error: talepHatasi } = await supabaseAdmin
       .from("randevu_talepleri")
-      .select("durum, paket_dakika, paket_tutari, odeme_tutari")
+      .select("durum, paket_dakika, paket_tutari, odeme_tutari, gorusme_baslangic_zamani")
       .eq("id", odeme.randevu_talep_id)
       .maybeSingle();
 
@@ -79,6 +81,20 @@ export async function POST(request) {
           .eq("id", odeme.randevu_talep_id);
 
         if (error) return yanEtkisiBasarisiz(merchantOid, error);
+
+        // Görüşme sürerken Daily.co odasının bitişini yeni süreye göre uzat. Başarısız olursa
+        // ödeme geri alınmaz (dakika zaten eklendi); istemci ek süre sonrası odayı yeniden senkronlar.
+        if (talep.gorusme_baslangic_zamani) {
+          try {
+            const yeniBitisMs = gorusmeBitisMs({
+              ...talep,
+              paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
+            });
+            await dailyOdaSuresiniAyarla(`hukukim-${odeme.randevu_talep_id}`, yeniBitisMs + SURE_TOLERANSI_MS);
+          } catch (err) {
+            console.error("Ek süre sonrası oda süresi uzatılamadı:", err);
+          }
+        }
       } else {
         await paytrIadeYap({
           merchantOid,
