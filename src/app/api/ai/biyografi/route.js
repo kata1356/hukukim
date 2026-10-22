@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { anthropicJsonIste } from "@/lib/anthropic";
+import { anthropicJsonIste, aiHataNedeni } from "@/lib/anthropic";
 import { avukatiDogrula } from "@/lib/aiYetki";
 
 // Avukatın kendi yazdığı biyografiyi daha net ve profesyonel bir dille yeniden yazar.
@@ -32,6 +32,6 @@ Kurallar:
     return NextResponse.json({ biyografi: yeni });
   } catch (err) {
     console.error("Biyografi iyileştirme hatası:", err);
-    return NextResponse.json({ hata: "Yapay zeka şu an öneri üretemedi." }, { status: 500 });
+    return NextResponse.json({ hata: `Yapay zeka şu an öneri üretemedi: ${aiHataNedeni(err)}` }, { status: 500 });
   }
 }
