@@ -35,7 +35,11 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
   const [ekSureToken, setEkSureToken] = useState(null);
   const [ayrilmaUyarisi, setAyrilmaUyarisi] = useState(false);
   const ayrilmaZamaniRef = useRef(null);
-  const baslangicRef = useRef(null);
+  // Süre sunucu saatiyle işler: baslangicSunucuRef sunucunun kaydettiği başlangıç anı (ms),
+  // sunucuFarkRef = sunucu saati - bu cihazın saati. Sayfa yenilense de süre kaldığı yerden sürer.
+  const baslangicSunucuRef = useRef(null);
+  const sunucuFarkRef = useRef(0);
+  const katilBilgisiRef = useRef(null);
   const iframeRef = useRef(null);
   const callFrameRef = useRef(null);
   const bittiCagrildiRef = useRef(false);
@@ -64,7 +68,10 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     if (!odaUrl || !gorusmeBasladi || sonlandiriliyor) return;
 
     const zamanlayici = setInterval(() => {
-      const saniye = Math.floor((Date.now() - baslangicRef.current) / 1000);
+      const saniye = Math.max(
+        0,
+        Math.floor((Date.now() + sunucuFarkRef.current - baslangicSunucuRef.current) / 1000)
+      );
       setGecenSaniye(saniye);
 
       if (paketSaniye > 0 && saniye >= paketSaniye && !sureDolduRef.current && !ekSureYukleniyorRef.current) {
@@ -110,14 +117,25 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     gorusmeBasladiRef.current = false;
     sureDolduRef.current = false;
     ekSureYukleniyorRef.current = false;
-    baslangicRef.current = null;
-    bilinenPaketDakikaRef.current = Number(paketDakika || 0);
+    baslangicSunucuRef.current = null;
     setGorusmeBasladi(false);
     setGecenSaniye(0);
     setSureDoldu(false);
-    setEkSaniye(0);
     setEkSureMesaji(null);
     setAyrilmaUyarisi(false);
+
+    // Katılırken sunucu güncel paket süresini (ek süre dahil) ve varsa görüşmenin başlangıç
+    // anını bildirir; sayfa yenilendiyse süre kaldığı yerden devam eder.
+    const katilBilgisi = katilBilgisiRef.current;
+    const guncelPaketDakika = Number(katilBilgisi?.paketDakika ?? paketDakika ?? 0);
+    bilinenPaketDakikaRef.current = guncelPaketDakika;
+    setEkSaniye((guncelPaketDakika - Number(paketDakika || 0)) * 60);
+    if (katilBilgisi?.gorusmeBaslangicZamani) {
+      sunucuFarkRef.current = Date.parse(katilBilgisi.sunucuZamani) - Date.now();
+      baslangicSunucuRef.current = Date.parse(katilBilgisi.gorusmeBaslangicZamani);
+      gorusmeBasladiRef.current = true;
+      setGorusmeBasladi(true);
+    }
 
     const callFrame = DailyIframe.wrap(iframeRef.current);
     callFrameRef.current = callFrame;
@@ -152,13 +170,40 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
 
     if (!gorusmeBasladiRef.current && sayi >= 2) {
       gorusmeBasladiRef.current = true;
-      baslangicRef.current = Date.now();
-      setGecenSaniye(0);
-      setGorusmeBasladi(true);
+      sunuculaBaslat();
     }
   }
 
-  async function gorusmeyiTamamla(saniyeGecti) {
+  // Süreyi sunucu saatiyle başlatır (iki taraf da çağırsa tek başlangıç kaydedilir).
+  // Sunucuya ulaşılamazsa görüşme bu cihazın saatiyle başlar; sunucu yine de oda süresini denetler.
+  async function sunuculaBaslat({ yenidenSenkron = false } = {}) {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const yanit = await fetch("/api/video/basladi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ randevuTalepId }),
+      });
+      if (!yanit.ok) throw new Error("Süre başlatılamadı.");
+      const sonuc = await yanit.json();
+      sunucuFarkRef.current = Date.parse(sonuc.sunucuZamani) - Date.now();
+      baslangicSunucuRef.current = Date.parse(sonuc.gorusmeBaslangicZamani);
+    } catch (err) {
+      // Ek süre sonrası yeniden senkronda mevcut başlangıç korunur; yalnızca ilk başlatmada yerel saate düşülür.
+      if (yenidenSenkron) return;
+      console.error("Sunucu saatiyle başlatılamadı, yerel saat kullanılıyor:", err);
+      sunucuFarkRef.current = 0;
+      baslangicSunucuRef.current = Date.now();
+    }
+    setGecenSaniye(
+      Math.max(0, Math.floor((Date.now() + sunucuFarkRef.current - baslangicSunucuRef.current) / 1000))
+    );
+    setGorusmeBasladi(true);
+  }
+
+  async function gorusmeyiTamamla() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -169,7 +214,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ randevuTalepId, gorusmeSuresiSaniye: saniyeGecti }),
+      body: JSON.stringify({ randevuTalepId }),
     });
   }
 
@@ -182,9 +227,8 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     setGorusmeBasladi(false);
     clearInterval(ekSurePollRef.current);
 
-    if (baslangicRef.current) {
-      const saniyeGecti = Math.floor((Date.now() - baslangicRef.current) / 1000);
-      gorusmeyiTamamla(saniyeGecti);
+    if (baslangicSunucuRef.current) {
+      gorusmeyiTamamla();
     }
   }
 
@@ -240,6 +284,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
         setEkSureToken(null);
         ekSureYukleniyorAyarla(false);
         clearInterval(ekSurePollRef.current);
+        sunuculaBaslat({ yenidenSenkron: true });
       }
     }, EK_SURE_POLL_MS);
   }
@@ -268,6 +313,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
       return;
     }
 
+    katilBilgisiRef.current = sonuc;
     setOdaUrl(sonuc.odaUrl);
     setYukleniyor(false);
   }

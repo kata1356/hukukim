@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { dailyOdaGetirYaDaOlustur, dailyTokenOlustur } from "@/lib/daily";
+import { dailyOdaGetirYaDaOlustur, dailyOdaSuresiniAyarla, dailyTokenOlustur } from "@/lib/daily";
+import { gorusmeBitisMs, gorusmeyiTamamla, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
 
 export async function POST(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
@@ -40,8 +41,19 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Bu randevu görüntülü görüşme değil." }, { status: 400 });
   }
 
-  if (talep.durum !== "kabul" && talep.durum !== "tamamlandi") {
+  if (talep.durum === "tamamlandi") {
+    return NextResponse.json({ hata: "Bu görüşme tamamlandı, yeniden katılamazsın." }, { status: 410 });
+  }
+
+  if (talep.durum !== "kabul") {
     return NextResponse.json({ hata: "Randevu henüz kabul edilmedi." }, { status: 400 });
+  }
+
+  // Süre sunucu saatiyle takip edilir: dolduysa odaya yeniden girilemez.
+  const bitisMs = gorusmeBitisMs(talep);
+  if (bitisMs && Date.now() >= bitisMs + SURE_TOLERANSI_MS) {
+    await gorusmeyiTamamla(talep);
+    return NextResponse.json({ hata: "Paket süresi doldu, görüşme sona erdi." }, { status: 410 });
   }
 
   const odaAdi = `hukukim-${randevuTalepId}`;
@@ -69,9 +81,17 @@ export async function POST(request) {
 
   try {
     await dailyOdaGetirYaDaOlustur(odaAdi);
+    // Oda süresi: görüşme başladıysa planlanan bitiş anı, başlamadıysa bekleme süresi.
+    await dailyOdaSuresiniAyarla(odaAdi, bitisMs ? bitisMs + SURE_TOLERANSI_MS : null);
     const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi });
     const odaUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${odaAdi}?t=${meetingToken}`;
-    return NextResponse.json({ odaUrl, videoBaslangicZamani });
+    return NextResponse.json({
+      odaUrl,
+      videoBaslangicZamani,
+      gorusmeBaslangicZamani: talep.gorusme_baslangic_zamani ?? null,
+      paketDakika: Number(talep.paket_dakika || 0),
+      sunucuZamani: new Date().toISOString(),
+    });
   } catch (err) {
     console.error("Daily.co video oda hatasi:", err);
     return NextResponse.json({ hata: "Görüşme odası oluşturulamadı, lütfen tekrar dene." }, { status: 500 });
