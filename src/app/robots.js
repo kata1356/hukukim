@@ -5,7 +5,7 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/admin", "/avukat/panel", "/avukat/talepler", "/avukat/takvim", "/avukat/profil", "/avukat/bakiye", "/avukat/ayarlar","/muvekkil/panel", "/sifre-sifirla"],
+      disallow: ["/api/", "/admin", "/avukat/panel", "/avukat/talepler", "/avukat/takvim", "/avukat/profil", "/avukat/bakiye", "/avukat/ayarlar","/muvekkil/panel", "/muvekkil/gorusmelerim", "/muvekkil/bakiye", "/muvekkil/ayarlar", "/muvekkil/yardim","/sifre-sifirla"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

@@ -7,7 +7,7 @@ import Avatar from "./Avatar";
 import BildirimZili from "./BildirimZili";
 import Logo from "./Logo";
 import ProfilMenusu from "./ProfilMenusu";
-import { MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
+import { MUVEKKIL_MENU, MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
 import { IconYildirim } from "./icons";
 
 // Müvekkil panelinin ortak çerçevesi: masaüstünde sol menü, telefonda alt menü.
@@ -24,7 +24,7 @@ export default function MuvekkilShell({ profil, baslik, aciklama, aksiyon, child
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {MUVEKKIL_SEKMELER.map(({ etiket, href, Icon }) => {
+          {MUVEKKIL_MENU.map(({ etiket, href, Icon }) => {
             const aktif = yol === href;
             return (
               <Link
