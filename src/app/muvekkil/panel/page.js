@@ -575,6 +575,7 @@ export default function MuvekkilPanel() {
                           <VideoGorusmeButonu
                             randevuTalepId={talep.id}
                             paketDakika={talep.paket_dakika}
+                            ekSureAlabilir
                             otomatikAc={talep.id === videoTalepId}
                           />
                         )}

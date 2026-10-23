@@ -229,7 +229,7 @@ export default function MuvekkilGorusmelerim() {
 
                   <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
                     {talep.durum === "kabul" && talep.gorusme_sekli === "goruntulu" && (
-                      <VideoGorusmeButonu randevuTalepId={talep.id} paketDakika={talep.paket_dakika} />
+                      <VideoGorusmeButonu randevuTalepId={talep.id} paketDakika={talep.paket_dakika} ekSureAlabilir />
                     )}
 
                     {talep.durum === "tamamlandi" &&

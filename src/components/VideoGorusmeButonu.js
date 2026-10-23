@@ -8,7 +8,10 @@ import Spinner from "./Spinner";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import { IconVideo, IconTelefonKapat, IconKvkk, IconEtiket } from "./icons";
 
-const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
+// Görüşme sırasında satın alınabilecek ek süre seçenekleri (5 ve 10 dakikalık paketler).
+const EK_SURE_SECENEKLERI = GORUSME_PAKETLERI.slice(0, 2);
+// Teklif, süre bitmeden bu kadar saniye önce açılır; ödeme bu süre içinde, görüşme kesilmeden tamamlanır.
+const EK_SURE_TEKLIF_SANIYE = 90;
 const EK_SURE_POLL_MS = 3000;
 const EK_SURE_POLL_SURE_MS = 3 * 60 * 1000;
 
@@ -18,7 +21,8 @@ function sureFormatla(saniye) {
   return `${String(dk).padStart(2, "0")}:${String(sn).padStart(2, "0")}`;
 }
 
-export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomatikAc }) {
+// ekSureAlabilir: yalnızca müvekkil tarafında true verilir; avukat ek süre satın alamaz.
+export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomatikAc, ekSureAlabilir = false }) {
   const [onayAcik, setOnayAcik] = useState(false);
   const [onayVerildi, setOnayVerildi] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -232,7 +236,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
     }
   }
 
-  async function ekSureSatinAl() {
+  async function ekSureSatinAl(dakika) {
     ekSureYukleniyorAyarla(true);
     setEkSureMesaji(null);
 
@@ -246,7 +250,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ randevuTalepId }),
+      body: JSON.stringify({ randevuTalepId, dakika }),
     });
     const sonuc = await yanit.json();
 
@@ -329,7 +333,8 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
 
   const kalanSaniye = Math.max(0, paketSaniye - gecenSaniye);
   const sureUyari = paketSaniye > 0 && kalanSaniye > 0 && kalanSaniye <= 60;
-  const ekSureGosterilsin = paketSaniye > 0 && kalanSaniye > 0 && kalanSaniye <= 30;
+  const ekSureGosterilsin =
+    ekSureAlabilir && paketSaniye > 0 && kalanSaniye > 0 && kalanSaniye <= EK_SURE_TEKLIF_SANIYE;
 
   const baslikMetni = sureDoldu
     ? "Paket Süresi Doldu, Görüşme Sonlandırılıyor..."
@@ -417,6 +422,28 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
               allow="camera; microphone; fullscreen; display-capture; autoplay"
               style={{ width: "100%", height: "70vh", border: "none" }}
             />
+
+            {ekSureGosterilsin && !ekSureToken && (
+              <div className="absolute inset-x-3 top-3 z-10 flex flex-col gap-2 rounded-xl border border-turkuaz/40 bg-gece/95 p-3 shadow-lg backdrop-blur">
+                <p className="text-center text-sm font-semibold text-white">
+                  Süren bitmek üzere ({sureFormatla(kalanSaniye)}). Görüşmeyi kesmeden devam edebilirsin.
+                </p>
+                <div className="flex gap-2">
+                  {EK_SURE_SECENEKLERI.map((paket) => (
+                    <button
+                      key={paket.dakika}
+                      onClick={() => ekSureSatinAl(paket.dakika)}
+                      disabled={ekSureYukleniyor}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-turkuaz px-3 py-2 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
+                    >
+                      {ekSureYukleniyor ? <Spinner className="h-4 w-4" /> : <IconEtiket className="h-4 w-4" />}+
+                      {paket.dakika} dk · {paket.tutar} TL
+                    </button>
+                  ))}
+                </div>
+                {ekSureMesaji && <p className="text-center text-xs text-white/60">{ekSureMesaji}</p>}
+              </div>
+            )}
 
             {ekSureToken && (
               <div className="absolute inset-0 z-20 flex flex-col bg-white">
@@ -508,21 +535,9 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
             </div>
           )}
 
-          {ekSureGosterilsin && (
-            <div className="mt-3 flex flex-col gap-2 rounded-xl border border-turkuaz/30 bg-turkuaz/[0.06] p-4">
-              <p className="text-center text-sm font-semibold text-white">
-                Süre bitmek üzere. Devam etmek için ek süre alabilirsin.
-              </p>
-              <button
-                onClick={ekSureSatinAl}
-                disabled={ekSureYukleniyor}
-                className="flex items-center justify-center gap-2 rounded-full bg-turkuaz px-4 py-2.5 text-sm font-bold text-gece transition hover:bg-turkuaz-parlak disabled:opacity-60"
-              >
-                {ekSureYukleniyor ? <Spinner className="h-4 w-4" /> : <IconEtiket className="h-4 w-4" />}
-                +{EK_SURE_PAKETI.dakika} dk ekle · {EK_SURE_PAKETI.tutar} TL
-              </button>
-              {ekSureMesaji && <p className="text-center text-xs text-white/60">{ekSureMesaji}</p>}
-            </div>
+          {/* Teklif kapalıyken de (ör. "+5 dakika eklendi!") sonuç mesajı görünsün. */}
+          {ekSureMesaji && !ekSureGosterilsin && (
+            <p className="mt-3 text-center text-sm font-semibold text-turkuaz">{ekSureMesaji}</p>
           )}
 
           <button

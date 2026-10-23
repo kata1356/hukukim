@@ -56,7 +56,11 @@ export async function POST(request) {
     return new Response("OK");
   }
 
-  const ekSureMi = String(merchantOid).startsWith("EKS");
+  // Ek süre siparişleri: eski "EKS..." (her zaman 5 dk) ve yeni "EKP<dakika>X..." biçimi.
+  const ekSureMi = /^EK[SP]/.test(String(merchantOid));
+  const ekSureEslesmesi = /^EKP(\d+)X/.exec(String(merchantOid));
+  const ekPaket =
+    GORUSME_PAKETLERI.slice(0, 2).find((p) => p.dakika === Number(ekSureEslesmesi?.[1])) ?? EK_SURE_PAKETI;
 
   if (status === "success" && odeme.randevu_talep_id) {
     const { data: talep, error: talepHatasi } = await supabaseAdmin
@@ -74,9 +78,9 @@ export async function POST(request) {
         const { error } = await supabaseAdmin
           .from("randevu_talepleri")
           .update({
-            paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
-            paket_tutari: Number(talep.paket_tutari || 0) + EK_SURE_PAKETI.tutar,
-            odeme_tutari: Number(talep.odeme_tutari || 0) + EK_SURE_PAKETI.tutar,
+            paket_dakika: Number(talep.paket_dakika || 0) + ekPaket.dakika,
+            paket_tutari: Number(talep.paket_tutari || 0) + ekPaket.tutar,
+            odeme_tutari: Number(talep.odeme_tutari || 0) + ekPaket.tutar,
           })
           .eq("id", odeme.randevu_talep_id);
 
@@ -88,7 +92,7 @@ export async function POST(request) {
           try {
             const yeniBitisMs = gorusmeBitisMs({
               ...talep,
-              paket_dakika: Number(talep.paket_dakika || 0) + EK_SURE_PAKETI.dakika,
+              paket_dakika: Number(talep.paket_dakika || 0) + ekPaket.dakika,
             });
             await dailyOdaSuresiniAyarla(`hukukim-${odeme.randevu_talep_id}`, yeniBitisMs + SURE_TOLERANSI_MS);
           } catch (err) {
