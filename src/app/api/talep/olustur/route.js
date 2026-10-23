@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
 import { SITE_URL } from "@/lib/site";
 import { paketHesapla, DENEME_DAKIKA } from "@/lib/odemeYardimci";
 import { ilkGorusmeMi, telefonKullanimda, denemeHakkiniAl, denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 import { SMS_DOGRULAMA } from "@/lib/smsAyar";
+import { genelTalepBildir } from "@/lib/talepBildirimi";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
@@ -127,6 +128,8 @@ export async function POST(request) {
   }
 
   if (denemeMi) {
+    // Ücretsiz denemede ödeme beklenmez; talep havuza düştüğü anda uygun avukatlara haber verilir.
+    after(() => genelTalepBildir(yeniTalep.id));
     return NextResponse.json({ talepId: yeniTalep.id, ucretsiz: true });
   }
 

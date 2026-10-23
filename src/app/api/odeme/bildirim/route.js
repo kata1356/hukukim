@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { genelTalepBildir } from "@/lib/talepBildirimi";
 import { paytrBildirimHashDogrula, paytrIadeYap } from "@/lib/paytr";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import { dailyOdaSuresiniAyarla } from "@/lib/daily";
@@ -115,6 +117,10 @@ export async function POST(request) {
         .eq("id", odeme.randevu_talep_id);
 
       if (error) return yanEtkisiBasarisiz(merchantOid, error);
+
+      // Ödeme onaylandı, talep havuzda görünür oldu: uygun avukatlara haber ver. PayTR'ye yanıtı
+      // geciktirmemek için yanıt sonrası çalışır; hata olursa ödeme akışını etkilemez.
+      after(() => genelTalepBildir(odeme.randevu_talep_id));
     } else {
       // Muvekkil odemeyi talep zaman asimi/iptal sonrasi tamamladi: talep
       // artik gecersiz, parayi otomatik iade et.
