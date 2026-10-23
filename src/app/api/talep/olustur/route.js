@@ -9,6 +9,14 @@ import { genelTalepBildir } from "@/lib/talepBildirimi";
 
 const BUGUN = () => new Date().toISOString().split("T")[0];
 
+// "0555 123 45 67", "+90 555 123 45 67", "5551234567" gibi girişleri 05XXXXXXXXX biçimine çevirir.
+function telefonuNormallestir(deger) {
+  const rakamlar = String(deger).replace(/\D/g, "");
+  if (rakamlar.length === 12 && rakamlar.startsWith("90")) return `0${rakamlar.slice(2)}`;
+  if (rakamlar.length === 10 && rakamlar.startsWith("5")) return `0${rakamlar}`;
+  return rakamlar;
+}
+
 function istekIpAdresi(request) {
   const ileriIp = request.headers.get("x-forwarded-for");
   if (ileriIp) return ileriIp.split(",")[0].trim();
@@ -58,8 +66,10 @@ export async function POST(request) {
     }
   } else {
     // SMS doğrulaması kapalıyken (acil kapatma anahtarı): telefon eskisi gibi doğrulamasız alınır.
-    const yeniTelefon = typeof telefon === "string" ? telefon.trim() : "";
-    if (yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
+    const yeniTelefon = typeof telefon === "string" ? telefonuNormallestir(telefon) : "";
+    // Biçim yalnızca hesapta henüz numara yokken kontrol edilir; kayıtlı numarası olan müvekkil
+    // formdan gelen (kullanılmayacak) değer yüzünden engellenmez.
+    if (!muvekkilProfili.telefon && yeniTelefon && !/^0\d{10}$/.test(yeniTelefon)) {
       return NextResponse.json({ hata: "Telefon numarası 11 haneli olmalı (05XXXXXXXXX)." }, { status: 400 });
     }
     if (!muvekkilProfili.telefon && yeniTelefon) {
