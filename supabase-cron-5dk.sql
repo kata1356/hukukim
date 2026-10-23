@@ -12,6 +12,8 @@ create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
 -- Gizli anahtarı düz metin olarak cron.job tablosuna yazmamak için Vault'ta saklarız.
+-- Aynı isimle ikinci kez oluşturulamadığı için varsa eskisi önce silinir (dosya tekrar çalıştırılabilir).
+delete from vault.secrets where name = 'hukukim_cron_secret';
 select vault.create_secret('BURAYA_CRON_SECRET', 'hukukim_cron_secret');
 
 -- Varsa eski kaydı kaldırıp yeniden oluştur (dosya birden fazla çalıştırılabilsin).
