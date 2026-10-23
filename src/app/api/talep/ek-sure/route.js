@@ -9,9 +9,9 @@ import { gorusmeBitisMs, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
 // İstemcinin ödeme onayını beklediği en uzun süre (VideoGorusmeButonu ile aynı: 3 dakika).
 const ODEME_BEKLEME_MS = 3 * 60 * 1000;
 
-// Gorusme sirasinda paket suresi bitmek uzereyken satin alinabilecek
-// sabit bir "ek sure" paketi (en kucuk paket ile ayni).
-const EK_SURE_PAKETI = GORUSME_PAKETLERI[0];
+// Gorusme sirasinda paket suresi bitmek uzereyken satin alinabilecek ek sure paketleri
+// (5 ve 10 dakikalik hazir paketler). Gecersiz/eksik dakika en kucuk pakete duser.
+const EK_SURE_PAKETLERI = GORUSME_PAKETLERI.slice(0, 2);
 
 function istekIpAdresi(request) {
   const ileriIp = request.headers.get("x-forwarded-for");
@@ -33,7 +33,8 @@ export async function POST(request) {
   }
 
   const kullanici = kullaniciVerisi.user;
-  const { randevuTalepId } = await request.json();
+  const { randevuTalepId, dakika } = await request.json();
+  const ekSurePaketi = EK_SURE_PAKETLERI.find((p) => p.dakika === Number(dakika)) ?? EK_SURE_PAKETLERI[0];
 
   if (!randevuTalepId) {
     return NextResponse.json({ hata: "Randevu talebi belirtilmedi." }, { status: 400 });
@@ -73,15 +74,16 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Müvekkil profili bulunamadı." }, { status: 404 });
   }
 
-  const merchantOid = `EKS${randevuTalepId.replace(/-/g, "").slice(0, 20)}${Date.now()}`.slice(0, 64);
-  const tutarKurus = Math.round(EK_SURE_PAKETI.tutar * 100);
+  // Sipariş numarası ek süre dakikasını taşır (EKP<dakika>X...); bildirim ucu paketi buradan çözer.
+  const merchantOid = `EKP${ekSurePaketi.dakika}X${randevuTalepId.replace(/-/g, "").slice(0, 20)}${Date.now()}`.slice(0, 64);
+  const tutarKurus = Math.round(ekSurePaketi.tutar * 100);
   const userIp = istekIpAdresi(request);
 
   const { error: eklemeHatasi } = await supabaseAdmin.from("odemeler").insert({
     merchant_oid: merchantOid,
     ad_soyad: muvekkilProfili.ad_soyad,
     email: muvekkilProfili.email,
-    tutar: EK_SURE_PAKETI.tutar,
+    tutar: ekSurePaketi.tutar,
     test_modu: process.env.PAYTR_TEST_MODE !== "0",
     durum: "basladi",
     muvekkil_id: kullanici.id,
@@ -97,7 +99,7 @@ export async function POST(request) {
     userIp,
     email: muvekkilProfili.email,
     tutarKurus,
-    sepetAdi: `Hukukim - Ek Süre (${EK_SURE_PAKETI.dakika} dk)`,
+    sepetAdi: `Hukukim - Ek Süre (${ekSurePaketi.dakika} dk)`,
     adSoyad: muvekkilProfili.ad_soyad,
     telefon: muvekkilProfili.telefon ?? "05000000000",
     adres: "Belirtilmedi",
@@ -122,5 +124,5 @@ export async function POST(request) {
     }
   }
 
-  return NextResponse.json({ token: paytrToken, ekDakika: EK_SURE_PAKETI.dakika });
+  return NextResponse.json({ token: paytrToken, ekDakika: ekSurePaketi.dakika });
 }
