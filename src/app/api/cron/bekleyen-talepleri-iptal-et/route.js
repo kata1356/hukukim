@@ -10,7 +10,8 @@ const ZAMAN_ASIMI_DAKIKA = 15;
 
 export async function GET(request) {
   const yetkiBasligi = request.headers.get("authorization") ?? "";
-  if (yetkiBasligi !== `Bearer ${process.env.CRON_SECRET}`) {
+  // CRON_SECRET tanımsızsa "Bearer undefined" ile geçilmesin diye önce varlığı kontrol edilir.
+  if (!process.env.CRON_SECRET || yetkiBasligi !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ hata: "Yetkisiz." }, { status: 401 });
   }
 
