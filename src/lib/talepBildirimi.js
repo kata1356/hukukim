@@ -19,7 +19,11 @@ function temizle(metin) {
     .slice(0, 60);
 }
 
-// Talebin şehrine ve/veya uzmanlık alanına uyan, baro doğrulaması onaylı avukatlar (en uygun önce).
+// true: yalnızca şehri/alanı uyan avukatlara bildirim gider. false: tüm baro onaylı avukatlar bildirim alır
+// (uyanlar önce, EN_FAZLA_AVUKAT sınırıyla). Avukat panelindeki aynı ada sahip ayarla (useAvukatTalepleri) tutarlı tutulmalı.
+const SADECE_UYGUN_AVUKATLAR = false;
+
+// Baro doğrulaması onaylı avukatlar; talebin şehrine ve/veya uzmanlık alanına uyanlar önce gelir.
 async function uygunAvukatlar(talep) {
   const { data: avukatlar, error } = await supabaseAdmin.from("avukatlar").select("*").eq("dogrulanmis", true);
   if (error) throw error;
@@ -30,7 +34,7 @@ async function uygunAvukatlar(talep) {
       const alanUyar = (avukat.uzmanlik_alanlari ?? []).includes(talep.hedef_uzmanlik_alani);
       return { avukat, puan: (sehirUyar ? 1 : 0) + (alanUyar ? 1 : 0) };
     })
-    .filter((x) => x.puan > 0)
+    .filter((x) => !SADECE_UYGUN_AVUKATLAR || x.puan > 0)
     .sort((a, b) => b.puan - a.puan)
     .slice(0, EN_FAZLA_AVUKAT)
     .map((x) => x.avukat);
