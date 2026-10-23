@@ -265,11 +265,16 @@ export default function AvukatTalepler() {
                       </div>
                       <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
                         <DurumRozeti durum={talep.durum} />
-                        {talep.gorusme_suresi_dakika > 0 && (
-                          <span className="rounded-md bg-green-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-400 ring-1 ring-green-500/20">
-                            Ödendi
-                          </span>
-                        )}
+                        {talep.gorusme_suresi_dakika > 0 &&
+                          (talep.odeme_durumu === "muaf" ? (
+                            <span className="rounded-md bg-turkuaz/10 px-2.5 py-0.5 text-[11px] font-semibold text-turkuaz ring-1 ring-turkuaz/20">
+                              Ücretsiz deneme
+                            </span>
+                          ) : (
+                            <span className="rounded-md bg-green-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-green-400 ring-1 ring-green-500/20">
+                              Ödendi
+                            </span>
+                          ))}
                       </div>
                     </div>
 

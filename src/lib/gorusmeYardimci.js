@@ -36,12 +36,33 @@ export async function gorusmeyiTamamla(talep) {
   if (guncelleHatasi) return { hata: guncelleHatasi };
 
   if (guncellenen && Number(talep.odeme_tutari || 0) > 0 && talep.avukat_id) {
-    await supabaseAdmin.from("avukat_kazanclari").insert({
-      avukat_id: talep.avukat_id,
-      randevu_talep_id: talep.id,
-      muvekkil_ad_soyad: talep.muvekkil_ad_soyad,
-      kazanilan_miktar: avukatPayiHesapla(talep.odeme_tutari),
-    });
+    // Aynı talep için kazanç zaten yazıldıysa (önceki bir denemede) tekrar eklenmez.
+    const { data: mevcutKazanc } = await supabaseAdmin
+      .from("avukat_kazanclari")
+      .select("id")
+      .eq("randevu_talep_id", talep.id)
+      .maybeSingle();
+
+    if (!mevcutKazanc) {
+      const { error: kazancHatasi } = await supabaseAdmin.from("avukat_kazanclari").insert({
+        avukat_id: talep.avukat_id,
+        randevu_talep_id: talep.id,
+        muvekkil_ad_soyad: talep.muvekkil_ad_soyad,
+        kazanilan_miktar: avukatPayiHesapla(talep.odeme_tutari),
+      });
+
+      if (kazancHatasi) {
+        // Kazanç yazılamadıysa talebi "kabul"e geri al: bir sonraki tamamlama denemesi
+        // (diğer taraf ya da süre dolumu) kazancı yeniden yazabilsin, avukatın parası kaybolmasın.
+        console.error("Avukat kazancı yazılamadı, talep:", talep.id, kazancHatasi);
+        await supabaseAdmin
+          .from("randevu_talepleri")
+          .update({ durum: "kabul" })
+          .eq("id", talep.id)
+          .eq("durum", "tamamlandi");
+        return { hata: kazancHatasi };
+      }
+    }
   }
 
   return { basarili: true };
