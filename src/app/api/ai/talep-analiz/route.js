@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { anthropicJsonIste } from "@/lib/anthropic";
+import { aiLimitiKontrolEt } from "@/lib/aiLimit";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 
 export async function POST(request) {
@@ -16,10 +17,17 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Oturum geçersiz." }, { status: 401 });
   }
 
-  const { aciklama } = await request.json();
+  const { aciklama } = await request.json().catch(() => ({}));
 
-  if (!aciklama || aciklama.trim().length < 15) {
+  if (typeof aciklama !== "string" || aciklama.trim().length < 15) {
     return NextResponse.json({ hata: "Önce durumunu biraz daha ayrıntılı anlat." }, { status: 400 });
+  }
+  if (aciklama.length > 4000) {
+    return NextResponse.json({ hata: "Açıklama çok uzun, lütfen kısalt." }, { status: 400 });
+  }
+
+  if (!(await aiLimitiKontrolEt(kullaniciVerisi.user.id, "talep-analiz"))) {
+    return NextResponse.json({ hata: "Çok fazla analiz istedin, bir saat sonra tekrar dene." }, { status: 429 });
   }
 
   try {
