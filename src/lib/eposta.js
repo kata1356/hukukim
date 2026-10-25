@@ -8,7 +8,8 @@ import "server-only";
 const RESEND_URL = "https://api.resend.com/emails";
 const VARSAYILAN_GONDEREN = "Hukukim <bildirim@hukukim.com>";
 
-export async function epostaGonder({ to, konu, metin, html }) {
+// gonderen verilirse varsayılan gönderen yerine kullanılır (alan adı doğrulanmış bir adres olmalıdır).
+export async function epostaGonder({ to, konu, metin, html, gonderen }) {
   const anahtar = process.env.RESEND_API_KEY;
   if (!anahtar) return { atlandi: true };
 
@@ -19,7 +20,7 @@ export async function epostaGonder({ to, konu, metin, html }) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM ?? VARSAYILAN_GONDEREN,
+      from: gonderen ?? process.env.RESEND_FROM ?? VARSAYILAN_GONDEREN,
       to: [to],
       subject: konu,
       text: metin,
