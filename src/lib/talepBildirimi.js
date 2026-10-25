@@ -2,6 +2,7 @@ import "server-only";
 import { supabaseAdmin } from "./supabaseAdmin";
 import { smsGonder } from "./sms";
 import { epostaGonder } from "./eposta";
+import { talepEpostasiOlustur } from "./talepEpostasi";
 import { SITE_URL } from "./site";
 
 // Bir talepte en fazla kaç avukata bildirim gider (bildirim seli ve SMS maliyeti için sınır).
@@ -76,10 +77,6 @@ export async function genelTalepBildir(talepId) {
     if (EPOSTA_VE_SMS_SADECE_ACIL && !acil) return;
 
     // 2) E-posta ve 3) SMS. Anahtarlar tanımlı değilse ilgili adım atlanır/başarısız olur ve loglanır.
-    const konu = acil ? `ACİL talep: ${alan} / ${sehir}` : `Yeni talep: ${alan} / ${sehir}`;
-    const girisCumlesi = acil
-      ? `Hukukim'de ${sehir} için ${alan} alanında ACİL bir görüşme talebi açıldı. En kısa sürede dönüş yapmanız gerekmektedir.`
-      : `Hukukim'de ${sehir} için ${alan} alanında yeni bir görüşme talebi açıldı.`;
     const smsMetni = acil
       ? `Hukukim ACIL talep: ${alan}/${sehir}. En kisa surede donus yapmaniz gerekmektedir. hukukim.com/avukat/talepler`
       : `Hukukim yeni talep: ${alan}/${sehir}. hukukim.com/avukat/talepler`;
@@ -88,13 +85,20 @@ export async function genelTalepBildir(talepId) {
       const isler = [];
 
       if (avukat.email) {
-        const ad = temizle(avukat.ad_soyad);
+        const { konu, metin, html } = talepEpostasiOlustur({
+          acil,
+          ad: temizle(avukat.ad_soyad),
+          alan,
+          sehir,
+          panelAdresi,
+        });
         isler.push(
           epostaGonder({
             to: avukat.email,
+            gonderen: acil ? "Hukukim Acil Talep <bildirim@hukukim.com>" : undefined,
             konu,
-            metin: `Merhaba ${ad},\n\n${girisCumlesi}\n\nTalebi görüntülemek ve üstlenmek için: ${panelAdresi}\n\nBu e-posta, Hukukim avukat hesabınıza bağlı bildirimler kapsamında gönderilmiştir.`,
-            html: `<p>Merhaba ${ad},</p><p>${girisCumlesi}</p><p><a href="${panelAdresi}">Talebi görüntüle ve üstlen</a></p><p style="color:#666;font-size:12px">Bu e-posta, Hukukim avukat hesabınıza bağlı bildirimler kapsamında gönderilmiştir.</p>`,
+            metin,
+            html,
           })
         );
       }
