@@ -446,7 +446,11 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
             )}
 
             {ekSureToken && (
-              <div className="absolute inset-0 z-20 flex flex-col bg-white">
+              // Ödeme paneli görüntünün alt kısmında açılır: üstteki görüntü ve ses kesilmeden görüşme sürer.
+              <div className="absolute inset-x-0 bottom-0 z-20 flex h-[72%] flex-col overflow-hidden rounded-t-xl bg-white shadow-2xl">
+                <p className="bg-turkuaz px-4 py-2 text-center text-xs font-semibold text-gece">
+                  Ödeme sırasında görüşmen devam ediyor, süre kaybetmezsin.
+                </p>
                 <iframe
                   src={`https://www.paytr.com/odeme/guvenli/${ekSureToken}`}
                   title="Ek Süre Ödemesi"
