@@ -119,7 +119,6 @@ export async function POST(request) {
       hedef_sehir: hedefSehir,
       hedef_uzmanlik_alani: hedefUzmanlikAlani,
       muvekkil_ad_soyad: muvekkilProfili.ad_soyad,
-      muvekkil_telefon: muvekkilProfili.telefon,
       konu,
       aciklama,
       gorusme_sekli: gorusmeSekli,

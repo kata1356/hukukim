@@ -39,7 +39,15 @@ export default function AdminTalepDetay() {
         return;
       }
 
-      setTalep(data);
+      // Telefon talep kaydında tutulmaz (avukat görmesin); müvekkil profilinden okunur.
+      const { data: muvekkil } = await supabase
+        .from("muvekkiller")
+        .select("telefon, email")
+        .eq("id", data.muvekkil_id)
+        .maybeSingle();
+      if (iptalEdildi) return;
+
+      setTalep({ ...data, muvekkil_telefon: muvekkil?.telefon ?? null, muvekkil_email: muvekkil?.email ?? null });
       setForm({
         konu: data.konu ?? "",
         aciklama: data.aciklama ?? "",
@@ -98,7 +106,8 @@ export default function AdminTalepDetay() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-white/40">Müvekkil</p>
           <p className="mt-1 text-sm text-white">{talep.muvekkil_ad_soyad}</p>
-          <p className="text-xs text-white/40">{talep.muvekkil_telefon}</p>
+          <p className="text-xs text-white/40">{talep.muvekkil_telefon || "Telefon yok"}</p>
+          <p className="text-xs text-white/40">{talep.muvekkil_email}</p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-white/40">Avukat</p>
