@@ -1,5 +1,7 @@
 import YasalSayfaShell from "@/components/YasalSayfaShell";
 
+export const metadata = { title: "Gizlilik Politikası", description: "Hukukim'in kişisel verileri nasıl işlediği ve koruduğu." };
+
 export default function GizlilikPolitikasi() {
   return (
     <YasalSayfaShell baslik="Gizlilik Politikası" guncellemeTarihi="26 Ekim 2026">

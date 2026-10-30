@@ -1,5 +1,7 @@
 import YasalSayfaShell from "@/components/YasalSayfaShell";
 
+export const metadata = { title: "KVKK Aydınlatma Metni", description: "6698 sayılı KVKK kapsamında kişisel verilerin işlenmesi hakkında aydınlatma." };
+
 export default function KvkkAydinlatmaMetni() {
   return (
     <YasalSayfaShell baslik="KVKK Aydınlatma Metni" guncellemeTarihi="16 Temmuz 2026">

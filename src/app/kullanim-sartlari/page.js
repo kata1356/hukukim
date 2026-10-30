@@ -1,5 +1,7 @@
 import YasalSayfaShell from "@/components/YasalSayfaShell";
 
+export const metadata = { title: "Kullanım Şartları", description: "Hukukim platformunun kullanım koşulları." };
+
 export default function KullanimSartlari() {
   return (
     <YasalSayfaShell baslik="Kullanım Şartları" guncellemeTarihi="16 Temmuz 2026">
