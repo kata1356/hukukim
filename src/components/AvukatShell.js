@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import AltMenu from "./AltMenu";
 import Avatar from "./Avatar";
 import BildirimZili from "./BildirimZili";
+import DestekSohbeti from "./DestekSohbeti";
 import Logo from "./Logo";
 import ProfilMenusu from "./ProfilMenusu";
 import SozlesmeKapisi from "./SozlesmeKapisi";
@@ -109,6 +110,7 @@ export default function AvukatShell({ profil, rozetler = {}, baslik, aciklama, a
       </div>
 
       <AltMenu sekmeler={AVUKAT_SEKMELER} gizle="lg:hidden" />
+      <DestekSohbeti />
 
       {/* Önce telefon doğrulaması, sonra sözleşme onayı. Kolonlar yoksa (SQL çalıştırılmadıysa) kapı devreye girmez. */}
       {SMS_DOGRULAMA && "telefon_dogrulandi" in profil && !profil.telefon_dogrulandi ? (

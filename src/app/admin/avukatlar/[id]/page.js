@@ -126,6 +126,23 @@ export default function AdminAvukatDetay() {
     setRedNotu("");
   }
 
+  async function belgeHatirlat() {
+    setHata(null);
+    setBasari(null);
+    const { data: oturum } = await supabase.auth.getSession();
+    const yanit = await fetch("/api/admin/belge-hatirlat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.session?.access_token ?? ""}` },
+      body: JSON.stringify({ avukatId: id }),
+    }).catch(() => null);
+    const sonuc = await yanit?.json().catch(() => ({}));
+    if (!yanit?.ok) {
+      setHata(sonuc?.hata ?? "Hatırlatma e-postası gönderilemedi.");
+      return;
+    }
+    setBasari(`Hatırlatma e-postası ${avukat.email} adresine gönderildi.`);
+  }
+
   async function dogrulamaDegistir() {
     setHata(null);
 
@@ -200,7 +217,15 @@ export default function AdminAvukatDetay() {
             )}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-white/50">Henüz belge yüklenmedi.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm text-white/50">Henüz belge yüklenmedi.</p>
+            <button
+              onClick={belgeHatirlat}
+              className="rounded-full bg-vurgu px-4 py-1.5 text-xs font-bold text-yonetim transition hover:opacity-90"
+            >
+              Belge hatırlatma e-postası gönder
+            </button>
+          </div>
         )}
 
         {avukat.belge_durumu === "incelemede" && (

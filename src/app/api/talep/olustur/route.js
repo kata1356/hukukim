@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
-import { SITE_URL } from "@/lib/site";
+import { ODEME_DONUS_ADRESI } from "@/lib/site";
 import { paketHesapla, DENEME_DAKIKA } from "@/lib/odemeYardimci";
 import { ilkGorusmeMi, telefonKullanimda, denemeHakkiniAl, denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 import { SMS_DOGRULAMA } from "@/lib/smsAyar";
@@ -170,8 +170,8 @@ export async function POST(request) {
     adSoyad: muvekkilProfili.ad_soyad,
     telefon: muvekkilProfili.telefon ?? "05000000000",
     adres: "Belirtilmedi",
-    basariliUrl: `${SITE_URL}/muvekkil/panel?talep=${yeniTalep.id}&odeme=basarili`,
-    basarisizUrl: `${SITE_URL}/muvekkil/panel?talep=${yeniTalep.id}&odeme=basarisiz`,
+    basariliUrl: `${ODEME_DONUS_ADRESI}/muvekkil/panel?talep=${yeniTalep.id}&odeme=basarili`,
+    basarisizUrl: `${ODEME_DONUS_ADRESI}/muvekkil/panel?talep=${yeniTalep.id}&odeme=basarisiz`,
     kayitliKartToken: muvekkilProfili.kart_token ?? undefined,
   });
 

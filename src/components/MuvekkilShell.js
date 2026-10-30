@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import AltMenu from "./AltMenu";
 import Avatar from "./Avatar";
 import BildirimZili from "./BildirimZili";
+import DestekSohbeti from "./DestekSohbeti";
 import Logo from "./Logo";
 import ProfilMenusu from "./ProfilMenusu";
 import { MUVEKKIL_MENU, MUVEKKIL_SEKMELER } from "@/lib/muvekkilMenu";
@@ -89,6 +90,7 @@ export default function MuvekkilShell({ profil, baslik, aciklama, aksiyon, child
       </div>
 
       <AltMenu sekmeler={MUVEKKIL_SEKMELER} gizle="lg:hidden" />
+      <DestekSohbeti />
     </div>
   );
 }
