@@ -128,6 +128,12 @@ export default function AdminAvukatDetay() {
 
   async function dogrulamaDegistir() {
     setHata(null);
+
+    // Veritabanı da bunu zorunlu kılar: belge onaylanmadan avukat doğrulanamaz.
+    if (!avukat.dogrulanmis && (avukat.belge_durumu !== "onaylandi" || !avukat.kimlik_belge_yolu || !avukat.baro_karti_yolu)) {
+      setHata("Kimlik ve baro kartı yüklenip onaylanmadan avukat doğrulanamaz. Aşağıdaki Kimlik Belgeleri bölümünden belgeleri inceleyip onaylayın.");
+      return;
+    }
     const { error } = await supabase.from("avukatlar").update({ dogrulanmis: !avukat.dogrulanmis }).eq("id", id);
     if (error) {
       setHata("Doğrulama durumu güncellenirken bir hata oluştu.");
