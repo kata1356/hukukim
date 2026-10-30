@@ -15,6 +15,8 @@ export default function AdminAvukatlar() {
   const [aramaMetni, setAramaMetni] = useState("");
   const [islemYukleniyor, setIslemYukleniyor] = useState(null);
   const [hata, setHata] = useState(null);
+  const [bilgi, setBilgi] = useState(null);
+  const [topluGonderiliyor, setTopluGonderiliyor] = useState(false);
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -77,6 +79,41 @@ export default function AdminAvukatlar() {
     setIslemYukleniyor(null);
   }
 
+  async function topluHatirlat() {
+    const hedefler = avukatlar.filter(
+      (a) => a.email && a.belge_durumu !== "onaylandi" && a.belge_durumu !== "incelemede"
+    );
+    if (hedefler.length === 0) {
+      setBilgi("Hatırlatma gerektiren avukat yok.");
+      return;
+    }
+    if (!confirm(`${hedefler.length} avukata belge hatırlatma e-postası gönderilecek:\n\n${hedefler.map((a) => a.ad_soyad).join("\n")}\n\nDevam edilsin mi?`)) return;
+
+    setHata(null);
+    setBilgi(null);
+    setTopluGonderiliyor(true);
+    const { data: oturum } = await supabase.auth.getSession();
+    let basarili = 0;
+    const sorunlar = [];
+
+    for (const avukat of hedefler) {
+      const yanit = await fetch("/api/admin/belge-hatirlat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.session?.access_token ?? ""}` },
+        body: JSON.stringify({ avukatId: avukat.id }),
+      }).catch(() => null);
+      if (yanit?.ok) {
+        basarili += 1;
+      } else {
+        const sonuc = await yanit?.json().catch(() => ({}));
+        sorunlar.push(`${avukat.ad_soyad}: ${sonuc?.hata ?? "gönderilemedi"}`);
+      }
+    }
+
+    setTopluGonderiliyor(false);
+    setBilgi(`${basarili}/${hedefler.length} avukata hatırlatma gönderildi.${sorunlar.length ? " " + sorunlar.join(" · ") : ""}`);
+  }
+
   async function hesabiKaldir(avukat) {
     if (!confirm(`${avukat.ad_soyad} adlı avukatın profilini kaldırmak istediğine emin misin?`)) return;
 
@@ -97,16 +134,29 @@ export default function AdminAvukatlar() {
 
   return (
     <AdminShell baslik="Avukatlar" aciklama="Baro sicil doğrulamasını yönet, hesapları görüntüle.">
-      <div className="relative mb-5 max-w-md">
-        <IconArama className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-        <input
-          type="text"
-          value={aramaMetni}
-          onChange={(e) => setAramaMetni(e.target.value)}
-          placeholder="İsim, şehir, e-posta veya baro no ara..."
-          className="w-full rounded-lg border border-yonetim-kenar bg-yonetim-kutu py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-vurgu focus:ring-2 focus:ring-vurgu/30"
-        />
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="relative w-full max-w-md">
+          <IconArama className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <input
+            type="text"
+            value={aramaMetni}
+            onChange={(e) => setAramaMetni(e.target.value)}
+            placeholder="İsim, şehir, e-posta veya baro no ara..."
+            className="w-full rounded-lg border border-yonetim-kenar bg-yonetim-kutu py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-vurgu focus:ring-2 focus:ring-vurgu/30"
+          />
+        </div>
+        <button
+          onClick={topluHatirlat}
+          disabled={topluGonderiliyor || yukleniyor}
+          className="rounded-full bg-vurgu px-4 py-2.5 text-sm font-bold text-yonetim transition hover:opacity-90 disabled:opacity-50"
+        >
+          {topluGonderiliyor ? "Gönderiliyor..." : "Belgesi eksik avukatlara hatırlat"}
+        </button>
       </div>
+
+      {bilgi && (
+        <p className="mb-4 rounded-lg bg-green-500/10 px-4 py-2.5 text-sm text-green-400 ring-1 ring-green-500/20">{bilgi}</p>
+      )}
 
       {hata && (
         <p className="mb-4 rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
