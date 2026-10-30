@@ -17,6 +17,26 @@ export default function AdminAvukatlar() {
   const [hata, setHata] = useState(null);
   const [bilgi, setBilgi] = useState(null);
   const [topluGonderiliyor, setTopluGonderiliyor] = useState(false);
+  const [hatirlatmalar, setHatirlatmalar] = useState({});
+
+  // Her avukata en son ne zaman belge hatırlatması gönderildiğini gösterir.
+  async function hatirlatmalariYukle() {
+    const { data } = await supabase
+      .from("eposta_kayitlari")
+      .select("alici_email, durum, created_at")
+      .eq("tur", "belge_hatirlat")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    const harita = {};
+    (data ?? []).forEach((k) => {
+      if (!harita[k.alici_email]) harita[k.alici_email] = k;
+    });
+    setHatirlatmalar(harita);
+  }
+
+  useEffect(() => {
+    hatirlatmalariYukle();
+  }, []);
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -111,6 +131,7 @@ export default function AdminAvukatlar() {
     }
 
     setTopluGonderiliyor(false);
+    hatirlatmalariYukle();
     setBilgi(`${basarili}/${hedefler.length} avukata hatırlatma gönderildi.${sorunlar.length ? " " + sorunlar.join(" · ") : ""}`);
   }
 
@@ -204,6 +225,18 @@ export default function AdminAvukatlar() {
                     <td className="px-5 py-3.5 text-sm text-white/60">{avukat.baro_sicil_no || "—"}</td>
                     <td className="px-5 py-3.5">
                       <DogrulamaRozeti dogrulanmis={avukat.dogrulanmis} />
+                      {hatirlatmalar[avukat.email] && (
+                        <p className="mt-1 text-[11px] text-white/40">
+                          Hatırlatma:{" "}
+                          {new Date(hatirlatmalar[avukat.email].created_at).toLocaleString("tr-TR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                          {hatirlatmalar[avukat.email].durum === "hata" ? " (gönderilemedi)" : " ✓"}
+                        </p>
+                      )}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">

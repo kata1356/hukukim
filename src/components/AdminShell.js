@@ -25,6 +25,7 @@ import {
 const MENU = [
   { etiket: "Panel", href: "/admin", Icon: IconPano },
   { etiket: "Canlı Destek", href: "/admin/destek", Icon: IconMesaj },
+  { etiket: "Gönderilen E-postalar", href: "/admin/eposta", Icon: IconTarihce },
   { etiket: "Avukatlar", href: "/admin/avukatlar", Icon: IconTerazi },
   { etiket: "Kullanıcılar", href: "/admin/kullanicilar", Icon: IconGrup },
   { etiket: "Talepler", href: "/admin/talepler", Icon: IconYayin },

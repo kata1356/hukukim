@@ -41,6 +41,8 @@ export async function POST(request) {
 
   if (ozet.email) {
     epostaGonder({
+      tur: "destek_yanit",
+      aliciId: kullaniciId,
       to: ozet.email,
       konu: "Hukukim destek ekibi mesajınızı yanıtladı",
       metin: `${temiz}\n\nYanıtlamak için Hukukim panelindeki Canlı Destek düğmesini kullanabilirsiniz: ${SITE_URL}${panel}`,

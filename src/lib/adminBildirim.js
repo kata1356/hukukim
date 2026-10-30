@@ -56,7 +56,7 @@ export async function adminBildir({ tip, kullaniciId = null, baslik, satirlar = 
       `<p style="margin-top:16px"><a href="${tamLink}" style="background:#22d3ee;color:#0b1220;padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:bold">Yönetim panelinde aç</a></p>` +
       `</div>`;
 
-    await Promise.allSettled(adresler.map((to) => epostaGonder({ to, konu: baslik, metin, html })));
+    await Promise.allSettled(adresler.map((to) => epostaGonder({ to, konu: baslik, metin, html, tur: "admin_bildirim" })));
   } catch (hata) {
     console.error("Yönetici bildirimi başarısız:", hata?.message ?? hata);
   }
