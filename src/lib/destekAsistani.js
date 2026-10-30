@@ -7,7 +7,7 @@ export const KARSILAMA_METNI =
   "Mesajınız ekibimize ulaştı. En kısa sürede buradan yanıt vereceğiz. Bu pencereyi kapatsanız bile yanıtımızı e-posta ile de ileteceğiz.";
 
 const OTOMATIK_NOT =
-  "\n\n(Bu otomatik bir yanıttır. Sorunuz çözülmediyse yazmaya devam edin; ekibimiz de mesajınızı inceleyip dönüş yapacak.)";
+  "\n\n(Bu otomatik bir yanıttır. Daha fazla destek almak için tekrar yazın; müşteri temsilcimiz en kısa sürede size destek verecektir.)";
 
 // Güncel platform bilgisi. Burada olmayan hiçbir şey otomatik yanıtlanmaz.
 // Bilgi değiştiğinde (ör. mobil uygulama yayına çıkınca) bu listeyi güncelleyin.
