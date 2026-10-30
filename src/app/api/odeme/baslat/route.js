@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
-import { SITE_URL } from "@/lib/site";
+import { ODEME_DONUS_ADRESI } from "@/lib/site";
 
 function istekIpAdresi(request) {
   const ileriIp = request.headers.get("x-forwarded-for");
@@ -66,8 +66,8 @@ export async function POST(request) {
     adSoyad,
     telefon,
     adres: adres || "Belirtilmedi",
-    basariliUrl: `${SITE_URL}/odeme/basarili?oid=${merchantOid}`,
-    basarisizUrl: `${SITE_URL}/odeme/basarisiz?oid=${merchantOid}`,
+    basariliUrl: `${ODEME_DONUS_ADRESI}/odeme/basarili?oid=${merchantOid}`,
+    basarisizUrl: `${ODEME_DONUS_ADRESI}/odeme/basarisiz?oid=${merchantOid}`,
   });
 
   if (!basarili) {

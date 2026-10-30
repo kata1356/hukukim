@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { paytrTokenAl } from "@/lib/paytr";
-import { SITE_URL } from "@/lib/site";
+import { ODEME_DONUS_ADRESI } from "@/lib/site";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import { dailyOdaSuresiniAyarla } from "@/lib/daily";
 import { gorusmeBitisMs, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
@@ -103,8 +103,8 @@ export async function POST(request) {
     adSoyad: muvekkilProfili.ad_soyad,
     telefon: muvekkilProfili.telefon ?? "05000000000",
     adres: "Belirtilmedi",
-    basariliUrl: `${SITE_URL}/odeme/basarili`,
-    basarisizUrl: `${SITE_URL}/odeme/basarisiz`,
+    basariliUrl: `${ODEME_DONUS_ADRESI}/odeme/basarili`,
+    basarisizUrl: `${ODEME_DONUS_ADRESI}/odeme/basarisiz`,
     kayitliKartToken: muvekkilProfili.kart_token ?? undefined,
   });
 

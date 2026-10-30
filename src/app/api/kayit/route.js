@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { adminBildir } from "@/lib/adminBildirim";
 import { telefonKullanimda } from "@/lib/talepYardimci";
 import { sozlesmeOnayiniKaydet } from "@/lib/sozlesmeKaydi";
 
@@ -95,6 +96,20 @@ export async function POST(request) {
       // Profil oluştu; onay kaydı yazılamadıysa avukat panele girişte sözleşmeyi yeniden onaylar.
       console.error("Kayıtta sözleşme onayı yazılamadı:", sonuc.hata);
     }
+
+    after(() =>
+      adminBildir({
+        tip: "yeni_avukat",
+        kullaniciId: kullanici.id,
+        baslik: `Yeni avukat kaydı: ${profil.ad_soyad ?? kullanici.email}`,
+        satirlar: [
+          `${profil.ad_soyad ?? "—"} · ${profil.sehir ?? "—"} · Baro sicil no: ${profil.baro_sicil_no ?? "—"}`,
+          `İletişim: ${kullanici.email ?? "—"}${profil.telefon ? " · " + profil.telefon : ""}`,
+          "Kimlik ve baro kartı belgeleri henüz yüklenmedi, yüklenince ayrıca haber verilecek.",
+        ],
+        link: `/admin/avukatlar/${kullanici.id}`,
+      })
+    );
   }
 
   return NextResponse.json({ basarili: true, rol });

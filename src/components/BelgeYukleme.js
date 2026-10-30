@@ -67,6 +67,14 @@ export default function BelgeYukleme({ profil, onGuncel }) {
       const alanlar = { kimlik_belge_yolu: kimlikYolu, baro_karti_yolu: baroYolu, belge_durumu: "incelemede" };
       const { error } = await supabase.from("avukatlar").update(alanlar).eq("id", profil.id);
       if (error) throw error;
+
+      // Yönetime anında haber ver; başarısız olsa bile avukatın akışı etkilenmez.
+      const { data: oturum } = await supabase.auth.getSession();
+      fetch("/api/admin/belge-yuklendi", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${oturum.session?.access_token ?? ""}` },
+      }).catch(() => {});
+
       onGuncel(alanlar);
     } catch (err) {
       console.error("Belge yükleme hatası:", err);
