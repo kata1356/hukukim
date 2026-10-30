@@ -180,17 +180,23 @@ function DestekIcerik() {
                 </div>
                 <div ref={listeRef} className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-3">
                   {aktif.mesajlar.map((m) => {
-                    const ben = m.gonderen === "admin";
+                    const bizden = m.gonderen !== "kullanici";
+                    const bot = m.gonderen === "asistan" || m.gonderen === "sistem";
+                    const etiket = m.gonderen === "asistan" ? "Bot (otomatik yanıt)" : m.gonderen === "sistem" ? "Otomatik karşılama" : m.gonderen === "admin" ? "Siz" : "";
                     return (
-                      <div key={m.id} className={`flex max-w-[80%] flex-col gap-0.5 ${ben ? "self-end items-end" : "self-start"}`}>
+                      <div key={m.id} className={`flex max-w-[80%] flex-col gap-0.5 ${bizden ? "self-end items-end" : "self-start"}`}>
                         <div
                           className={`whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm ${
-                            ben ? "rounded-br-sm bg-vurgu text-yonetim" : "rounded-bl-sm border border-white/10 bg-white/5 text-white"
+                            !bizden
+                              ? "rounded-bl-sm border border-white/10 bg-white/5 text-white"
+                              : bot
+                                ? "rounded-br-sm border border-dashed border-vurgu/40 bg-vurgu/10 text-white/80"
+                                : "rounded-br-sm bg-vurgu text-yonetim"
                           }`}
                         >
                           {m.metin}
                         </div>
-                        <span className="text-[10px] text-white/40">{zaman(m.created_at)}</span>
+                        <span className="text-[10px] text-white/40">{etiket ? `${etiket} · ` : ""}{zaman(m.created_at)}</span>
                       </div>
                     );
                   })}
