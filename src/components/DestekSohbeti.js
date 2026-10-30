@@ -55,7 +55,7 @@ export default function DestekSohbeti() {
           { event: "INSERT", schema: "public", table: "destek_mesajlari", filter: `kullanici_id=eq.${user.id}` },
           (olay) => {
             ekle(olay.new);
-            if (olay.new.gonderen === "admin" && !acikRef.current) setOkunmamis(true);
+            if (olay.new.gonderen !== "kullanici" && !acikRef.current) setOkunmamis(true);
           }
         )
         .subscribe();
@@ -122,6 +122,14 @@ export default function DestekSohbeti() {
             )}
             {mesajlar.map((m) => {
               const ben = m.gonderen === "kullanici";
+              if (m.gonderen === "sistem") {
+                return (
+                  <p key={m.id} className="self-center rounded-xl bg-white/5 px-3 py-2 text-center text-xs text-white/60">
+                    {m.metin}
+                  </p>
+                );
+              }
+              const etiket = ben ? "Sen" : m.gonderen === "asistan" ? "Hukukim Asistan · otomatik yanıt" : "Hukukim Destek";
               return (
                 <div key={m.id} className={`flex max-w-[85%] flex-col gap-0.5 ${ben ? "self-end items-end" : "self-start"}`}>
                   <div
@@ -131,7 +139,7 @@ export default function DestekSohbeti() {
                   >
                     {m.metin}
                   </div>
-                  <span className="text-[10px] text-white/40">{ben ? "Sen" : "Hukukim Destek"} · {saat(m.created_at)}</span>
+                  <span className="text-[10px] text-white/40">{etiket} · {saat(m.created_at)}</span>
                 </div>
               );
             })}
