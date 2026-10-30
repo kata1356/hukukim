@@ -71,6 +71,8 @@ export async function GET(request) {
 
     if (ozet.email) {
       epostaGonder({
+        tur: "destek_takip",
+        aliciId: id,
         to: ozet.email,
         konu: "Hukukim: mesajınızı aldık",
         metin:

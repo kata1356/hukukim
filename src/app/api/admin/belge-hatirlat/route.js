@@ -79,7 +79,7 @@ export async function POST(request) {
     `<p>Hukukim Ekibi</p></div>`;
 
   try {
-    await epostaGonder({ to: avukat.email, konu, metin, html });
+    await epostaGonder({ to: avukat.email, konu, metin, html, tur: "belge_hatirlat", aliciId: avukatId });
   } catch (hata) {
     console.error("Belge hatırlatma e-postası gönderilemedi:", hata?.message);
     return NextResponse.json({ hata: "E-posta gönderilemedi." }, { status: 502 });

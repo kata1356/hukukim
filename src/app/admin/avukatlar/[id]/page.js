@@ -140,7 +140,7 @@ export default function AdminAvukatDetay() {
       setHata(sonuc?.hata ?? "Hatırlatma e-postası gönderilemedi.");
       return;
     }
-    setBasari(`Hatırlatma e-postası ${avukat.email} adresine gönderildi.`);
+    setBasari(`Hatırlatma e-postası ${avukat.email} adresine gönderildi. Teslim durumunu Gönderilen E-postalar sayfasından izleyebilirsiniz.`);
   }
 
   async function dogrulamaDegistir() {

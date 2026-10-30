@@ -94,6 +94,8 @@ export async function genelTalepBildir(talepId) {
         });
         isler.push(
           epostaGonder({
+            tur: "talep_bildirimi",
+            aliciId: avukat.id,
             to: avukat.email,
             gonderen: acil ? "Hukukim Acil Talep <bildirim@hukukim.com>" : undefined,
             konu,
