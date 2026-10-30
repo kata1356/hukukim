@@ -422,8 +422,8 @@ export default async function AnaSayfa() {
               </div>
               <p className="mt-6 flex items-start gap-2 rounded-xl bg-white/5 px-4 py-3 text-xs leading-relaxed text-white/40">
                 <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-                Görüntülü görüşme ve ödeme altyapımız şu an geliştirme aşamasındadır,
-                yakında aktif olacaktır.
+                İlk 5 dakikalık görüşmen ücretsiz. Görüntülü görüşme tarayıcından başlar,
+                uygulama kurmana gerek yok.
               </p>
             </div>
           </div>

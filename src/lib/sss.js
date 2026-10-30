@@ -17,7 +17,7 @@ export const SSS_LISTESI = [
   {
     soru: "Görüşmeler güvenli mi?",
     cevap:
-      "Hesap bilgilerin ve randevu taleplerin KVKK kapsamında korunur, yalnızca ilgili avukat ve müvekkil talebin detaylarını görebilir. Platform üzerinden sesli/görüntülü görüşme altyapısı şu an geliştirme aşamasındadır.",
+      "Hesap bilgilerin ve randevu taleplerin KVKK kapsamında korunur, yalnızca ilgili avukat ve müvekkil talebin detaylarını görebilir. Görüntülü görüşmeler platform üzerinden, tarayıcında başlar; ayrıca bir uygulama kurman gerekmez.",
   },
   {
     soru: "Hangi hukuk alanlarında hizmet alabilirim?",
@@ -37,7 +37,7 @@ export const SSS_LISTESI = [
   {
     soru: "Ödeme ve iade süreci nasıl işler?",
     cevap:
-      "Platformda şu an aktif bir ödeme altyapısı bulunmuyor. Ücretlendirme ile ilgili gösterilen bilgiler bilgilendirme amaçlıdır.",
+      "İlk görüşmen (5 dakika) ücretsizdir. Ücretli görüşmelerde süre ve tutar, görüşme başlamadan önce sana gösterilir. Talebin bir avukat tarafından üstlenilmezse ya da görüşmeden önce iptal edersen ödemen iade edilir.",
   },
   {
     soru: "Hukukim bir hukuk bürosu mudur?",
