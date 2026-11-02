@@ -19,6 +19,11 @@ export default function Avukatlar() {
   const [aramaMetni, setAramaMetni] = useState("");
   const [seciliSehir, setSeciliSehir] = useState("");
   const [seciliUzmanlik, setSeciliUzmanlik] = useState("");
+  const [girisYapildi, setGirisYapildi] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setGirisYapildi(!!data?.user));
+  }, []);
 
   useEffect(() => {
     let iptalEdildi = false;
@@ -199,7 +204,15 @@ export default function Avukatlar() {
                 )}
 
                 <Link
-                  href="/muvekkil/kayit"
+                  href={
+                    girisYapildi
+                      ? `/muvekkil/panel?yeni=1${
+                          avukat.uzmanlik_alanlari?.[0]
+                            ? `&alan=${encodeURIComponent(avukat.uzmanlik_alanlari[0])}`
+                            : ""
+                        }`
+                      : "/muvekkil/kayit"
+                  }
                   className="mt-auto flex items-center justify-center gap-1.5 rounded-full bg-turkuaz px-4 py-2 text-sm font-semibold text-gece shadow-sm transition hover:bg-turkuaz-parlak hover:shadow-md"
                 >
                   Randevu Talebi Gönder
