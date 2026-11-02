@@ -54,7 +54,9 @@ export default function MuvekkilKayit() {
       if (iptalEdildi) return;
 
       if (muvekkilKaydi) {
-        router.push("/muvekkil/panel");
+        // Avukat listesindeki "Randevu Talebi Gönder" butonundan gelen giriş yapmış müvekkil, talep formuyla açılsın.
+        const avukatListesindenGeldi = document.referrer.includes("/avukatlar");
+        router.push(avukatListesindenGeldi ? "/muvekkil/panel?yeni=1" : "/muvekkil/panel");
         return;
       }
 
