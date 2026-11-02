@@ -80,14 +80,8 @@ export default function MuvekkilPanel() {
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
   // /avukatlar sayfasındaki "Randevu Talebi Gönder" butonu ?yeni=1&alan=... ile gelir: talep formu açık başlar.
-  const [genelTalepAcik, setGenelTalepAcik] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return new URLSearchParams(window.location.search).get("yeni") === "1";
-  });
-  const [baslangicAlan, setBaslangicAlan] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("alan") ?? "";
-  });
+  const [genelTalepAcik, setGenelTalepAcik] = useState(false);
+  const [baslangicAlan, setBaslangicAlan] = useState("");
   const [basariMesaji, setBasariMesaji] = useState(() => {
     if (typeof window === "undefined") return null;
     const sonuc = new URLSearchParams(window.location.search).get("odeme");
@@ -218,6 +212,15 @@ export default function MuvekkilPanel() {
 
     return () => supabase.removeChannel(kanal);
   }, [profil?.id]);
+
+  // Sayfa geçişinde adres, bileşen ilk çizilirken henüz güncel olmaz; bu yüzden ?yeni=1 burada, çizimden sonra okunur.
+  useEffect(() => {
+    const parametreler = new URLSearchParams(window.location.search);
+    if (parametreler.get("yeni") === "1") {
+      setBaslangicAlan(parametreler.get("alan") ?? "");
+      setGenelTalepAcik(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (
