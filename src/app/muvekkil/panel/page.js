@@ -79,8 +79,15 @@ export default function MuvekkilPanel() {
 
   const [sayfaYukleniyor, setSayfaYukleniyor] = useState(true);
   const [profil, setProfil] = useState(null);
-  const [genelTalepAcik, setGenelTalepAcik] = useState(false);
-  const [baslangicAlan, setBaslangicAlan] = useState("");
+  // /avukatlar sayfasındaki "Randevu Talebi Gönder" butonu ?yeni=1&alan=... ile gelir: talep formu açık başlar.
+  const [genelTalepAcik, setGenelTalepAcik] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("yeni") === "1";
+  });
+  const [baslangicAlan, setBaslangicAlan] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("alan") ?? "";
+  });
   const [basariMesaji, setBasariMesaji] = useState(() => {
     if (typeof window === "undefined") return null;
     const sonuc = new URLSearchParams(window.location.search).get("odeme");
@@ -216,7 +223,8 @@ export default function MuvekkilPanel() {
     if (
       window.location.search.includes("video=") ||
       window.location.search.includes("odeme=") ||
-      window.location.search.includes("talep=")
+      window.location.search.includes("talep=") ||
+      window.location.search.includes("yeni=")
     ) {
       window.history.replaceState(null, "", window.location.pathname);
     }
