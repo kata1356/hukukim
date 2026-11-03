@@ -82,10 +82,14 @@ export default function AdminAvukatlar() {
 
     setIslemYukleniyor(avukat.id);
 
-    const { error } = await supabase
+    // Kaydın gerçekten değiştiğini veritabanından geri okuyarak doğrularız: tetikleyici veya RLS
+    // güncellemeyi hatasız yutabilir (ör. yönetici kendi avukat hesabını doğrulamaya çalışırsa).
+    const { data: guncel, error } = await supabase
       .from("avukatlar")
       .update({ dogrulanmis: !avukat.dogrulanmis })
-      .eq("id", avukat.id);
+      .eq("id", avukat.id)
+      .select("dogrulanmis")
+      .maybeSingle();
 
     if (error) {
       setHata("Doğrulama durumu güncellenirken bir hata oluştu.");
@@ -93,8 +97,16 @@ export default function AdminAvukatlar() {
       return;
     }
 
+    if (!guncel || guncel.dogrulanmis !== !avukat.dogrulanmis) {
+      setHata(
+        `${avukat.ad_soyad}: değişiklik veritabanına kaydedilmedi. Kendi avukat hesabınızı doğrulayamazsınız; Supabase SQL Editor'den yapın ya da başka bir yönetici hesabı kullanın.`
+      );
+      setIslemYukleniyor(null);
+      return;
+    }
+
     setAvukatlar((oncekiler) =>
-      oncekiler.map((a) => (a.id === avukat.id ? { ...a, dogrulanmis: !avukat.dogrulanmis } : a))
+      oncekiler.map((a) => (a.id === avukat.id ? { ...a, dogrulanmis: guncel.dogrulanmis } : a))
     );
     setIslemYukleniyor(null);
   }
