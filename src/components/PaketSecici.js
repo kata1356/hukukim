@@ -58,7 +58,12 @@ export default function PaketSecici({ dakika, onDegis, deneme }) {
             className={`${KUTU} ${kutuRengi(!denemeSecili && !ozelAcik && dakika === paket.dakika)}`}
           >
             <span className="text-sm font-bold text-white">{paket.dakika} dk</span>
-            <span className="text-xs text-white/60">{paket.tutar} TL</span>
+            <span className="text-xs text-white/60">
+              {paket.listeTutar > paket.tutar && (
+                <span className="mr-1 text-white/35 line-through">{paket.listeTutar} TL</span>
+              )}
+              <span className="font-semibold text-turkuaz">{paket.tutar} TL</span>
+            </span>
           </button>
         ))}
         <button
