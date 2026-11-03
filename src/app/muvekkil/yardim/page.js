@@ -18,12 +18,12 @@ const SORULAR = [
   {
     soru: "Hangi paketler var, fiyatlar nedir?",
     cevap:
-      "5 dakika 200 TL, 10 dakika 349 TL, 15 dakika 499 TL. Dilersen 5 ile 60 dakika arasında kendi süreni seçebilirsin, dakikası 40 TL. Fiyat talebi göndermeden önce ekranda görünür.",
+      "Kampanya fiyatlarıyla 5 dakika 149 TL (normal 200 TL), 15 dakika 399 TL (normal 499 TL), 20 dakika 499 TL (normal 600 TL). Dilersen 5 ile 60 dakika arasında kendi süreni seçebilirsin, dakikası 40 TL. Fiyat talebi göndermeden önce ekranda görünür.",
   },
   {
     soru: "Görüşme süresi dolunca ne olur?",
     cevap:
-      "Süre bitmeden son 30 saniyede sade bir uyarı çıkar ve +5 dakika (200 TL) ek süre alabilirsin. Ek süre almazsan görüşme süre sonunda otomatik sona erer. Süre sunucuda takip edildiği için sayfayı yenilemek süreyi sıfırlamaz.",
+      "Süre bitmeden son 30 saniyede sade bir uyarı çıkar ve +5 dakika (149 TL) ek süre alabilirsin. Ek süre almazsan görüşme süre sonunda otomatik sona erer. Süre sunucuda takip edildiği için sayfayı yenilemek süreyi sıfırlamaz.",
   },
   {
     soru: "Avukat bulunamazsa veya vazgeçersem ücret iade edilir mi?",

@@ -147,9 +147,9 @@ export default async function AnaSayfa() {
         href="#fiyatlandirma"
         className="block bg-gece-yuzey px-4 py-2 text-center text-xs font-semibold text-turkuaz transition hover:text-turkuaz-parlak sm:text-sm"
       >
-        <span className="sm:hidden">İlk 5 dk ücretsiz · Paketler 200 TL&apos;den · Fiyatlar →</span>
+        <span className="sm:hidden">İlk 5 dk ücretsiz · Paketler 149 TL&apos;den · Fiyatlar →</span>
         <span className="hidden sm:inline">
-          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Paketler 200 TL&apos;den başlar · Fiyatları gör →
+          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Paketler 149 TL&apos;den başlar · Fiyatları gör →
         </span>
       </a>
 
@@ -542,12 +542,16 @@ export default async function AnaSayfa() {
             </div>
 
             <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-              {GORUSME_PAKETLERI.map(({ dakika, tutar }) => (
+              {GORUSME_PAKETLERI.map(({ dakika, tutar, listeTutar }) => (
                 <div
                   key={dakika}
                   className="flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm"
                 >
-                  <p className="text-sm font-bold text-white/60">{dakika} dakika</p>
+                  <span className="rounded-full bg-turkuaz/15 px-3 py-0.5 text-xs font-bold text-turkuaz">Kampanya</span>
+                  <p className="mt-1 text-sm font-bold text-white/60">{dakika} dakika</p>
+                  {listeTutar > tutar && (
+                    <p className="text-sm font-semibold text-white/40 line-through">{listeTutar} TL</p>
+                  )}
                   <p className="text-4xl font-extrabold text-white">
                     {tutar}
                     <span className="text-base font-semibold text-white/50"> TL</span>
@@ -570,7 +574,7 @@ export default async function AnaSayfa() {
               <div className="rounded-2xl border border-white/10 bg-gece-yuzey p-5 text-left">
                 <p className="font-bold text-white">Süre yetmezse ek süre</p>
                 <p className="mt-1 text-sm text-white/60">
-                  Görüşme bitmeden +5 dakika 200 TL ile devam edersin. Görüşmeden ayrılmana gerek kalmaz.
+                  Görüşme bitmeden +5 dakika 149 TL ile devam edersin. Görüşmeden ayrılmana gerek kalmaz.
                 </p>
               </div>
             </div>
