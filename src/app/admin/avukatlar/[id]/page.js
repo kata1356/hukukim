@@ -117,9 +117,21 @@ export default function AdminAvukatDetay() {
     const alanlar = onay
       ? { belge_durumu: "onaylandi", belge_notu: null, dogrulanmis: true }
       : { belge_durumu: "reddedildi", belge_notu: redNotu.trim() || null, dogrulanmis: false };
-    const { error } = await supabase.from("avukatlar").update(alanlar).eq("id", id);
+    const { data: guncel, error } = await supabase
+      .from("avukatlar")
+      .update(alanlar)
+      .eq("id", id)
+      .select("belge_durumu, dogrulanmis")
+      .maybeSingle();
     if (error) {
       setHata("Belge kararı kaydedilemedi.");
+      return;
+    }
+    // Tetikleyici güncellemeyi hatasız yutabilir (yönetici kendi avukat hesabını onaylarsa); geri okuyup doğrularız.
+    if (!guncel || guncel.belge_durumu !== alanlar.belge_durumu || guncel.dogrulanmis !== alanlar.dogrulanmis) {
+      setHata(
+        "Karar veritabanına kaydedilmedi. Kendi avukat hesabınızı onaylayamazsınız; Supabase SQL Editor'den yapın ya da başka bir yönetici hesabı kullanın."
+      );
       return;
     }
     setAvukat((onceki) => ({ ...onceki, ...alanlar }));
@@ -151,12 +163,23 @@ export default function AdminAvukatDetay() {
       setHata("Kimlik ve baro kartı yüklenip onaylanmadan avukat doğrulanamaz. Aşağıdaki Kimlik Belgeleri bölümünden belgeleri inceleyip onaylayın.");
       return;
     }
-    const { error } = await supabase.from("avukatlar").update({ dogrulanmis: !avukat.dogrulanmis }).eq("id", id);
+    const { data: guncel, error } = await supabase
+      .from("avukatlar")
+      .update({ dogrulanmis: !avukat.dogrulanmis })
+      .eq("id", id)
+      .select("dogrulanmis")
+      .maybeSingle();
     if (error) {
       setHata("Doğrulama durumu güncellenirken bir hata oluştu.");
       return;
     }
-    setAvukat((onceki) => ({ ...onceki, dogrulanmis: !onceki.dogrulanmis }));
+    if (!guncel || guncel.dogrulanmis !== !avukat.dogrulanmis) {
+      setHata(
+        "Değişiklik veritabanına kaydedilmedi. Kendi avukat hesabınızı doğrulayamazsınız; Supabase SQL Editor'den yapın ya da başka bir yönetici hesabı kullanın."
+      );
+      return;
+    }
+    setAvukat((onceki) => ({ ...onceki, dogrulanmis: guncel.dogrulanmis }));
   }
 
   if (yukleniyor) {
