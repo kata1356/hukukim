@@ -1,9 +1,10 @@
 export const AVUKAT_KOMISYON_ORANI = 0.6;
 
+// tutar: müvekkilden tahsil edilen (kampanyalı) fiyat. listeTutar: üstü çizili gösterilen normal fiyat.
 export const GORUSME_PAKETLERI = [
-  { dakika: 5, tutar: 200 },
-  { dakika: 10, tutar: 349 },
-  { dakika: 15, tutar: 499 },
+  { dakika: 5, tutar: 149, listeTutar: 200 },
+  { dakika: 15, tutar: 399, listeTutar: 499 },
+  { dakika: 20, tutar: 499, listeTutar: 600 },
 ];
 
 export function avukatPayiHesapla(tutar) {
