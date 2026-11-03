@@ -840,7 +840,16 @@ export default async function AnaSayfa() {
           </div>
         </div>
 
-        <div className="mx-auto mt-10 max-w-6xl border-t border-white/10 pt-6 text-center text-xs text-white/30">
+        <div className="mx-auto mt-10 flex max-w-6xl justify-center border-t border-white/10 pt-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/iyzico-logo-band-white.png"
+            alt="iyzico ile Öde. Mastercard, Visa, American Express ve Troy ile ödeme kabul edilir."
+            className="h-8 w-auto max-w-full opacity-90"
+          />
+        </div>
+
+        <div className="mx-auto mt-6 max-w-6xl text-center text-xs text-white/30">
           © {new Date().getFullYear()} Hukukim. Tüm hakları saklıdır.
         </div>
       </footer>
