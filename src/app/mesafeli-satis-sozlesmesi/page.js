@@ -51,8 +51,17 @@ export default function MesafeliSatisSozlesmesi() {
         Hizmetin süresi, türü (görüntülü/yüz yüze/mesaj) ve bedeli, randevu
         oluşturulmadan önce Alıcı&apos;ya Platform üzerinden açıkça gösterilir
         ve ödeme Alıcı&apos;nın onayı ile tahsil edilir. Ödemeler, anlaşmalı
-        ödeme kuruluşu (iyzico/PayTR) altyapısı üzerinden, kredi/banka kartı
-        ile alınır. Kart bilgileri Hukukim sunucularında saklanmaz.
+        ödeme kuruluşu (iyzico) altyapısı üzerinden, kredi/banka kartı
+        ile alınır. Kart bilgileri Hukukim sunucularında saklanmaz. Tüm
+        fiyatlar Türk Lirası (TL) cinsindendir ve KDV dahildir; ödeme tek
+        çekim olarak alınır.
+      </p>
+      <p>
+        <strong>Ön Bilgilendirme:</strong> Alıcı, ödeme adımını onaylamadan
+        önce hizmetin temel nitelikleri, toplam bedeli (vergiler dahil),
+        ödeme şekli, cayma hakkı ve kullanım şartları hakkında Platform
+        üzerinden bilgilendirilir ve bu bilgileri aldığını elektronik ortamda
+        onaylar.
       </p>
 
       <h2>4. İfa Şekli</h2>
@@ -79,7 +88,14 @@ export default function MesafeliSatisSozlesmesi() {
         (görüşme fiilen başladıysa) cayma hakkı kullanılamaz.
       </p>
 
-      <h2>7. Uyuşmazlıkların Çözümü</h2>
+      <h2>7. Şikayet ve Başvuru</h2>
+      <p>
+        Alıcı, hizmetle ilgili şikayet ve taleplerini {SATICI_BILGILERI.eposta}{" "}
+        adresine ya da {SATICI_BILGILERI.telefon} numarasına iletebilir.
+        Başvurular en geç 3 iş günü içinde yanıtlanır.
+      </p>
+
+      <h2>8. Uyuşmazlıkların Çözümü</h2>
       <p>
         İşbu sözleşmeden doğan uyuşmazlıklarda, Ticaret Bakanlığı&apos;nca
         her yıl belirlenen parasal sınırlar dahilinde Alıcı&apos;nın
@@ -87,7 +103,7 @@ export default function MesafeliSatisSozlesmesi() {
         uyuşmazlıklarda ise Tüketici Mahkemeleri yetkilidir.
       </p>
 
-      <h2>8. Yürürlük</h2>
+      <h2>9. Yürürlük</h2>
       <p>
         Alıcı, Platform üzerinden ödeme adımını onayladığında işbu
         sözleşmenin tüm koşullarını kabul etmiş sayılır.

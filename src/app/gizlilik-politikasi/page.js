@@ -38,7 +38,7 @@ export default function GizlilikPolitikasi() {
       <p>
         Hizmetin sunulabilmesi için sınırlı ölçüde şu hizmet sağlayıcılardan
         yararlanırız: veri altyapısı ve kimlik doğrulama için Supabase, kart
-        ödemeleri için PayTR (kart bilgilerin Hukukim tarafından saklanmaz),
+        ödemeleri için iyzico (kart bilgilerin Hukukim tarafından saklanmaz),
         görüntülü görüşme için Daily.co, bildirimler için Expo. Bu
         sağlayıcılar verileri yalnızca hizmeti sunmak amacıyla işler.
       </p>

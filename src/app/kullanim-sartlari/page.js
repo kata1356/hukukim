@@ -34,9 +34,12 @@ export default function KullanimSartlari() {
 
       <h2>4. Ücretlendirme</h2>
       <p>
-        Sitede yer alan ücret bilgileri bilgilendirme amaçlıdır. Platform
-        üzerinden aktif bir ödeme tahsilatı yapılmadığı sürece, herhangi bir
-        ücret kullanıcıdan tahsil edilmez.
+        Ücretli görüşmelerin bedeli, randevu oluşturulmadan önce Türk Lirası
+        (TL) cinsinden ve vergiler dahil olarak gösterilir. Ödemeler iyzico
+        altyapısı üzerinden kredi/banka kartı ile alınır; onayın olmadan hiçbir
+        ücret tahsil edilmez. Ödeme, iptal ve iade süreçleri için{" "}
+        <a href="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</a> ve{" "}
+        <a href="/iptal-iade-kosullari">İptal ve İade Koşulları</a> geçerlidir.
       </p>
 
       <h2>5. Sorumluluğun Sınırlandırılması</h2>
