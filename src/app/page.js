@@ -582,7 +582,7 @@ export default async function AnaSayfa() {
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
               İlk 5 dakika deneme amaçlı ücretsizdir (telefon numarası başına
-              bir kez). Ödeme, güvenli ödeme altyapımız (PayTR) üzerinden alınır.
+              bir kez). Ödeme, güvenli ödeme altyapımız (iyzico) üzerinden alınır.
             </p>
           </div>
         </section>

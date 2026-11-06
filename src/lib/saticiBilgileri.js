@@ -1,5 +1,3 @@
-// NOT: adres alanı yalnızca il/ilçe seviyesinde; mahalle/cadde/bina no
-// eklenirse mesafeli satış sözleşmesi tam olarak yasal geçerlilik kazanır.
 export const SATICI_BILGILERI = {
   isletmeTuru: "Şahıs Şirketi",
   adSoyad: "Ali Eren Ağırman",
@@ -8,5 +6,5 @@ export const SATICI_BILGILERI = {
   vergiNo: "10396430848",
   telefon: "0544 761 53 04",
   eposta: "hukukimcom@gmail.com",
-  adres: "Esenler, İstanbul",
+  adres: "Oruçreis Mah. 566. Sk. No: 62/1 İç Kapı No: 1 Esenler/İstanbul",
 };
