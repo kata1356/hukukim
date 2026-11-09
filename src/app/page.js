@@ -834,11 +834,12 @@ export default async function AnaSayfa() {
           <div>
             <p className="text-sm font-bold text-white/90">Yasal</p>
             <ul className="mt-4 flex flex-col gap-2 text-sm text-white/50">
+              <li><Link href="/hakkimizda" className="hover:text-white">Hakkımızda</Link></li>
               <li><Link href="/kullanim-sartlari" className="hover:text-white">Kullanım Şartları</Link></li>
               <li><Link href="/gizlilik-politikasi" className="hover:text-white">Gizlilik Politikası</Link></li>
               <li><Link href="/kvkk-aydinlatma-metni" className="hover:text-white">KVKK Aydınlatma Metni</Link></li>
               <li><Link href="/mesafeli-satis-sozlesmesi" className="hover:text-white">Mesafeli Satış Sözleşmesi</Link></li>
-              <li><Link href="/iptal-iade-kosullari" className="hover:text-white">İptal ve İade Koşulları</Link></li>
+              <li><Link href="/iptal-iade-kosullari" className="hover:text-white">Teslimat, İptal ve İade Şartları</Link></li>
               <li><Link href="/iletisim" className="hover:text-white">İletişim</Link></li>
             </ul>
           </div>

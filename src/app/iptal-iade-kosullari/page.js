@@ -1,13 +1,25 @@
 import YasalSayfaShell from "@/components/YasalSayfaShell";
 
-export const metadata = { title: "İptal ve İade Koşulları" };
+export const metadata = { title: "Teslimat, İptal ve İade Şartları" };
 
 export default function IptalIadeKosullari() {
   return (
-    <YasalSayfaShell baslik="İptal ve İade Koşulları" guncellemeTarihi="21 Temmuz 2026">
+    <YasalSayfaShell baslik="Teslimat, İptal ve İade Şartları" guncellemeTarihi="9 Kasım 2026">
       <p>
         Bu sayfa, Hukukim üzerinden ücretli bir avukat görüşmesi/randevusu için
-        yapılan ödemelerin iptal ve iade koşullarını açıklar.
+        hizmetin teslimat (ifa) şekli ile yapılan ödemelerin iptal ve iade
+        koşullarını açıklar.
+      </p>
+
+      <h2>Teslimat (Hizmetin İfası)</h2>
+      <p>
+        Hukukim&apos;de satılan ürün fiziksel bir mal değil, online bir hukuki
+        görüşme hizmetidir; bu nedenle kargo ya da fiziksel teslimat yoktur.
+        Ödeme onaylandığı anda hizmet hesabına tanımlanır ve randevu, seçilen
+        tarih ve saatte platform üzerinden (görüntülü/yazılı görüşme) dijital
+        olarak ifa edilir. Acil görüşmelerde hizmet, bir avukatın talebi kabul
+        etmesinin hemen ardından başlar. Ödeme sonrası randevu bilgileri hesap
+        panelinde ve bildirimlerde görüntülenir.
       </p>
 
       <h2>1. Görüşme Öncesi İptal</h2>

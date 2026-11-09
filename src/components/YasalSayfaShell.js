@@ -24,11 +24,12 @@ export default function YasalSayfaShell({ baslik, guncellemeTarihi, children }) 
 
       <footer className="border-t border-white/10 px-6 py-8 text-center">
         <ul className="mx-auto flex max-w-3xl flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-white/50">
+          <li><Link href="/hakkimizda" className="hover:text-white">Hakkımızda</Link></li>
           <li><Link href="/kullanim-sartlari" className="hover:text-white">Kullanım Şartları</Link></li>
           <li><Link href="/gizlilik-politikasi" className="hover:text-white">Gizlilik Politikası</Link></li>
           <li><Link href="/kvkk-aydinlatma-metni" className="hover:text-white">KVKK Aydınlatma Metni</Link></li>
           <li><Link href="/mesafeli-satis-sozlesmesi" className="hover:text-white">Mesafeli Satış Sözleşmesi</Link></li>
-          <li><Link href="/iptal-iade-kosullari" className="hover:text-white">İptal ve İade Koşulları</Link></li>
+          <li><Link href="/iptal-iade-kosullari" className="hover:text-white">Teslimat, İptal ve İade Şartları</Link></li>
           <li><Link href="/iletisim" className="hover:text-white">İletişim</Link></li>
         </ul>
         <div className="mt-5 flex justify-center">

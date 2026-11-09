@@ -14,6 +14,7 @@ const ROTALAR = [
   { yol: "/mesafeli-satis-sozlesmesi", oncelik: 0.3 },
   { yol: "/iptal-iade-kosullari", oncelik: 0.3 },
   { yol: "/iletisim", oncelik: 0.4 },
+  { yol: "/hakkimizda", oncelik: 0.4 },
 ];
 
 export default function sitemap() {
