@@ -57,7 +57,7 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Ödeme kaydı oluşturulamadı." }, { status: 500 });
   }
 
-  const { basarili, token, icerik, hata } = await iyzicoOdemeBaslat({
+  const { basarili, token, icerik, hata, ayrinti } = await iyzicoOdemeBaslat({
     siparisNo: merchantOid,
     userIp,
     email,
@@ -69,7 +69,11 @@ export async function POST(request) {
   });
 
   if (!basarili) {
-    return NextResponse.json({ hata: hata ?? "iyzico ödeme formu başlatılamadı." }, { status: 400 });
+    // Bu uç yalnızca yöneticiye açık; teşhis ayrıntısı burada gösterilebilir.
+    return NextResponse.json(
+      { hata: `${hata ?? "iyzico ödeme formu başlatılamadı."}${ayrinti ? ` (${ayrinti})` : ""}` },
+      { status: 400 }
+    );
   }
 
   await supabaseAdmin.from("odemeler").update({ iyzico_token: token }).eq("merchant_oid", merchantOid);
