@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrTokenAl } from "@/lib/paytr";
-import { ODEME_DONUS_ADRESI } from "@/lib/site";
+import { iyzicoOdemeBaslat, IYZICO_CANLI } from "@/lib/iyzico";
+import { IYZICO_DONUS_ADRESI } from "@/lib/site";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import { dailyOdaSuresiniAyarla } from "@/lib/daily";
 import { gorusmeBitisMs, SURE_TOLERANSI_MS } from "@/lib/gorusmeYardimci";
@@ -66,7 +66,7 @@ export async function POST(request) {
 
   const { data: muvekkilProfili } = await supabaseAdmin
     .from("muvekkiller")
-    .select("ad_soyad, email, telefon, kart_token")
+    .select("ad_soyad, email, telefon")
     .eq("id", kullanici.id)
     .maybeSingle();
 
@@ -84,7 +84,7 @@ export async function POST(request) {
     ad_soyad: muvekkilProfili.ad_soyad,
     email: muvekkilProfili.email,
     tutar: ekSurePaketi.tutar,
-    test_modu: process.env.PAYTR_TEST_MODE !== "0",
+    test_modu: !IYZICO_CANLI,
     durum: "basladi",
     muvekkil_id: kullanici.id,
     randevu_talep_id: randevuTalepId,
@@ -94,23 +94,23 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Ödeme kaydı oluşturulamadı." }, { status: 500 });
   }
 
-  const { basarili, token: paytrToken, hata } = await paytrTokenAl({
-    merchantOid,
+  const { basarili, token: iyzicoToken, icerik, hata } = await iyzicoOdemeBaslat({
+    siparisNo: merchantOid,
     userIp,
+    kullaniciId: kullanici.id,
     email: muvekkilProfili.email,
+    adSoyad: muvekkilProfili.ad_soyad,
+    telefon: muvekkilProfili.telefon,
     tutarKurus,
     sepetAdi: `Hukukim - Ek Süre (${ekSurePaketi.dakika} dk)`,
-    adSoyad: muvekkilProfili.ad_soyad,
-    telefon: muvekkilProfili.telefon ?? "05000000000",
-    adres: "Belirtilmedi",
-    basariliUrl: `${ODEME_DONUS_ADRESI}/odeme/basarili`,
-    basarisizUrl: `${ODEME_DONUS_ADRESI}/odeme/basarisiz`,
-    kayitliKartToken: muvekkilProfili.kart_token ?? undefined,
+    donusAdresi: IYZICO_DONUS_ADRESI,
   });
 
   if (!basarili) {
-    return NextResponse.json({ hata: hata ?? "PayTR token alınamadı." }, { status: 400 });
+    return NextResponse.json({ hata: hata ?? "iyzico ödeme formu başlatılamadı." }, { status: 400 });
   }
+
+  await supabaseAdmin.from("odemeler").update({ iyzico_token: iyzicoToken }).eq("merchant_oid", merchantOid);
 
   // Ödeme penceresi açıkken görüşme kesilmesin: oda bitişi, ödeme bekleme süresi (istemcinin
   // ödeme sorgulama süresiyle aynı) kadar geçici olarak uzatılır. Ödeme onaylanırsa bildirim
@@ -124,5 +124,5 @@ export async function POST(request) {
     }
   }
 
-  return NextResponse.json({ token: paytrToken, ekDakika: ekSurePaketi.dakika });
+  return NextResponse.json({ icerik, ekDakika: ekSurePaketi.dakika });
 }

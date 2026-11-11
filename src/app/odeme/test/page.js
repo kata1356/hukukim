@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import AdminShell from "@/components/AdminShell";
 import TextField from "@/components/TextField";
 import Button from "@/components/Button";
+import IyzicoOdemeFormu from "@/components/IyzicoOdemeFormu";
 
 export default function OdemeTest() {
   const [form, setForm] = useState({ adSoyad: "", email: "", telefon: "", tutar: "1" });
@@ -41,12 +42,12 @@ export default function OdemeTest() {
       return;
     }
 
-    setToken(sonuc.token);
+    setToken(sonuc.icerik);
     setYukleniyor(false);
   }
 
   return (
-    <AdminShell baslik="PayTR Test Ödemesi" aciklama="Gerçek bir tahsilat yapmaz, entegrasyonu doğrulamak içindir.">
+    <AdminShell baslik="iyzico Test Ödemesi" aciklama="Gerçek bir tahsilat yapmaz, entegrasyonu doğrulamak içindir.">
       {!token ? (
         <form onSubmit={handleSubmit} className="flex max-w-lg flex-col gap-5 rounded-2xl border border-yonetim-kenar bg-yonetim-kutu p-6">
           <TextField
@@ -96,11 +97,7 @@ export default function OdemeTest() {
         </form>
       ) : (
         <div className="max-w-lg overflow-hidden rounded-2xl border border-yonetim-kenar bg-white">
-          <iframe
-            src={`https://www.paytr.com/odeme/guvenli/${token}`}
-            title="PayTR Ödeme"
-            style={{ width: "100%", height: "640px", border: "none" }}
-          />
+          <IyzicoOdemeFormu icerik={token} baslik="iyzico Ödeme" style={{ width: "100%", height: "640px" }} />
         </div>
       )}
     </AdminShell>

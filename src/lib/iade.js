@@ -1,13 +1,13 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrIadeYap } from "@/lib/paytr";
+import { iyzicoIadeYap } from "@/lib/iyzico";
 
-// Talebin on odemesini (ilk basarili odeme) PayTR uzerinden iade eder.
+// Talebin on odemesini (ilk basarili odeme) iyzico uzerinden iade eder.
 // Odeme kaydi bulunamazsa iade edilecek bir sey yoktur, basarili sayilir.
 export async function ilkOdemeyiIadeEt(randevuTalepId) {
   const { data: odeme } = await supabaseAdmin
     .from("odemeler")
-    .select("merchant_oid, tutar")
+    .select("merchant_oid, tutar, iyzico_odeme_id")
     .eq("randevu_talep_id", randevuTalepId)
     .eq("durum", "basarili")
     .like("merchant_oid", "TLP%")
@@ -17,9 +17,9 @@ export async function ilkOdemeyiIadeEt(randevuTalepId) {
 
   if (!odeme) return { basarili: true };
 
-  const sonuc = await paytrIadeYap({
-    merchantOid: odeme.merchant_oid,
-    tutarKurus: Math.round(Number(odeme.tutar) * 100),
+  const sonuc = await iyzicoIadeYap({
+    odemeId: odeme.iyzico_odeme_id,
+    tutar: Number(odeme.tutar),
   });
 
   if (sonuc.basarili) {

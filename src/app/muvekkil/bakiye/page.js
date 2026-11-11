@@ -144,7 +144,7 @@ export default function MuvekkilOdemelerim() {
 
           <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
             <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-            Ödemelerin PayTR güvenli ödeme altyapısı üzerinden alınır. Kart bilgilerin Hukukim&apos;de saklanmaz. İade
+            Ödemelerin iyzico güvenli ödeme altyapısı üzerinden alınır. Kart bilgilerin Hukukim&apos;de saklanmaz. İade
             koşulları için İptal ve İade Koşulları sayfasına bakabilirsin.
           </p>
         </aside>

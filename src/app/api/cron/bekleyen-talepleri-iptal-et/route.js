@@ -4,7 +4,7 @@ import { ilkOdemeyiIadeEt } from "@/lib/iade";
 import { denemeHakkiniGeriVer } from "@/lib/talepYardimci";
 
 // Odenip 15 dakika icinde hicbir avukat tarafindan ustlenilmeyen talepleri
-// otomatik iptal edip, ucretli olanlar icin PayTR uzerinden iade baslatir.
+// otomatik iptal edip, ucretli olanlar icin iyzico uzerinden iade baslatir.
 // Vercel Cron tarafindan her 5 dakikada bir cagirilir (bkz. vercel.json).
 const ZAMAN_ASIMI_DAKIKA = 15;
 

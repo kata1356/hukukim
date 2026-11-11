@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { paytrTokenAl } from "@/lib/paytr";
-import { ODEME_DONUS_ADRESI } from "@/lib/site";
+import { iyzicoOdemeBaslat, IYZICO_CANLI } from "@/lib/iyzico";
+import { IYZICO_DONUS_ADRESI } from "@/lib/site";
 
 function istekIpAdresi(request) {
   const ileriIp = request.headers.get("x-forwarded-for");
@@ -33,7 +33,7 @@ export async function POST(request) {
   }
 
   const govde = await request.json();
-  const { adSoyad, email, telefon, adres, tutar } = govde;
+  const { adSoyad, email, telefon, tutar } = govde;
 
   if (!adSoyad || !email || !telefon) {
     return NextResponse.json({ hata: "Ad soyad, e-posta ve telefon zorunlu." }, { status: 400 });
@@ -49,7 +49,7 @@ export async function POST(request) {
     ad_soyad: adSoyad,
     email,
     tutar: gecerliTutar,
-    test_modu: process.env.PAYTR_TEST_MODE !== "0",
+    test_modu: !IYZICO_CANLI,
     durum: "basladi",
   });
 
@@ -57,22 +57,22 @@ export async function POST(request) {
     return NextResponse.json({ hata: "Ödeme kaydı oluşturulamadı." }, { status: 500 });
   }
 
-  const { basarili, token, hata } = await paytrTokenAl({
-    merchantOid,
+  const { basarili, token, icerik, hata } = await iyzicoOdemeBaslat({
+    siparisNo: merchantOid,
     userIp,
     email,
-    tutarKurus,
-    sepetAdi: "Hukukim Test Ödemesi",
     adSoyad,
     telefon,
-    adres: adres || "Belirtilmedi",
-    basariliUrl: `${ODEME_DONUS_ADRESI}/odeme/basarili?oid=${merchantOid}`,
-    basarisizUrl: `${ODEME_DONUS_ADRESI}/odeme/basarisiz?oid=${merchantOid}`,
+    tutarKurus,
+    sepetAdi: "Hukukim Test Ödemesi",
+    donusAdresi: IYZICO_DONUS_ADRESI,
   });
 
   if (!basarili) {
-    return NextResponse.json({ hata: hata ?? "PayTR token alınamadı." }, { status: 400 });
+    return NextResponse.json({ hata: hata ?? "iyzico ödeme formu başlatılamadı." }, { status: 400 });
   }
 
-  return NextResponse.json({ token, merchantOid });
+  await supabaseAdmin.from("odemeler").update({ iyzico_token: token }).eq("merchant_oid", merchantOid);
+
+  return NextResponse.json({ icerik, merchantOid });
 }

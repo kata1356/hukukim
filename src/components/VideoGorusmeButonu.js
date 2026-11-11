@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import DailyIframe from "@daily-co/daily-js";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "./Modal";
+import IyzicoOdemeFormu from "./IyzicoOdemeFormu";
 import Spinner from "./Spinner";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import { IconVideo, IconTelefonKapat, IconKvkk, IconEtiket } from "./icons";
@@ -260,7 +261,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
       return;
     }
 
-    setEkSureToken(sonuc.token);
+    setEkSureToken(sonuc.icerik);
     setEkSureMesaji(null);
 
     const baslangicZamani = Date.now();
@@ -451,11 +452,7 @@ export default function VideoGorusmeButonu({ randevuTalepId, paketDakika, otomat
                 <p className="bg-turkuaz px-4 py-2 text-center text-xs font-semibold text-gece">
                   Ödeme sırasında görüşmen devam ediyor, süre kaybetmezsin.
                 </p>
-                <iframe
-                  src={`https://www.paytr.com/odeme/guvenli/${ekSureToken}`}
-                  title="Ek Süre Ödemesi"
-                  className="w-full flex-1 border-none"
-                />
+                <IyzicoOdemeFormu icerik={ekSureToken} baslik="Ek Süre Ödemesi" className="w-full flex-1" />
                 <button
                   type="button"
                   onClick={() => {
