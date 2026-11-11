@@ -11,7 +11,7 @@ export const IYZICO_CANLI = process.env.IYZICO_CANLI === "1";
 const TABAN_ADRES = IYZICO_CANLI ? "https://api.iyzipay.com" : "https://sandbox-api.iyzipay.com";
 
 function ortamDegiskeni(isim) {
-  const deger = process.env[isim];
+  const deger = process.env[isim]?.trim().replace(/^["']|["']$/g, "");
   if (!deger) throw new Error(`${isim} ortam değişkeni tanımlı değil.`);
   return deger;
 }
