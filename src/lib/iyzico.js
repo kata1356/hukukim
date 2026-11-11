@@ -113,7 +113,12 @@ export async function iyzicoOdemeBaslat({
   });
 
   if (sonuc.status !== "success" || !sonuc.token || !sonuc.checkoutFormContent) {
-    return { basarili: false, hata: sonuc.errorMessage ?? "iyzico ödeme formu başlatılamadı." };
+    // Anahtarların kendisi değil, yalnızca ortam, hata kodu ve uzunlukları (teşhis için) bildirilir.
+    const ayrinti = `${IYZICO_CANLI ? "canlı" : "sandbox"} ortam, kod ${sonuc.errorCode ?? "-"}, anahtar uzunluğu ${
+      (process.env.IYZICO_API_KEY ?? "").length
+    }/${(process.env.IYZICO_SECRET_KEY ?? "").length}`;
+    console.error("iyzico ödeme formu başlatılamadı:", sonuc.errorMessage, ayrinti);
+    return { basarili: false, hata: sonuc.errorMessage ?? "iyzico ödeme formu başlatılamadı.", ayrinti };
   }
 
   // Doküman "Base64" diyor, uygulamada çoğunlukla düz HTML dönüyor: ikisini de karşıla.
