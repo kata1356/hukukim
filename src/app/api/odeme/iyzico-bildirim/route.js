@@ -6,6 +6,11 @@ import { iyzicoBildirimImzasiDogru } from "@/lib/iyzico";
 // https://hukukim.com/api/odeme/iyzico-bildirim adresi girilir.
 // Güvenlik: gövdeden yalnızca token alınır, sonuç iyzico'dan kendi anahtarlarımızla sorgulanır; bu
 // yüzden sahte bir istek hiçbir ödemeyi başarılı yapamaz. İmza (varsa) yalnızca ek kontroldür.
+// Adres doğrulaması / tarayıcıdan erişim kontrolü için basit yanıt.
+export async function GET() {
+  return new Response("OK");
+}
+
 export async function POST(request) {
   const govde = await request.json().catch(() => null);
   const token = govde?.token;
