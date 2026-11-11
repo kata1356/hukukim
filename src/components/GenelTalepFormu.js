@@ -7,6 +7,7 @@ import { SEHIRLER } from "@/lib/sehirler";
 import { UZMANLIK_ALANLARI } from "@/lib/uzmanlikAlanlari";
 import { GORUSME_PAKETLERI } from "@/lib/odemeYardimci";
 import PaketSecici from "./PaketSecici";
+import IyzicoOdemeFormu from "./IyzicoOdemeFormu";
 import TextField from "./TextField";
 import Button from "./Button";
 import Spinner from "./Spinner";
@@ -74,7 +75,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
       return;
     }
 
-    setOdemeToken(sonuc.token);
+    setOdemeToken(sonuc.icerik);
   }
 
   // Talep açmadan önce telefon numarası SMS koduyla doğrulanır (bir numara, bir hesap).
@@ -224,11 +225,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
       {odemeToken && (
         <Modal baslik="Görüşme Paketi Ödemesi" onKapat={() => setOdemeToken(null)}>
           <div className="overflow-hidden rounded-xl bg-white">
-            <iframe
-              src={`https://www.paytr.com/odeme/guvenli/${odemeToken}`}
-              title="PayTR Ödeme"
-              style={{ width: "100%", height: "600px", border: "none" }}
-            />
+            <IyzicoOdemeFormu icerik={odemeToken} baslik="iyzico Ödeme" style={{ width: "100%", height: "600px" }} />
           </div>
         </Modal>
       )}
