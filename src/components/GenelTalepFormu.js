@@ -223,7 +223,7 @@ export default function GenelTalepFormu({ muvekkilProfil, ilkGorusmeMi, onKapat,
       </form>
 
       {odemeToken && (
-        <Modal baslik="Görüşme Paketi Ödemesi" onKapat={() => setOdemeToken(null)}>
+        <Modal baslik="Görüşme Ödemesi" onKapat={() => setOdemeToken(null)}>
           <div className="overflow-hidden rounded-xl bg-white">
             <IyzicoOdemeFormu icerik={odemeToken} baslik="iyzico Ödeme" style={{ width: "100%", height: "600px" }} />
           </div>

@@ -50,7 +50,7 @@ const SORUNLAR = [
   {
     baslik: "Ücreti görüşmeden önce bilemezsin",
     aciklama:
-      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz deneme, sonrası hazır paketler ya da dakikası 40 TL.",
+      "Fiyat genelde ilk görüşmede çıkıyor. Hukukim'de baştan belli: ilk 5 dakika ücretsiz deneme, sonrası 149 TL&apos;den başlayan görüşme ücretleri ya da dakikası 40 TL.",
   },
   {
     baslik: "Karşındaki gerçekten avukat mı?",
@@ -147,9 +147,9 @@ export default async function AnaSayfa() {
         href="#fiyatlandirma"
         className="block bg-gece-yuzey px-4 py-2 text-center text-xs font-semibold text-turkuaz transition hover:text-turkuaz-parlak sm:text-sm"
       >
-        <span className="sm:hidden">İlk 5 dk ücretsiz · Paketler 149 TL&apos;den · Fiyatlar →</span>
+        <span className="sm:hidden">İlk 5 dk ücretsiz · Görüşme 149 TL&apos;den · Fiyatlar →</span>
         <span className="hidden sm:inline">
-          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Paketler 149 TL&apos;den başlar · Fiyatları gör →
+          Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Avukat görüşmesi 149 TL&apos;den başlar · Fiyatları gör →
         </span>
       </a>
 
@@ -524,13 +524,45 @@ export default async function AnaSayfa() {
           </div>
         </section>
 
+        <section id="pazar-yeri" className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
+          <div className="mx-auto max-w-5xl text-center">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">Hukukim Pazar Yeri Nasıl Çalışır?</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-white/60">
+              Hukukim, bağımsız avukatların (satıcılar) hukuki görüşme hizmetlerini müvekkillere
+              (alıcılar) sunduğu bir pazar yeridir. Abonelik yoktur; her görüşme avukatın verdiği
+              tek seferlik bir hizmettir.
+            </p>
+            <div className="mt-10 grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["1. Satıcı: Avukat", "Baro sicil numarasıyla başvurur, belgeleri doğrulanır, hukuk alanlarını ve alt kategorilerini seçer."],
+                ["2. Kategori ve alt kategori", "Müvekkil hukuk alanını ve alt kategoriyi seçer, o alanda hizmet veren avukatları görür."],
+                ["3. Güvenli ödeme", "Ödeme iyzico ile alınır, görüşme tamamlanana kadar platform güvencesinde tutulur."],
+                ["4. Hakediş", "Görüşme sonrası tutarın %60'ı hizmeti veren avukata, %40'ı platform hizmet bedeline aittir."],
+              ].map(([baslik, metin]) => (
+                <div key={baslik} className="rounded-2xl border border-white/10 bg-gece-yuzey p-5">
+                  <p className="font-bold text-white">{baslik}</p>
+                  <p className="mt-2 text-sm text-white/60">{metin}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm font-semibold">
+              <Link href="/hukuk-alanlari" className="rounded-full bg-turkuaz px-5 py-2.5 text-gece transition hover:bg-turkuaz-parlak">
+                Kategoriler ve Alt Kategoriler
+              </Link>
+              <Link href="/avukat/kayit" className="rounded-full border border-white/15 px-5 py-2.5 text-white transition hover:bg-white/5">
+                Satıcı (Avukat) Olarak Katıl
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section id="fiyatlandirma" className="scroll-mt-20 border-t border-gece-kenar px-6 py-14 sm:py-20">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">
-              Avukatlık Ücret Tarifesi
+              Avukat Görüşme Ücretleri
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Şeffaf, önceden bilinen bir görüşme ücretlendirmesi.
+              Avukatlar (satıcılar) görüşme hizmetini sunar; ücret süreye göre belirlenir, abonelik yoktur.
             </p>
 
             <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-1 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-6 shadow-md">
@@ -538,7 +570,7 @@ export default async function AnaSayfa() {
                 Yeni Üyelere Özel
               </span>
               <p className="mt-2 text-3xl font-extrabold text-white">İlk 5 Dakika Ücretsiz</p>
-              <p className="text-sm text-white/60">Paket almadan dene, kart gerekmez</p>
+              <p className="text-sm text-white/60">Ödeme yapmadan dene, kart gerekmez</p>
             </div>
 
             <div className="mx-auto mt-6 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
@@ -547,8 +579,8 @@ export default async function AnaSayfa() {
                   key={dakika}
                   className="flex flex-col items-center gap-1 rounded-2xl border border-white/10 bg-gece-yuzey p-6 shadow-sm"
                 >
-                  <span className="rounded-full bg-turkuaz/15 px-3 py-0.5 text-xs font-bold text-turkuaz">Kampanya</span>
-                  <p className="mt-1 text-sm font-bold text-white/60">{dakika} dakika</p>
+                  <span className="rounded-full bg-turkuaz/15 px-3 py-0.5 text-xs font-bold text-turkuaz">Tek seferlik</span>
+                  <p className="mt-1 text-sm font-bold text-white/60">{dakika} dakikalık görüşme</p>
                   {listeTutar > tutar && (
                     <p className="text-sm font-semibold text-white/40 line-through">{listeTutar} TL</p>
                   )}
@@ -582,7 +614,7 @@ export default async function AnaSayfa() {
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
               İlk 5 dakika deneme amaçlı ücretsizdir (telefon numarası başına
-              bir kez). Ödeme, güvenli ödeme altyapımız (iyzico) üzerinden alınır.
+              bir kez). Ödeme, güvenli ödeme altyapımız (iyzico) üzerinden alınır; düzenli ödeme veya otomatik yenileme yoktur. Hukukim, bağımsız avukatları müvekkillerle buluşturan bir pazar yeridir.
             </p>
           </div>
         </section>
@@ -610,7 +642,7 @@ export default async function AnaSayfa() {
             </Link>
 
             <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {HUKUK_ALANLARI_KATEGORILERI.map(({ ad, Icon }) => (
+              {HUKUK_ALANLARI_KATEGORILERI.map(({ ad, Icon, altKategoriler }) => (
                 <Link
                   key={ad}
                   href="/muvekkil/kayit"
@@ -620,6 +652,7 @@ export default async function AnaSayfa() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <p className="text-sm font-bold text-white">{ad}</p>
+                  <p className="text-[11px] leading-snug text-white/40">{(altKategoriler || []).slice(0, 3).join(" · ")}</p>
                 </Link>
               ))}
 
@@ -817,6 +850,7 @@ export default async function AnaSayfa() {
             <p className="text-sm font-bold text-white/90">Hizmetler</p>
             <ul className="mt-4 flex flex-col gap-2 text-sm text-white/50">
               <li><a href="#hukuk-alanlari" className="hover:text-white">Hukuk Alanları</a></li>
+              <li><Link href="/hukuk-alanlari" className="hover:text-white">Kategoriler ve Pazar Yeri</Link></li>
               <li><Link href="/avukatlar" className="hover:text-white">Avukatlarımız</Link></li>
               <li><Link href="/mevzuat" className="hover:text-white">Mevzuat</Link></li>
             </ul>

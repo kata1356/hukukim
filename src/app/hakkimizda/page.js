@@ -11,7 +11,7 @@ export default function Hakkimizda() {
   return (
     <YasalSayfaShell baslik="Hakkımızda" guncellemeTarihi="9 Kasım 2026">
       <p>
-        Hukukim, hukuki desteğe ihtiyaç duyan kişileri kimliği ve ruhsatı
+        Hukukim, bağımsız avukatların (satıcılar) hizmetlerini müvekkillere (alıcılar) sunduğu bir hukuk pazar yeridir; abonelik satmaz. Hukukim, hukuki desteğe ihtiyaç duyan kişileri kimliği ve ruhsatı
         doğrulanmış avukatlarla hızlı, şeffaf ve güvenli biçimde buluşturan bir
         online platformdur.
       </p>
