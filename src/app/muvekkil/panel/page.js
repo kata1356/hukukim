@@ -339,7 +339,7 @@ export default function MuvekkilPanel() {
                 {beklenenTalep.paket_dakika && (
                   <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-white/70">
                     <IconYayin className="h-3.5 w-3.5 text-turkuaz" />
-                    {beklenenTalep.paket_dakika} dk paket
+                    {beklenenTalep.paket_dakika} dk görüşme
                     {beklenenTalep.odeme_tutari > 0 ? ` · ${beklenenTalep.odeme_tutari} TL` : " · Ücretsiz"}
                   </div>
                 )}
@@ -413,7 +413,7 @@ export default function MuvekkilPanel() {
           </h2>
           <p className="relative mt-2 max-w-xl text-sm text-white/60">
             Şehrini ve konunu seç, baro sicili doğrulanmış avukatlardan ilk kabul edenle görüşmen hemen başlasın.
-            {ilkGorusmeMi && " Paket almadan dene, süre dolunca isteğe bağlı ek süre alabilirsin."}
+            {ilkGorusmeMi && " Ödeme yapmadan dene, süre dolunca isteğe bağlı ek süre alabilirsin."}
           </p>
           <div className="relative mt-6 flex flex-col gap-3 sm:flex-row">
             <button
@@ -575,7 +575,7 @@ export default function MuvekkilPanel() {
                       <span>{tarihFormatla(talep.tarih)}</span>
                       {talep.paket_dakika && (
                         <span>
-                          {talep.paket_dakika} dk paket · {talep.odeme_tutari > 0 ? `${talep.odeme_tutari} TL` : "Ücretsiz"}
+                          {talep.paket_dakika} dk görüşme · {talep.odeme_tutari > 0 ? `${talep.odeme_tutari} TL` : "Ücretsiz"}
                         </span>
                       )}
                     </div>

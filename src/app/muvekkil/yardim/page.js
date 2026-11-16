@@ -13,12 +13,12 @@ const SORULAR = [
   {
     soru: "İlk 5 dakika gerçekten ücretsiz mi?",
     cevap:
-      "Evet. Yeni üyeler için ilk 5 dakikalık görüşme, paket almadan ve ücretsiz sunulur. Telefon numarası başına bir kez kullanılabilir. Süre dolduğunda isteğe bağlı olarak ek süre satın alabilirsin.",
+      "Evet. Yeni üyeler için ilk 5 dakikalık görüşme, ödeme yapmadan ve ücretsiz sunulur. Telefon numarası başına bir kez kullanılabilir. Süre dolduğunda isteğe bağlı olarak ek süre satın alabilirsin.",
   },
   {
-    soru: "Hangi paketler var, fiyatlar nedir?",
+    soru: "Görüşme ücretleri nedir?",
     cevap:
-      "Kampanya fiyatlarıyla 5 dakika 149 TL (normal 200 TL), 15 dakika 399 TL (normal 499 TL), 20 dakika 499 TL (normal 600 TL). Dilersen 5 ile 60 dakika arasında kendi süreni seçebilirsin, dakikası 40 TL. Fiyat talebi göndermeden önce ekranda görünür.",
+      "Tek seferlik görüşme ücretleri: 5 dakika 149 TL (normal 200 TL), 15 dakika 399 TL (normal 499 TL), 20 dakika 499 TL (normal 600 TL). Dilersen 5 ile 60 dakika arasında kendi süreni seçebilirsin, dakikası 40 TL. Fiyat talebi göndermeden önce ekranda görünür.",
   },
   {
     soru: "Görüşme süresi dolunca ne olur?",

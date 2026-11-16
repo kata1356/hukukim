@@ -15,6 +15,7 @@ const ROTALAR = [
   { yol: "/iptal-iade-kosullari", oncelik: 0.3 },
   { yol: "/iletisim", oncelik: 0.4 },
   { yol: "/hakkimizda", oncelik: 0.4 },
+  { yol: "/hukuk-alanlari", oncelik: 0.7 },
 ];
 
 export default function sitemap() {
