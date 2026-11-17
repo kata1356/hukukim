@@ -15,8 +15,7 @@ export default function HukukAlanlari() {
       <p>
         Hukukim, bağımsız avukatların (satıcılar) hukuki görüşme hizmetlerini müvekkillere (alıcılar)
         sunduğu bir pazar yeri platformudur. Hizmetler aşağıdaki kategori ve alt kategorilere göre
-        listelenir. Platform abonelik veya üyelik paketi satmaz; her hizmet, ilgili avukatın verdiği
-        tek seferlik bir görüşme hizmetidir.
+        listelenir. Her hizmet, ilgili avukatın verdiği tek seferlik bir görüşme hizmetidir.
       </p>
 
       <h2>Pazar Yeri Nasıl İşler?</h2>
@@ -60,8 +59,7 @@ export default function HukukAlanlari() {
       <p>
         Görüşme ücreti süreye göre belirlenir ve ödeme öncesinde açıkça gösterilir: 5 dakika 149 TL,
         15 dakika 399 TL, 20 dakika 499 TL ya da 5-60 dakika arası dilediğiniz süre için dakikası
-        40 TL. Yeni üyelere ilk 5 dakika deneme görüşmesi ücretsizdir. Düzenli ödeme, otomatik
-        yenileme veya abonelik yoktur.
+        40 TL. Yeni üyelere ilk 5 dakika deneme görüşmesi ücretsizdir. Her ödeme tek seferliktir.
       </p>
 
       <h2>Avukatlar İçin</h2>

@@ -529,7 +529,7 @@ export default async function AnaSayfa() {
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Hukukim Pazar Yeri Nasıl Çalışır?</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-white/60">
               Hukukim, bağımsız avukatların (satıcılar) hukuki görüşme hizmetlerini müvekkillere
-              (alıcılar) sunduğu bir pazar yeridir. Abonelik yoktur; her görüşme avukatın verdiği
+              (alıcılar) sunduğu bir pazar yeridir. Her görüşme avukatın verdiği
               tek seferlik bir hizmettir.
             </p>
             <div className="mt-10 grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
@@ -562,7 +562,7 @@ export default async function AnaSayfa() {
               Avukat Görüşme Ücretleri
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60">
-              Avukatlar (satıcılar) görüşme hizmetini sunar; ücret süreye göre belirlenir, abonelik yoktur.
+              Avukatlar (satıcılar) görüşme hizmetini sunar; ücret süreye göre belirlenir.
             </p>
 
             <div className="mx-auto mt-10 flex max-w-sm flex-col items-center gap-1 rounded-2xl border-2 border-turkuaz bg-gece-yuzey p-6 shadow-md">
@@ -614,7 +614,7 @@ export default async function AnaSayfa() {
             <p className="mx-auto mt-8 flex max-w-xl items-start gap-2 rounded-xl bg-gece-yuzey px-5 py-4 text-left text-xs leading-relaxed text-white/40 shadow-sm">
               <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
               İlk 5 dakika deneme amaçlı ücretsizdir (telefon numarası başına
-              bir kez). Ödeme, güvenli ödeme altyapımız (iyzico) üzerinden alınır; düzenli ödeme veya otomatik yenileme yoktur. Hukukim, bağımsız avukatları müvekkillerle buluşturan bir pazar yeridir.
+              bir kez). Ödeme, güvenli ödeme altyapımız (iyzico) üzerinden alınır. Hukukim, bağımsız avukatları müvekkillerle buluşturan bir pazar yeridir.
             </p>
           </div>
         </section>
