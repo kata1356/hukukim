@@ -121,7 +121,7 @@ export default function AvukatBakiye() {
 
         <aside className="flex flex-col gap-4 lg:col-span-2">
           <div className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
-            <h2 className="text-sm font-bold text-white">Aylık kazanç</h2>
+            <h2 className="text-sm font-bold text-white">Aylara göre kazanç</h2>
             {aylar.length === 0 ? (
               <p className="mt-3 text-sm text-white/50">Henüz veri yok.</p>
             ) : (

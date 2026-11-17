@@ -113,7 +113,7 @@ export default function MuvekkilOdemelerim() {
 
         <aside className="flex flex-col gap-4 lg:col-span-2">
           <div className="rounded-xl border border-white/10 bg-gece-yuzey p-5">
-            <h2 className="text-sm font-bold text-white">Aylık harcama</h2>
+            <h2 className="text-sm font-bold text-white">Aylara göre harcama</h2>
             {aylar.length === 0 ? (
               <p className="mt-3 text-sm text-white/50">Henüz veri yok.</p>
             ) : (
