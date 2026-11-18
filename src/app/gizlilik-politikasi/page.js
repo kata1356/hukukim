@@ -1,3 +1,4 @@
+import Link from "next/link";
 import YasalSayfaShell from "@/components/YasalSayfaShell";
 
 export const metadata = { title: "Gizlilik Politikası", description: "Hukukim'in kişisel verileri nasıl işlediği ve koruduğu." };
@@ -54,7 +55,7 @@ export default function GizlilikPolitikasi() {
       <h2>4. Çerezler</h2>
       <p>
         Platform, oturumunu açık tutmak için teknik olarak zorunlu çerezler
-        kullanır. Detaylar için Çerez Politikamıza bakabilirsin.
+        kullanır. Detaylar için <Link href="/cerez-politikasi">Çerez Politikamıza</Link> bakabilirsin.
       </p>
 
       <h2>5. Haklarınız</h2>
