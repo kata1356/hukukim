@@ -27,6 +27,7 @@ export default function YasalSayfaShell({ baslik, guncellemeTarihi, children }) 
           <li><Link href="/hakkimizda" className="hover:text-white">Hakkımızda</Link></li>
           <li><Link href="/kullanim-sartlari" className="hover:text-white">Kullanım Şartları</Link></li>
           <li><Link href="/gizlilik-politikasi" className="hover:text-white">Gizlilik Politikası</Link></li>
+          <li><Link href="/cerez-politikasi" className="hover:text-white">Çerez Politikası</Link></li>
           <li><Link href="/kvkk-aydinlatma-metni" className="hover:text-white">KVKK Aydınlatma Metni</Link></li>
           <li><Link href="/mesafeli-satis-sozlesmesi" className="hover:text-white">Mesafeli Satış Sözleşmesi</Link></li>
           <li><Link href="/iptal-iade-kosullari" className="hover:text-white">Teslimat, İptal ve İade Şartları</Link></li>

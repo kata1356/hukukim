@@ -10,6 +10,7 @@ const ROTALAR = [
   { yol: "/muvekkil/kayit", oncelik: 0.7 },
   { yol: "/gizlilik-politikasi", oncelik: 0.3 },
   { yol: "/kullanim-sartlari", oncelik: 0.3 },
+  { yol: "/cerez-politikasi", oncelik: 0.3 },
   { yol: "/kvkk-aydinlatma-metni", oncelik: 0.3 },
   { yol: "/mesafeli-satis-sozlesmesi", oncelik: 0.3 },
   { yol: "/iptal-iade-kosullari", oncelik: 0.3 },

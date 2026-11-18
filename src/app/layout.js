@@ -1,5 +1,6 @@
 import { Sora, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import CerezBilgilendirme from "@/components/CerezBilgilendirme";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <CerezBilgilendirme />
         <Analytics />
       </body>
     </html>
