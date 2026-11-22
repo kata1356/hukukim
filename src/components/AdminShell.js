@@ -29,6 +29,7 @@ const MENU = [
   { etiket: "Avukatlar", href: "/admin/avukatlar", Icon: IconTerazi },
   { etiket: "Kullanıcılar", href: "/admin/kullanicilar", Icon: IconGrup },
   { etiket: "Talepler", href: "/admin/talepler", Icon: IconYayin },
+  { etiket: "Şikayetler", href: "/admin/sikayetler", Icon: IconKalkan },
   { etiket: "Ödemeler", href: "/admin/odemeler", Icon: IconCuzdan },
   { etiket: "Değerlendirmeler", href: "/admin/degerlendirmeler", Icon: IconYildiz },
   { etiket: "SSS", href: "/admin/icerik/sss", Icon: IconEtiket },

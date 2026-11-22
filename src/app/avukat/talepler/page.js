@@ -12,6 +12,7 @@ import Spinner from "@/components/Spinner";
 import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
+import SikayetButonu from "@/components/SikayetButonu";
 import DogrulamaDurumKarti from "@/components/DogrulamaDurumKarti";
 import { IconKonum, IconUzmanlik, IconOnay, IconRed, IconTakvim, IconYildirim } from "@/components/icons";
 
@@ -342,6 +343,15 @@ export default function AvukatTalepler() {
                         {talep.odeme_tutari > 0 && ` · ${talep.odeme_tutari} TL`}
                         {talep.gorusme_suresi_dakika > 0 && ` · gerçek süre ${talep.gorusme_suresi_dakika} dk`}
                       </p>
+                    )}
+
+                    {["kabul", "tamamlandi"].includes(talep.durum) && (
+                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+                        <SikayetButonu talepId={talep.id} rol="avukat" />
+                        <span className="ml-auto font-mono text-xs text-white/30">
+                          Görüşme no: {talep.id.slice(0, 8).toUpperCase()}
+                        </span>
+                      </div>
                     )}
                   </div>
                 ))

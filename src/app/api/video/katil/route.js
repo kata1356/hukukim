@@ -83,7 +83,17 @@ export async function POST(request) {
     await dailyOdaGetirYaDaOlustur(odaAdi);
     // Oda süresi: görüşme başladıysa planlanan bitiş anı, başlamadıysa bekleme süresi.
     await dailyOdaSuresiniAyarla(odaAdi, bitisMs ? bitisMs + SURE_TOLERANSI_MS : null);
-    const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi });
+    const meetingToken = await dailyTokenOlustur({ odaAdi, kullaniciAdi, kullaniciId: kullanici.id });
+
+    // Meta veri kaydı: kim, hangi görüşmeye, ne zaman girdi. Başarısız olursa görüşmeyi engellemez.
+    const { error: olayHatasi } = await supabaseAdmin.from("gorusme_olaylari").insert({
+      randevu_talep_id: randevuTalepId,
+      kullanici_id: kullanici.id,
+      rol: kullanici.id === talep.avukat_id ? "avukat" : "muvekkil",
+      olay: "giris",
+    });
+    if (olayHatasi) console.error("Görüşme giriş kaydı yazılamadı:", olayHatasi.message);
+
     const odaUrl = `https://${process.env.DAILY_DOMAIN}.daily.co/${odaAdi}?t=${meetingToken}`;
     return NextResponse.json({
       odaUrl,

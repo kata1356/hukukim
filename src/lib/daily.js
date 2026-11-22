@@ -53,11 +53,23 @@ export async function dailyOdaSuresiniAyarla(odaAdi, bitisMs) {
   });
 }
 
-export async function dailyTokenOlustur({ odaAdi, kullaniciAdi }) {
+// Odadaki katılımcı kayıtları (Daily.co oturumları): kim ne zaman girdi, ne kadar kaldı.
+// join_time unix saniyesi, duration saniye; Daily.co kayıtları yaklaşık 15 sn çözünürlüktedir.
+export async function dailyKatilimlariGetir(odaAdi) {
+  const yanit = await fetch(`${DAILY_API_URL}/meetings?room=${encodeURIComponent(odaAdi)}&limit=20`, {
+    headers: { Authorization: `Bearer ${process.env.DAILY_API_KEY}` },
+  });
+  const veri = await yanit.json().catch(() => ({}));
+  if (!yanit.ok) throw new Error(veri?.error ?? veri?.info ?? "Daily.co katılım kayıtları alınamadı.");
+  return Array.isArray(veri?.data) ? veri.data : Array.isArray(veri) ? veri : [];
+}
+
+export async function dailyTokenOlustur({ odaAdi, kullaniciAdi, kullaniciId }) {
   const sonuc = await dailyIstek("/meeting-tokens", {
     properties: {
       room_name: odaAdi,
       user_name: kullaniciAdi,
+      ...(kullaniciId ? { user_id: String(kullaniciId) } : {}),
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 6,
     },
   });
