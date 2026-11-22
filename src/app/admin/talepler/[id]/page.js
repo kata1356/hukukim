@@ -131,6 +131,17 @@ export default function AdminTalepDetay() {
         </div>
       </div>
 
+      <div className="mb-6 rounded-xl border border-yonetim-kenar bg-yonetim-kutu p-5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-white/40">Görüşme kimliği</p>
+        <p className="mt-1 break-all font-mono text-sm text-white">{talep.id}</p>
+        <p className="mt-2 text-xs text-white/40">
+          Oluşturulma: {new Date(talep.created_at).toLocaleString("tr-TR")}
+          {talep.gorusme_baslangic_zamani &&
+            ` · Görüşme başlangıcı: ${new Date(talep.gorusme_baslangic_zamani).toLocaleString("tr-TR")}`}
+          {talep.gorusme_suresi_dakika > 0 && ` · Gerçek süre: ${talep.gorusme_suresi_dakika} dk`}
+        </p>
+      </div>
+
       <form onSubmit={kaydet} className="flex max-w-2xl flex-col gap-5 rounded-xl border border-yonetim-kenar bg-yonetim-kutu p-6">
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-white">Durum</span>

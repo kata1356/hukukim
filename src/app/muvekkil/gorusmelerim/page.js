@@ -13,6 +13,7 @@ import DurumRozeti from "@/components/DurumRozeti";
 import GorusmeSekliEtiketi from "@/components/GorusmeSekliEtiketi";
 import DegerlendirmeFormu from "@/components/DegerlendirmeFormu";
 import VideoGorusmeButonu from "@/components/VideoGorusmeButonu";
+import SikayetButonu from "@/components/SikayetButonu";
 import { IconArama, IconYildiz, IconSaat, IconOnay } from "@/components/icons";
 
 const FILTRELER = [
@@ -247,6 +248,10 @@ export default function MuvekkilGorusmelerim() {
                           Avukatı Değerlendir
                         </button>
                       ))}
+
+                    {talep.avukat_id && ["kabul", "tamamlandi"].includes(talep.durum) && (
+                      <SikayetButonu talepId={talep.id} rol="muvekkil" />
+                    )}
 
                     <button
                       onClick={() => setAcikId(acik ? null : talep.id)}
