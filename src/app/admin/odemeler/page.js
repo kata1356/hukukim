@@ -5,9 +5,8 @@ import { supabase } from "@/lib/supabaseClient";
 import AdminShell from "@/components/AdminShell";
 
 // Hakediş düzeni (Avukat Hizmet Sözleşmesi Madde 7): haftalık dönemler (Pazartesi-Pazar),
-// ödeme vadesi ilgili haftanın bitiminden sonraki 7 iş günü. Resmi tatiller hesaba katılmaz.
-const VADE_IS_GUNU = 7;
-
+// ödeme günü dönemi izleyen haftanın Perşembe'si. Resmi tatil kontrolü yapılmaz; Perşembe tatile
+// denk gelirse ödemeyi bir sonraki iş gününe elle kaydır (sözleşme metni de böyle der).
 function haftaBasi(tarih) {
   const t = new Date(tarih);
   t.setHours(0, 0, 0, 0);
@@ -17,13 +16,7 @@ function haftaBasi(tarih) {
 
 function vadeTarihi(basi) {
   const v = new Date(basi);
-  v.setDate(v.getDate() + 6); // Pazar
-  let eklenen = 0;
-  while (eklenen < VADE_IS_GUNU) {
-    v.setDate(v.getDate() + 1);
-    const gun = v.getDay();
-    if (gun !== 0 && gun !== 6) eklenen += 1;
-  }
+  v.setDate(v.getDate() + 10); // Pazartesi + 10 gün = sonraki haftanın Perşembe'si
   return v;
 }
 
@@ -167,7 +160,7 @@ export default function AdminOdemeler() {
   return (
     <AdminShell
       baslik="Avukat Ödemeleri"
-      aciklama="Avukatlara haftalık hakediş havalesi: her hafta (Pazartesi-Pazar) bitiminden sonraki 7 iş günü içinde ödenir."
+      aciklama="Avukatlara haftalık hakediş havalesi: her hafta (Pazartesi-Pazar) dönemi, izleyen haftanın Perşembe günü ödenir."
     >
       {yukleniyor ? (
         <p className="text-sm text-white/40">Yükleniyor...</p>

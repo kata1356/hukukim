@@ -7,8 +7,8 @@
 //     İletişim" ve 13. madde "Sorumluluk ve Tazminat"); gerekirse düzelttir.
 //  3) Metni değiştirirsen SOZLESME_SURUMU'nu da değiştir.
 
-export const SOZLESME_SURUMU = "2026-10-22.2";
-export const SOZLESME_TARIHI = "22 Ekim 2026";
+export const SOZLESME_SURUMU = "2026-11-23.1";
+export const SOZLESME_TARIHI = "23 Kasım 2026";
 
 export const SIRKET = {
   unvan: "Ali Eren Ağırman (şahıs işletmesi)",
@@ -16,8 +16,9 @@ export const SIRKET = {
   vergiDairesi: "Atışalanı Vergi Dairesi, 0101272783",
   eposta: "hukukimcom@gmail.com",
   mahkeme: "İstanbul",
-  hakedisPeriyodu: "haftalık dönemler hâlinde",
-  hakedisVadesi: "ilgili haftanın bitiminden sonraki 7 (yedi) iş günü içinde",
+  hakedisPeriyodu: "haftalık (Pazartesi-Pazar) dönemler hâlinde",
+  hakedisVadesi:
+    "dönemi izleyen haftanın Perşembe günü (bu gün resmi tatile veya bankaların kapalı olduğu bir güne denk gelirse takip eden ilk iş günü)",
 };
 
 export const SOZLESME_BOLUMLERI = [
