@@ -24,6 +24,7 @@ export default function MuvekkilKayit() {
   const [form, setForm] = useState({
     adSoyad: "",
     email: "",
+    telefon: "",
     sifre: "",
   });
   const [kvkkOnay, setKvkkOnay] = useState(false);
@@ -85,6 +86,16 @@ export default function MuvekkilKayit() {
     setForm((onceki) => ({ ...onceki, [alan]: deger }));
   }
 
+  // "0555 123 45 67", "+90 555 123 45 67", "5551234567" -> 05XXXXXXXXX. Boşsa "" döner; geçersizse null.
+  function telefonuHazirla(deger) {
+    const rakamlar = String(deger ?? "").replace(/\D/g, "");
+    if (!rakamlar) return "";
+    let n = rakamlar;
+    if (n.length === 12 && n.startsWith("90")) n = `0${n.slice(2)}`;
+    else if (n.length === 10 && n.startsWith("5")) n = `0${n}`;
+    return /^0\d{10}$/.test(n) ? n : null;
+  }
+
   async function oturumuTamamla(session) {
     const tamamlaYaniti = await fetch("/api/kayit", {
       method: "POST",
@@ -138,6 +149,12 @@ export default function MuvekkilKayit() {
   async function profiliTamamla(e) {
     e.preventDefault();
     setHata(null);
+
+    const telefon = telefonuHazirla(form.telefon);
+    if (telefon === null) {
+      setHata("Telefon numarası 11 haneli olmalı (05XXXXXXXXX).");
+      return;
+    }
     setOauthYukleniyor(true);
 
     const { error: guncelleHatasi } = await supabase.auth.updateUser({
@@ -146,6 +163,7 @@ export default function MuvekkilKayit() {
         profil: {
           ad_soyad: form.adSoyad,
           kvkk_onay: kvkkOnay,
+          ...(telefon && { telefon }),
         },
       },
     });
@@ -171,6 +189,12 @@ export default function MuvekkilKayit() {
     e.preventDefault();
     setHata(null);
     setZatenKayitli(false);
+
+    const telefon = telefonuHazirla(form.telefon);
+    if (telefon === null) {
+      setHata("Telefon numarası 11 haneli olmalı (05XXXXXXXXX).");
+      return;
+    }
     setYukleniyor(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -183,6 +207,7 @@ export default function MuvekkilKayit() {
           profil: {
             ad_soyad: form.adSoyad,
             kvkk_onay: kvkkOnay,
+            ...(telefon && { telefon }),
           },
           web_sitesi: webSitesi,
         },
@@ -243,6 +268,14 @@ export default function MuvekkilKayit() {
             value={form.adSoyad}
             onChange={(e) => alanGuncelle("adSoyad", e.target.value)}
             placeholder="Ör. Mehmet Demir"
+          />
+          <TextField
+            label="Telefon (isteğe bağlı)"
+            id="oauthTelefon"
+            type="tel"
+            value={form.telefon}
+            onChange={(e) => alanGuncelle("telefon", e.target.value)}
+            placeholder="05XX XXX XX XX"
           />
           <KvkkOnay checked={kvkkOnay} onChange={(e) => setKvkkOnay(e.target.checked)} />
 
@@ -345,6 +378,14 @@ export default function MuvekkilKayit() {
           value={form.email}
           onChange={(e) => alanGuncelle("email", e.target.value)}
           placeholder="ornek@eposta.com"
+        />
+        <TextField
+          label="Telefon (isteğe bağlı)"
+          id="telefon"
+          type="tel"
+          value={form.telefon}
+          onChange={(e) => alanGuncelle("telefon", e.target.value)}
+          placeholder="05XX XXX XX XX"
         />
         <TextField
           label="Şifre"
