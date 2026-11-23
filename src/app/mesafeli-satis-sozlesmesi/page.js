@@ -5,7 +5,7 @@ export const metadata = { title: "Mesafeli Satış Sözleşmesi" };
 
 export default function MesafeliSatisSozlesmesi() {
   return (
-    <YasalSayfaShell baslik="Mesafeli Satış Sözleşmesi" guncellemeTarihi="21 Temmuz 2026">
+    <YasalSayfaShell baslik="Mesafeli Satış Sözleşmesi" guncellemeTarihi="23 Kasım 2026">
       <p>
         Bu sözleşme, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve
         Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince, Hukukim
@@ -54,7 +54,9 @@ export default function MesafeliSatisSozlesmesi() {
         ödeme kuruluşu (iyzico) altyapısı üzerinden, kredi/banka kartı
         ile alınır. Kart bilgileri Hukukim sunucularında saklanmaz. Tüm
         fiyatlar Türk Lirası (TL) cinsindendir ve KDV dahildir; ödeme tek
-        çekim olarak alınır.
+        çekim olarak alınır. Bedel Satıcı tarafından iyzico üzerinden
+        tahsil edilir; avukatın payı Satıcı tarafından avukata ayrıca ödenir.
+        Bu durum, Alıcı&apos;nın ödediği bedeli ve haklarını değiştirmez.
       </p>
       <p>
         <strong>Ön Bilgilendirme:</strong> Alıcı, ödeme adımını onaylamadan
@@ -91,8 +93,9 @@ export default function MesafeliSatisSozlesmesi() {
       <h2>7. Şikayet ve Başvuru</h2>
       <p>
         Alıcı, hizmetle ilgili şikayet ve taleplerini {SATICI_BILGILERI.eposta}{" "}
-        adresine ya da {SATICI_BILGILERI.telefon} numarasına iletebilir.
-        Başvurular en geç 3 iş günü içinde yanıtlanır.
+        adresine ya da {SATICI_BILGILERI.telefon} numarasına iletebilir;
+        panelindeki görüşme kaydından da &quot;Şikayet Et&quot; seçeneğiyle
+        bildirimde bulunabilir. Başvurular en geç 3 iş günü içinde yanıtlanır.
       </p>
 
       <h2>8. Uyuşmazlıkların Çözümü</h2>

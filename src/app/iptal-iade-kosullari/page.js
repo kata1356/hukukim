@@ -4,7 +4,7 @@ export const metadata = { title: "Teslimat, İptal ve İade Şartları" };
 
 export default function IptalIadeKosullari() {
   return (
-    <YasalSayfaShell baslik="Teslimat, İptal ve İade Şartları" guncellemeTarihi="9 Kasım 2026">
+    <YasalSayfaShell baslik="Teslimat, İptal ve İade Şartları" guncellemeTarihi="23 Kasım 2026">
       <p>
         Bu sayfa, Hukukim üzerinden ücretli bir avukat görüşmesi/randevusu için
         hizmetin teslimat (ifa) şekli ile yapılan ödemelerin iptal ve iade
@@ -64,9 +64,11 @@ export default function IptalIadeKosullari() {
 
       <h2>7. İade Talebi Nasıl Yapılır?</h2>
       <p>
-        İade talebini randevu bilgilerinle birlikte{" "}
-        <a href="/iletisim">iletişim</a> sayfasındaki e-posta adresine
-        göndererek iletebilirsin.
+        Görüşmeyle ilgili sorunlarda panelindeki görüşme kaydından
+        &quot;Şikayet Et&quot; seçeneğini kullanabilir ya da iade talebini
+        randevu bilgilerinle birlikte <a href="/iletisim">iletişim</a>{" "}
+        sayfasındaki e-posta adresine göndererek iletebilirsin. Başvurular
+        en geç 3 iş günü içinde yanıtlanır.
       </p>
     </YasalSayfaShell>
   );

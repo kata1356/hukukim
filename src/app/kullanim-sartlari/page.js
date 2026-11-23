@@ -4,7 +4,7 @@ export const metadata = { title: "Kullanım Şartları", description: "Hukukim p
 
 export default function KullanimSartlari() {
   return (
-    <YasalSayfaShell baslik="Kullanım Şartları" guncellemeTarihi="16 Temmuz 2026">
+    <YasalSayfaShell baslik="Kullanım Şartları" guncellemeTarihi="23 Kasım 2026">
       <p>
         Hukukim&apos;i kullanarak aşağıdaki şartları kabul etmiş olursun.
       </p>
@@ -42,13 +42,40 @@ export default function KullanimSartlari() {
         <a href="/iptal-iade-kosullari">İptal ve İade Koşulları</a> geçerlidir.
       </p>
 
-      <h2>5. Sorumluluğun Sınırlandırılması</h2>
+      <h2>5. Görüşmeler ve Gizlilik</h2>
+      <p>
+        Görüşmelerin görüntü ve sesi Hukukim tarafından kaydedilmez; yalnızca
+        görüşmeye katılım bilgisi (giriş zamanı, süre) tutulur. Taraflar,
+        görüşmeyi karşı tarafın açık izni olmadan kaydedemez, kopyalayamaz
+        veya üçüncü kişilerle paylaşamaz. Avukat ile müvekkil arasındaki
+        görüşme içeriği, avukatlık mesleğinin gizlilik kurallarına tabidir.
+      </p>
+
+      <h2>6. Platform Dışı İletişim ve Yasaklı Kullanım</h2>
+      <p>
+        Platform üzerinden tanıştığın avukat veya müvekkille, ücretli
+        görüşmeyi Platform dışına taşımak, ödemeyi Platform dışında almak veya
+        yapmak, sahte bilgi vermek, hukuka aykırı amaçlarla ya da başkalarını
+        rahatsız etmek için kullanmak yasaktır. İhlal halinde hesap
+        askıya alınabilir veya kapatılabilir.
+      </p>
+
+      <h2>7. Şikayet</h2>
+      <p>
+        Görüşmeyle ilgili bir sorun yaşarsan (görüşmeye gelinmemesi, uygunsuz
+        davranış, hizmetin amacına uygun verilmemesi, teknik sorun vb.)
+        panelindeki görüşme kaydından &quot;Şikayet Et&quot; ile bildirim
+        yapabilirsin. Şikayetler yönetim ekibimizce incelenir; gerekirse
+        ödeme iade edilir veya hesaplara işlem uygulanır.
+      </p>
+
+      <h2>8. Sorumluluğun Sınırlandırılması</h2>
       <p>
         Hukukim, avukatlar tarafından verilen hukuki hizmetin içeriğinden,
         kalitesinden veya sonucundan sorumlu değildir.
       </p>
 
-      <h2>6. Değişiklikler</h2>
+      <h2>9. Değişiklikler</h2>
       <p>
         Bu şartlar zaman zaman güncellenebilir. Güncel sürüm her zaman bu
         sayfada yayınlanır.

@@ -22,6 +22,14 @@ function ayAdi(anahtar) {
   return new Date(Number(yil), Number(ay) - 1, 1).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
 }
 
+// Hakediş her hafta Perşembe günü ödenir (bir önceki Pazartesi-Pazar dönemi için). Bugün dahil, sıradaki Perşembe.
+function sonrakiOdemeGunu() {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  t.setDate(t.getDate() + ((4 - t.getDay() + 7) % 7));
+  return t.toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
+}
+
 export default function AvukatBakiye() {
   const { profil, yukleniyor } = useAvukatProfili();
   const [kazanclar, setKazanclar] = useState([]);
@@ -100,7 +108,9 @@ export default function AvukatBakiye() {
                   className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-gece-yuzey p-4"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-white">{k.muvekkil_ad_soyad}</p>
+                    <p className="text-sm font-semibold text-white">
+                      {k.muvekkil_ad_soyad ?? (tutar(k) < 0 ? `Mahsup: ${k.aciklama ?? "düzeltme"}` : k.aciklama ?? "Düzeltme")}
+                    </p>
                     <p className="text-xs text-white/40">{tarihSaatFormatla(k.tarih)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -146,8 +156,10 @@ export default function AvukatBakiye() {
 
           <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
             <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-            Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin, Ayarlar sayfasına girdiğin IBAN&apos;a periyodik olarak
-            havale ile gönderilir.
+            Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin her hafta Perşembe günü, Ayarlar sayfasına girdiğin
+            IBAN&apos;a havale ile gönderilir: o gün, bir önceki haftanın (Pazartesi-Pazar) hakedişi ödenir. Sıradaki
+            ödeme günü: <span className="font-semibold text-white/70">{sonrakiOdemeGunu()}</span>. İade veya itiraz
+            edilen görüşmelerin tutarı sonraki hakedişten düşülür.
           </p>
         </aside>
       </div>

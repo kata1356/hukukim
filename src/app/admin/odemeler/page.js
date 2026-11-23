@@ -35,20 +35,58 @@ export default function AdminOdemeler() {
   const [isleniyor, setIsleniyor] = useState(false);
   const [hata, setHata] = useState(null);
   const [kopyalandi, setKopyalandi] = useState(false);
+  const [avukatSecenekleri, setAvukatSecenekleri] = useState([]);
+  const [mahsupAcik, setMahsupAcik] = useState(false);
+  const [mahsup, setMahsup] = useState({ avukatId: "", tutar: "", aciklama: "" });
+  const [mahsupKaydediliyor, setMahsupKaydediliyor] = useState(false);
 
   useEffect(() => {
     veriGetir();
+    supabase
+      .from("avukatlar")
+      .select("id, ad_soyad")
+      .order("ad_soyad")
+      .then(({ data }) => setAvukatSecenekleri(data ?? []));
   }, []);
 
   async function veriGetir() {
     setYukleniyor(true);
     const { data } = await supabase
       .from("avukat_kazanclari")
-      .select("id, avukat_id, muvekkil_ad_soyad, tarih, kazanilan_miktar, avukata_odendi, avukatlar(ad_soyad, iban)")
+      .select(
+        "id, avukat_id, muvekkil_ad_soyad, tarih, kazanilan_miktar, avukata_odendi, aciklama, avukatlar(ad_soyad, iban)"
+      )
       .order("tarih", { ascending: false });
 
     setKazanclar(data ?? []);
     setYukleniyor(false);
+  }
+
+  // İade / chargeback / hatalı ödeme: avukatın hakedişinden düşülecek tutar eksi bakiyeli satır olarak yazılır.
+  async function mahsupKaydet(e) {
+    e.preventDefault();
+    setHata(null);
+    const tutar = Number(String(mahsup.tutar).replace(",", "."));
+    if (!mahsup.avukatId || !Number.isFinite(tutar) || tutar <= 0 || mahsup.aciklama.trim().length < 3) {
+      setHata("Avukat seç, düşülecek tutarı (pozitif) ve kısa bir açıklama gir.");
+      return;
+    }
+    setMahsupKaydediliyor(true);
+    const { error } = await supabase.from("avukat_kazanclari").insert({
+      avukat_id: mahsup.avukatId,
+      kazanilan_miktar: -tutar,
+      muvekkil_ad_soyad: null,
+      aciklama: mahsup.aciklama.trim(),
+    });
+    setMahsupKaydediliyor(false);
+    if (error) {
+      console.error("Mahsup eklenemedi:", error);
+      setHata("Mahsup eklenemedi. supabase-mahsup.sql dosyasını çalıştırdığından emin ol.");
+      return;
+    }
+    setMahsup({ avukatId: "", tutar: "", aciklama: "" });
+    setMahsupAcik(false);
+    await veriGetir();
   }
 
   // Avukat -> hafta -> kayıtlar
@@ -157,6 +195,30 @@ export default function AdminOdemeler() {
     }
   }
 
+  // Excel'de açılabilen CSV (noktalı virgül ayraçlı, UTF-8 BOM'lu): vadesi gelen her avukat için bir satır.
+  function csvIndir() {
+    const tirnakla = (d) => `"${String(d ?? "").replace(/"/g, '""')}"`;
+    const satirlar = [["Ad Soyad", "IBAN", "Tutar (TL)", "Dönem(ler)"].map(tirnakla).join(";")];
+    for (const a of avukatlar) {
+      const gelenler = a.haftalar.filter((h) => h.vadesiGeldi);
+      if (a.vadesiGelenTutar <= 0 || gelenler.length === 0) continue;
+      const donemler = gelenler.map((h) => `${gunFormatla(h.basi)}-${gunFormatla(h.sonu)}`).join(" | ");
+      satirlar.push(
+        [a.adSoyad, a.iban ?? "IBAN YOK", String(a.vadesiGelenTutar).replace(".", ","), donemler]
+          .map(tirnakla)
+          .join(";")
+      );
+    }
+    if (satirlar.length === 1) return;
+    const blob = new Blob(["﻿" + satirlar.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const adres = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = adres;
+    a.download = `hakedis-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(adres);
+  }
+
   return (
     <AdminShell
       baslik="Avukat Ödemeleri"
@@ -181,13 +243,76 @@ export default function AdminOdemeler() {
             </div>
           </div>
 
-          {vadesiGelen > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {vadesiGelen > 0 && (
+              <>
+                <button
+                  onClick={havaleListesiniKopyala}
+                  className="w-fit rounded-full border border-yonetim-kenar px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/5"
+                >
+                  {kopyalandi ? "Kopyalandı ✓" : "Vadesi gelenlerin havale listesini kopyala (Ad, IBAN, Tutar)"}
+                </button>
+                <button
+                  onClick={csvIndir}
+                  className="w-fit rounded-full border border-yonetim-kenar px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/5"
+                >
+                  CSV indir
+                </button>
+              </>
+            )}
             <button
-              onClick={havaleListesiniKopyala}
+              onClick={() => setMahsupAcik((a) => !a)}
               className="w-fit rounded-full border border-yonetim-kenar px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/5"
             >
-              {kopyalandi ? "Kopyalandı ✓" : "Vadesi gelenlerin havale listesini kopyala (Ad, IBAN, Tutar)"}
+              {mahsupAcik ? "Mahsup formunu kapat" : "Mahsup / düzeltme ekle"}
             </button>
+          </div>
+
+          {mahsupAcik && (
+            <form
+              onSubmit={mahsupKaydet}
+              className="flex flex-col gap-3 rounded-xl border border-yonetim-kenar bg-yonetim-kutu p-4"
+            >
+              <p className="text-xs text-white/50">
+                İade, itiraz (chargeback) ya da hatalı ödeme sonrası avukatın sıradaki hakedişinden düşülecek tutar.
+                Eksi bakiyeli satır olarak yazılır ve o haftanın toplamından otomatik düşer.
+              </p>
+              <select
+                value={mahsup.avukatId}
+                onChange={(e) => setMahsup((m) => ({ ...m, avukatId: e.target.value }))}
+                className="rounded-lg border border-yonetim-kenar bg-yonetim px-3 py-2 text-sm text-white"
+              >
+                <option value="">Avukat seç</option>
+                {avukatSecenekleri.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.ad_soyad}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={mahsup.tutar}
+                onChange={(e) => setMahsup((m) => ({ ...m, tutar: e.target.value }))}
+                placeholder="Düşülecek tutar (TL), ör. 120"
+                className="rounded-lg border border-yonetim-kenar bg-yonetim px-3 py-2 text-sm text-white"
+              />
+              <input
+                type="text"
+                maxLength={200}
+                value={mahsup.aciklama}
+                onChange={(e) => setMahsup((m) => ({ ...m, aciklama: e.target.value }))}
+                placeholder="Açıklama (ör. 12 Kasım görüşmesi iade edildi)"
+                className="rounded-lg border border-yonetim-kenar bg-yonetim px-3 py-2 text-sm text-white"
+              />
+              <button
+                type="submit"
+                disabled={mahsupKaydediliyor}
+                className="w-fit rounded-full bg-vurgu px-4 py-2 text-xs font-bold text-yonetim disabled:opacity-50"
+              >
+                {mahsupKaydediliyor ? "Kaydediliyor..." : "Mahsubu kaydet"}
+              </button>
+            </form>
           )}
 
           {hata && <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400">{hata}</p>}

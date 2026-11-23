@@ -5,7 +5,7 @@ export const metadata = { title: "Gizlilik Politikası", description: "Hukukim'i
 
 export default function GizlilikPolitikasi() {
   return (
-    <YasalSayfaShell baslik="Gizlilik Politikası" guncellemeTarihi="26 Ekim 2026">
+    <YasalSayfaShell baslik="Gizlilik Politikası" guncellemeTarihi="23 Kasım 2026">
       <p>
         Bu gizlilik politikası, Hukukim platformunu kullanırken bilgilerinin
         nasıl toplandığını, kullanıldığını ve korunduğunu açıklar.
@@ -20,12 +20,19 @@ export default function GizlilikPolitikasi() {
       </p>
 
       <p>
-        Mobil uygulamada ayrıca, yalnızca ilgili özelliği kullandığında ve izin
-        verdiğinde şu bilgiler işlenir: görüntülü görüşme için kamera ve
-        mikrofon erişimi, bildirim gönderebilmek için cihaz bildirim kodu
-        (push token), profil fotoğrafı ve yüklediğin belgeler. Kamera ve
-        mikrofon yalnızca avukatınla yaptığın görüşme sırasında kullanılır;
-        görüşme görüntü ve sesi Hukukim tarafından kaydedilmez.
+        Görüntülü görüşme için tarayıcın kamera ve mikrofon izni ister; bu
+        izinler yalnızca avukatınla yaptığın görüşme sırasında kullanılır.
+        Görüşmelerin görüntü ve sesi Hukukim tarafından kaydedilmez. Yalnızca
+        görüşmenin gerçekleştiğini gösteren katılım bilgisi (görüşme numarası,
+        giriş zamanı, süre ve katılımcının rolü) tutulur. Bu kayıtlar, şikayet
+        ve itirazların incelenmesi içindir ve KVKK Aydınlatma Metni&apos;nde
+        belirtilen sürelerle saklanır. Görüşmeyi sen de karşı tarafın izni
+        olmadan kaydetmemelisin.
+      </p>
+      <p>
+        Ayrıca profil fotoğrafın, avukatlar için kimlik ve baro kartı
+        görüntüsü, hakediş için IBAN ve güvenlik amacıyla IP adresi ile oturum
+        kayıtları işlenir.
       </p>
 
       <h2>2. Bilgilerin Kullanımı</h2>
@@ -40,8 +47,8 @@ export default function GizlilikPolitikasi() {
         Hizmetin sunulabilmesi için sınırlı ölçüde şu hizmet sağlayıcılardan
         yararlanırız: veri altyapısı ve kimlik doğrulama için Supabase, kart
         ödemeleri için iyzico (kart bilgilerin Hukukim tarafından saklanmaz),
-        görüntülü görüşme için Daily.co, bildirimler için Expo. Bu
-        sağlayıcılar verileri yalnızca hizmeti sunmak amacıyla işler.
+        görüntülü görüşme için Daily.co, SMS doğrulama kodları için Netgsm,
+        barındırma için Vercel. Bu sağlayıcılar verileri yalnızca hizmeti sunmak amacıyla işler.
       </p>
 
       <h2>3. Veri Güvenliği</h2>
@@ -66,10 +73,9 @@ export default function GizlilikPolitikasi() {
 
       <h2>Hesabın ve Verilerin Silinmesi</h2>
       <p>
-        Hesabını istediğin zaman kalıcı olarak silebilirsin. Mobil uygulamada
-        Profil sayfasının (avukatlar için Avukat Paneli&apos;nin) en altındaki
-        &quot;Hesabımı kalıcı olarak sil&quot; seçeneğini kullan; web sitesinde
-        de aynı seçenek Ayarlar sayfasında bulunur. Silme işlemiyle profilin ve
+        Hesabını istediğin zaman kalıcı olarak silebilirsin. Ayarlar
+        sayfasındaki &quot;Hesabımı kalıcı olarak sil&quot; seçeneğini kullan.
+        Silme işlemiyle profilin ve
         kişisel verilerin sistemden kaldırılır. Devam eden bir talebin ya da
         avukatlar için ödenmemiş bir kazancın varsa, bunlar tamamlanana kadar
         silme yapılamaz. Yardım için: destek@hukukim.com

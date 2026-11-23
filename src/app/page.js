@@ -19,8 +19,6 @@ import {
   IconInstagram,
   IconTwitter,
   IconLinkedin,
-  IconApple,
-  IconGooglePlay,
 } from "@/components/icons";
 import { HUKUK_ALANLARI_KATEGORILERI } from "@/lib/hukukAlanlariKategorileri";
 import { supabase } from "@/lib/supabaseClient";
@@ -810,17 +808,6 @@ export default async function AnaSayfa() {
             <p className="relative mt-4 text-xs text-white/50">
               Kayıt ücretsiz · İlk 5 dakika ücretsiz deneme · Hesabını istediğin an silebilirsin
             </p>
-
-            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <span className="flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/70">
-                <IconApple className="h-4 w-4" />
-                App Store · Yakında
-              </span>
-              <span className="flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/70">
-                <IconGooglePlay className="h-4 w-4" />
-                Google Play · Yakında
-              </span>
-            </div>
           </div>
         </section>
       </main>

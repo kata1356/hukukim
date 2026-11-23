@@ -55,7 +55,7 @@ const BILGI = [
     konu: "Mobil uygulama",
     anahtarlar: ["mobil uygulama", "uygulama", "play store", "app store", "android", "iphone", "ios", "indir"],
     cevap:
-      "Mobil uygulamamız henüz mağazalarda yayında değil. Şu an hukukim.com adresini telefonunuzun tarayıcısından açarak tüm özellikleri kullanabilirsiniz.",
+      "Şu an mobil uygulamamız bulunmuyor. hukukim.com adresini telefonunuzun tarayıcısından açarak tüm özellikleri kullanabilirsiniz.",
   },
   {
     konu: "Ücretsiz deneme",
