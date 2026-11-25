@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Avukatlar",
-  description: "Baro sicili doğrulanmış avukatları incele.",
+  title: "Avukat Ekibimiz",
+  description: "Baro sicili doğrulanmış avukat ekibimizi incele.",
 };
 
 export default function Layout({ children }) {

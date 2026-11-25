@@ -96,11 +96,11 @@ export default function Avukatlar() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white sm:text-4xl">
-            Avukatlarımız
+            Avukat Ekibimiz
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-white/60 sm:text-base">
-            Hukukim&apos;e kayıtlı avukatları incele, uygun olanı bulup
-            randevu talebi gönder.
+            Baro sicili doğrulanmış avukat ekibimizi tanı, görüşmek
+            istediğin avukata randevu talebi gönder.
           </p>
         </div>
 

@@ -837,7 +837,7 @@ export default async function AnaSayfa() {
             <ul className="mt-4 flex flex-col gap-2 text-sm text-white/50">
               <li><a href="#hukuk-alanlari" className="hover:text-white">Hukuk Alanları</a></li>
               <li><Link href="/hukuk-alanlari" className="hover:text-white">Hukuk Alanları ve Hizmetler</Link></li>
-              <li><Link href="/avukatlar" className="hover:text-white">Avukatlarımız</Link></li>
+              <li><Link href="/avukatlar" className="hover:text-white">Avukat Ekibimiz</Link></li>
               <li><Link href="/mevzuat" className="hover:text-white">Mevzuat</Link></li>
             </ul>
           </div>
