@@ -4,24 +4,24 @@ import { SATICI_BILGILERI } from "@/lib/saticiBilgileri";
 export const metadata = {
   title: "Hakkımızda",
   description:
-    "Hukukim, müvekkilleri doğrulanmış avukatlarla online ve acil hukuki görüşme için buluşturan bir platformdur.",
+    "Hukukim, doğrulanmış avukat ekibiyle online ve acil hukuki görüşme hizmeti sunar.",
 };
 
 export default function Hakkimizda() {
   return (
-    <YasalSayfaShell baslik="Hakkımızda" guncellemeTarihi="9 Kasım 2026">
+    <YasalSayfaShell baslik="Hakkımızda" guncellemeTarihi="25 Kasım 2026">
       <p>
-        Hukukim, bağımsız avukatların (satıcılar) hizmetlerini müvekkillere (alıcılar) sunduğu bir hukuk pazar yeridir. Hukukim, hukuki desteğe ihtiyaç duyan kişileri kimliği ve ruhsatı
-        doğrulanmış avukatlarla hızlı, şeffaf ve güvenli biçimde buluşturan bir
-        online platformdur.
+        Hukukim, hukuki desteğe ihtiyaç duyan kişilere kimliği ve ruhsatı
+        doğrulanmış avukat ekibiyle hızlı, şeffaf ve güvenli biçimde online
+        görüşme hizmeti sunar.
       </p>
 
       <h2>Ne Yapıyoruz?</h2>
       <ul>
         <li>Müvekkiller hukuki sorunlarını platforma iletir.</li>
         <li>
-          Alanında uzman avukatlar talebi inceler ve görüntülü ya da yazılı
-          görüşme için randevu oluşturur.
+          Avukat ekibimizden alanında uzman avukat talebi inceler ve görüntülü
+          ya da yazılı görüşme için randevu oluşturur.
         </li>
         <li>
           &quot;Acil Avukat&quot; özelliğiyle ivedi durumlarda hızlıca bir
@@ -50,8 +50,8 @@ export default function Hakkimizda() {
       </ul>
 
       <p>
-        Hukukim bir hukuk bürosu değildir; bağımsız avukatlarla müvekkilleri
-        buluşturan bir aracı platformdur. Detaylar için{" "}
+        Görüşmeler, Hukukim ekibinde yer alan baro kayıtlı avukatlar tarafından
+        verilir. Detaylar için{" "}
         <a href="/kullanim-sartlari">Kullanım Şartları</a> ve{" "}
         <a href="/iletisim">İletişim</a> sayfalarına bakabilirsin.
       </p>

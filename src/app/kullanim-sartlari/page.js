@@ -11,11 +11,9 @@ export default function KullanimSartlari() {
 
       <h2>1. Platformun Niteliği</h2>
       <p>
-        Hukukim bir hukuk bürosu değildir ve doğrudan hukuki danışmanlık
-        sunmaz. Platform, hukuki desteğe ihtiyaç duyan kullanıcılar ile
-        bağımsız avukatlar arasında iletişim kurulmasını sağlayan bir
-        aracı teknoloji platformudur.
-
+        Hukukim, hukuki desteğe ihtiyaç duyan kullanıcılara online görüşme
+        hizmeti sunan bir platformdur. Görüşmeler, Hukukim ekibinde yer alan
+        baro kayıtlı avukatlar tarafından verilir.
       </p>
 
       <h2>2. Hesap Sorumluluğu</h2>
@@ -28,8 +26,8 @@ export default function KullanimSartlari() {
       <h2>3. Randevu Talepleri</h2>
       <p>
         Platform üzerinden gönderilen randevu talepleri bir sözleşme teklifi
-        niteliğinde değildir. Avukat ile müvekkil arasındaki nihai
-        vekalet/hizmet ilişkisi, taraflar arasında ayrıca kurulur.
+        niteliğinde değildir. Görüşme dışında bir vekalet ilişkisi
+        kurulacaksa bu, taraflar arasında ayrıca düzenlenir.
       </p>
 
       <h2>4. Ücretlendirme</h2>

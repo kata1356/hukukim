@@ -116,7 +116,7 @@ async function yapayZekaCevabi(kullaniciId, metin) {
 
   const bilgi = BILGI.map((k) => `- ${k.konu}: ${k.cevap}`).join("\n");
   const sistemMesaji =
-    "Sen Hukukim'in müşteri destek asistanısın. Hukukim, avukatlarla müvekkilleri buluşturan bir Türk hukuk platformudur.\n" +
+    "Sen Hukukim'in müşteri destek asistanısın. Hukukim, doğrulanmış avukat ekibiyle online hukuki görüşme hizmeti sunan bir Türk hukuk platformudur.\n" +
     "Aşağıdaki BİLGİ'de yer alan konularda kısa, sıcak ve net Türkçe yanıt ver (en fazla 4 cümle). Bilgi dışına çıkma, tahmin yürütme.\n" +
     "KURALLAR:\n" +
     "- Hukuki görüş, dava tavsiyesi ya da hak/yükümlülük yorumu ASLA verme.\n" +

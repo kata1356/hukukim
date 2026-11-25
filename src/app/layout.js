@@ -24,15 +24,15 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Hukukim | Avukat ve Müvekkil Buluşma Platformu",
+    default: "Hukukim | Online Hukuki Görüşme",
     template: "%s | Hukukim",
   },
   description:
-    "Hukukim, Türkiye'de avukatları müvekkillerle buluşturan güvenilir platform.",
+    "Hukukim, Türkiye'de doğrulanmış avukat ekibiyle online hukuki görüşme hizmeti sunar.",
   openGraph: {
-    title: "Hukukim | Avukat ve Müvekkil Buluşma Platformu",
+    title: "Hukukim | Online Hukuki Görüşme",
     description:
-      "Hukukim, Türkiye'de avukatları müvekkillerle buluşturan güvenilir platform.",
+      "Hukukim, Türkiye'de doğrulanmış avukat ekibiyle online hukuki görüşme hizmeti sunar.",
     url: SITE_URL,
     siteName: "Hukukim",
     locale: "tr_TR",
@@ -40,9 +40,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hukukim | Avukat ve Müvekkil Buluşma Platformu",
+    title: "Hukukim | Online Hukuki Görüşme",
     description:
-      "Hukukim, Türkiye'de avukatları müvekkillerle buluşturan güvenilir platform.",
+      "Hukukim, Türkiye'de doğrulanmış avukat ekibiyle online hukuki görüşme hizmeti sunar.",
   },
 };
 

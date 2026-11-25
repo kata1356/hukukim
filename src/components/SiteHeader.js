@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "#nasil-calisir", label: "Nasıl Çalışır?" },
   { href: "#hukuk-alanlari", label: "Hukuk Alanları" },
   { href: "#akilli-eslesme", label: "Akıllı Eşleşme" },
-  { href: "#pazar-yeri", label: "Pazar Yeri" },
+  { href: "#nasil-calisir", label: "Nasıl Çalışır" },
   { href: "#fiyatlandirma", label: "Ücretler" },
   { href: "#sss", label: "SSS" },
 ];

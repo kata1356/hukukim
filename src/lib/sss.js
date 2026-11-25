@@ -42,7 +42,7 @@ export const SSS_LISTESI = [
   {
     soru: "Hukukim bir hukuk bürosu mudur?",
     cevap:
-      "Hayır. Hukukim bir hukuk bürosu değildir ve doğrudan hukuki danışmanlık sunmaz. Platform, kullanıcılar ile bağımsız avukatlar arasında iletişim kurulmasını sağlar.",
+      "Hukukim, online hukuki görüşme hizmeti sunan bir platformdur. Görüşmeler, ekibimizde yer alan baro kayıtlı avukatlar tarafından verilir.",
   },
   {
     soru: "Avukat olarak nasıl başvurabilirim?",

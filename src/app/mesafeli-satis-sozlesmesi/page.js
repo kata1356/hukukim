@@ -40,10 +40,9 @@ export default function MesafeliSatisSozlesmesi() {
         ortamda sipariş verdiği, bir avukatla gerçekleştirilecek görüntülü,
         yüz yüze ya da yazılı danışmanlık görüşmesi hizmetinin satışı ve
         ifasına ilişkin olarak tarafların hak ve yükümlülüklerinin
-        belirlenmesidir. Hukukim bir hukuk bürosu değildir; hizmeti bizzat
-        avukat verir, Platform avukat ile müvekkili buluşturan ve ödeme
-        tahsilatını aracı ödeme kuruluşu üzerinden ileten teknoloji
-        sağlayıcısıdır.
+        belirlenmesidir. Hizmet, Satıcı&apos;nın ekibinde yer alan baro kayıtlı
+        avukatlar tarafından verilir; ödeme tahsilatı ödeme kuruluşu (iyzico)
+        üzerinden Satıcı&apos;ya yapılır.
       </p>
 
       <h2>3. Hizmetin Temel Niteliği, Fiyatı ve Ödeme Şekli</h2>
@@ -54,9 +53,7 @@ export default function MesafeliSatisSozlesmesi() {
         ödeme kuruluşu (iyzico) altyapısı üzerinden, kredi/banka kartı
         ile alınır. Kart bilgileri Hukukim sunucularında saklanmaz. Tüm
         fiyatlar Türk Lirası (TL) cinsindendir ve KDV dahildir; ödeme tek
-        çekim olarak alınır. Bedel Satıcı tarafından iyzico üzerinden
-        tahsil edilir; avukatın payı Satıcı tarafından avukata ayrıca ödenir.
-        Bu durum, Alıcı&apos;nın ödediği bedeli ve haklarını değiştirmez.
+        çekim olarak alınır.
       </p>
       <p>
         <strong>Ön Bilgilendirme:</strong> Alıcı, ödeme adımını onaylamadan
