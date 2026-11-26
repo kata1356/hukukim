@@ -2,7 +2,7 @@ export const SSS_LISTESI = [
   {
     soru: "Hukukim nasıl çalışır?",
     cevap:
-      "Müvekkil olarak kaydolur, ihtiyacın olan hukuk alanını seçip bir avukat arar ya da genel bir talep açarsın. Uygun avukatlar talebini görür, ilk yanıt veren avukat talebi üstlenir ve seninle iletişime geçer.",
+      "Müvekkil olarak kaydolursun, ihtiyacın olan hukuk alanını seçip bir avukat arayabilir ya da genel bir talep açabilirsin. Uygun avukatlar talebini görür, ilk yanıt veren avukat talebi üstlenir ve seninle iletişime geçer.",
   },
   {
     soru: "Avukatlar nasıl doğrulanıyor?",
