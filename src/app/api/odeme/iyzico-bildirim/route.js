@@ -3,7 +3,7 @@ import { iyzicoBildirimImzasiDogru } from "@/lib/iyzico";
 
 // iyzico işyeri bildirimi (webhook). Müşteri ödeme sonrası tarayıcısını kapatsa bile ödemenin
 // işlenmesini sağlar. Merchant Panel > Ayarlar > Firma Ayarları > İşyeri Bildirimleri'ne
-// https://hukukim.com/api/odeme/iyziokco-bildirim adresi girilir.
+// https://hukukim.com/api/odeme/iyzico-bildirim adresi girilir.
 // Güvenlik: gövdeden yalnızca token alınır, sonuç iyzico'dan kendi anahtarlarımızla sorgulanır; bu
 // yüzden sahte bir istek hiçbir ödemeyi başarılı yapamaz. İmza (varsa) yalnızca ek kontroldür.
 // Adres doğrulaması / tarayıcıdan erişim kontrolü için basit yanıt.
