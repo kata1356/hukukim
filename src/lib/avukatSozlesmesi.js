@@ -7,8 +7,8 @@
 //     İletişim" ve 13. madde "Sorumluluk ve Tazminat"); gerekirse düzelttir.
 //  3) Metni değiştirirsen SOZLESME_SURUMU'nu da değiştir.
 
-export const SOZLESME_SURUMU = "2026-11-23.1";
-export const SOZLESME_TARIHI = "23 Kasım 2026";
+export const SOZLESME_SURUMU = "2026-11-26.1";
+export const SOZLESME_TARIHI = "26 Kasım 2026";
 
 export const SIRKET = {
   unvan: "Ali Eren Ağırman (şahıs işletmesi)",
@@ -16,9 +16,9 @@ export const SIRKET = {
   vergiDairesi: "Atışalanı Vergi Dairesi, 0101272783",
   eposta: "hukukimcom@gmail.com",
   mahkeme: "İstanbul",
-  hakedisPeriyodu: "haftalık (Pazartesi-Pazar) dönemler hâlinde",
+  hakedisPeriyodu: "on günlük dönemler (ayın 1-10'u, 11-20'si ve 21'i-ay sonu günleri)",
   hakedisVadesi:
-    "dönemi izleyen haftanın Perşembe günü (bu gün resmi tatile veya bankaların kapalı olduğu bir güne denk gelirse takip eden ilk iş günü)",
+    "ödeme günleri 1-10. günler dönemi için ayın 18'i, 11-20. günler dönemi için ayın 28'i, 21. günden ay sonuna kadar olan dönem için sonraki ayın 8'idir (bu gün hafta sonuna, resmi tatile veya bankaların kapalı olduğu bir güne denk gelirse takip eden ilk iş günü)",
 };
 
 export const SOZLESME_BOLUMLERI = [
@@ -82,7 +82,7 @@ export const SOZLESME_BOLUMLERI = [
     baslik: "Ücret ve Hakediş",
     maddeler: [
       "Müvekkil'in ilgili Talep için Platform üzerinden ödediği brüt tutarın %60'ı (yüzde altmışı) Avukat'ın Hakediş'idir; kalan %40'ı Platform'un hizmet, altyapı ve işletme bedelidir. Ödeme kuruluşu ve işlem komisyonları Platform'un payından karşılanır ve Avukat'ın Hakediş'inden düşülmez.",
-      "Hakediş, Görüşme tamamlandığında Avukat'ın paneline yansır ve Platform tarafından Avukat'ın Ayarlar sayfasında beyan ettiği IBAN'a " + SIRKET.hakedisPeriyodu + " olarak, " + SIRKET.hakedisVadesi + " havale edilir. Hakediş ödemesi, Müvekkil'in ödemesinin Platform'a başarıyla ulaşmış olmasına bağlıdır.",
+      "Hakediş, Görüşme tamamlandığında Avukat'ın paneline yansır ve Platform tarafından Avukat'ın Ayarlar sayfasında beyan ettiği IBAN'a " + SIRKET.hakedisPeriyodu + " esas alınarak havale edilir; " + SIRKET.hakedisVadesi + ". Hakediş ödemesi, Müvekkil'in ödemesinin Platform'a başarıyla ulaşmış olmasına bağlıdır.",
       "Avukat, IBAN bilgisinin kendisine ait, doğru ve güncel olmasından sorumludur. Hatalı veya başkasına ait IBAN nedeniyle yapılan ödemelerden Platform sorumlu değildir.",
       "Ücretsiz Deneme için Hakediş doğmaz. Müvekkil'e iade edilen, ödemesi başarısız olan, itiraz edilen (chargeback) veya Avukat'ın kusuruyla gerçekleşemeyen Görüşme'lerde Hakediş doğmaz; daha önce ödenmişse Platform bu tutarı sonraki hakedişlerden mahsup edebilir veya Avukat'tan geri isteyebilir.",
       "Avukat, Platform'dan alacağı tutarlara ilişkin vergi ve diğer yasal yükümlülüklerinden (gelir vergisi, serbest meslek makbuzu veya e-serbest meslek makbuzu düzenleme, KDV, sosyal güvenlik vb.) kendisi sorumludur. Platform, mevzuatın zorunlu kıldığı kesintileri yapmaya ve bildirimleri vermeye yetkilidir.",

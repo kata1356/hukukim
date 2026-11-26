@@ -6,6 +6,7 @@ import { useAvukatProfili } from "@/lib/useAvukatProfili";
 import AvukatShell from "@/components/AvukatShell";
 import Spinner from "@/components/Spinner";
 import { IconOnay } from "@/components/icons";
+import { sonrakiOdemeGunu } from "@/lib/hakedisTakvimi";
 
 function tarihSaatFormatla(tarih) {
   return new Date(tarih).toLocaleString("tr-TR", {
@@ -22,12 +23,9 @@ function ayAdi(anahtar) {
   return new Date(Number(yil), Number(ay) - 1, 1).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
 }
 
-// Hakediş her hafta Perşembe günü ödenir (bir önceki Pazartesi-Pazar dönemi için). Bugün dahil, sıradaki Perşembe.
-function sonrakiOdemeGunu() {
-  const t = new Date();
-  t.setHours(0, 0, 0, 0);
-  t.setDate(t.getDate() + ((4 - t.getDay() + 7) % 7));
-  return t.toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
+// Hakediş on günlük dönemler için ayın 18'i, 28'i ve sonraki ayın 8'inde ödenir (src/lib/hakedisTakvimi.js).
+function sonrakiOdemeGunuMetni() {
+  return sonrakiOdemeGunu().toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
 }
 
 export default function AvukatBakiye() {
@@ -156,9 +154,9 @@ export default function AvukatBakiye() {
 
           <p className="flex items-start gap-2 rounded-xl bg-gece-yuzey px-4 py-3 text-xs leading-relaxed text-white/40">
             <IconOnay className="mt-0.5 h-4 w-4 shrink-0 text-turkuaz" />
-            Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin her hafta Perşembe günü, Ayarlar sayfasına girdiğin
-            IBAN&apos;a havale ile gönderilir: o gün, bir önceki haftanın (Pazartesi-Pazar) hakedişi ödenir. Sıradaki
-            ödeme günü: <span className="font-semibold text-white/70">{sonrakiOdemeGunu()}</span>. İade veya itiraz
+            Görüşme ücretinin %60&apos;ı sana ait. Hakedişlerin on günlük dönemler hâlinde, Ayarlar sayfasına girdiğin
+            IBAN&apos;a havale ile gönderilir: 1-10. günler için ayın 18&apos;inde, 11-20. günler için 28&apos;inde, 21. günden
+            ay sonuna kadar olanlar için sonraki ayın 8&apos;inde. Sıradaki ödeme günü: <span className="font-semibold text-white/70">{sonrakiOdemeGunuMetni()}</span>. İade veya itiraz
             edilen görüşmelerin tutarı sonraki hakedişten düşülür.
           </p>
         </aside>

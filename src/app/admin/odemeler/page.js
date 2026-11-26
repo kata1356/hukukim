@@ -3,22 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import AdminShell from "@/components/AdminShell";
+import { donemBul } from "@/lib/hakedisTakvimi";
 
-// Hakediş düzeni (Avukat Hizmet Sözleşmesi Madde 7): haftalık dönemler (Pazartesi-Pazar),
-// ödeme günü dönemi izleyen haftanın Perşembe'si. Resmi tatil kontrolü yapılmaz; Perşembe tatile
-// denk gelirse ödemeyi bir sonraki iş gününe elle kaydır (sözleşme metni de böyle der).
-function haftaBasi(tarih) {
-  const t = new Date(tarih);
-  t.setHours(0, 0, 0, 0);
-  t.setDate(t.getDate() - ((t.getDay() + 6) % 7));
-  return t;
-}
-
-function vadeTarihi(basi) {
-  const v = new Date(basi);
-  v.setDate(v.getDate() + 10); // Pazartesi + 10 gün = sonraki haftanın Perşembe'si
-  return v;
-}
+// Hakediş düzeni (Avukat Hizmet Sözleşmesi Madde 7): on günlük dönemler (1-10, 11-20, 21-ay sonu),
+// ödeme günleri sırasıyla ayın 18'i, 28'i ve sonraki ayın 8'i. Hesap src/lib/hakedisTakvimi.js'te.
 
 function gunFormatla(tarih) {
   return tarih.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" });
@@ -89,7 +77,7 @@ export default function AdminOdemeler() {
     await veriGetir();
   }
 
-  // Avukat -> hafta -> kayıtlar
+  // Avukat -> dönem -> kayıtlar
   const { avukatlar, vadesiGelen, vadesiGelmeyen, odenen } = useMemo(() => {
     const simdi = new Date();
     const avukatHaritasi = new Map();
@@ -114,12 +102,9 @@ export default function AdminOdemeler() {
       }
       const avukat = avukatHaritasi.get(k.avukat_id);
 
-      const basi = haftaBasi(k.tarih);
+      const { basi, sonu, vade } = donemBul(k.tarih);
       const anahtar = basi.toISOString();
       if (!avukat.haftalar.has(anahtar)) {
-        const vade = vadeTarihi(basi);
-        const sonu = new Date(basi);
-        sonu.setDate(sonu.getDate() + 6);
         avukat.haftalar.set(anahtar, {
           anahtar,
           basi,
@@ -222,7 +207,7 @@ export default function AdminOdemeler() {
   return (
     <AdminShell
       baslik="Avukat Ödemeleri"
-      aciklama="Avukatlara haftalık hakediş havalesi: her hafta (Pazartesi-Pazar) dönemi, izleyen haftanın Perşembe günü ödenir."
+      aciklama="Avukatlara hakediş havalesi: on günlük dönemler (1-10, 11-20, 21-ay sonu); ödeme günleri ayın 18'i, 28'i ve sonraki ayın 8'i."
     >
       {yukleniyor ? (
         <p className="text-sm text-white/40">Yükleniyor...</p>
@@ -275,7 +260,7 @@ export default function AdminOdemeler() {
             >
               <p className="text-xs text-white/50">
                 İade, itiraz (chargeback) ya da hatalı ödeme sonrası avukatın sıradaki hakedişinden düşülecek tutar.
-                Eksi bakiyeli satır olarak yazılır ve o haftanın toplamından otomatik düşer.
+                Eksi bakiyeli satır olarak yazılır ve o dönemin toplamından otomatik düşer.
               </p>
               <select
                 value={mahsup.avukatId}
